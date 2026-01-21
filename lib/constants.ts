@@ -17,6 +17,7 @@ export const desaData: { [key: string]: string[] } = {
     "Pakuan",
     "Pondok Rumput",
     "Tajur",
+    "PPPM BIGG",
   ],
   "Gunung Sindur": ["CIP 1", "CIP 2", "GIS", "Mutiara"],
   Margajaya: [
@@ -27,6 +28,7 @@ export const desaData: { [key: string]: string[] } = {
     "Dewi Sartika",
     "Margajaya 1",
     "Margajaya 2",
+    "PPM BI",
   ],
   Salabenda: [
     "Parakan Jaya",
