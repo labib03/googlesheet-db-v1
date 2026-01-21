@@ -41,29 +41,114 @@ function SubmitButton() {
 
 export function AddDataDialog({ headers }: AddDataDialogProps) {
   const [open, setOpen] = useState(false);
+  const [selectedDesa, setSelectedDesa] = useState<string>("");
 
-  async function clientAction(prevState: any, formData: FormData) {
-    const result = await addData(prevState, formData);
-    if (result.success) {
-      setOpen(false);
-      // Optional: Add toast notification here if you have a toast library installed
-      // alert('Data berhasil ditambahkan!'); 
-    } else {
-      alert(result.message);
-    }
-    return result;
-  }
+  // Data mapping for Desa -> Kelompok
+  const desaData: { [key: string]: string[] } = {
+    "Budi Agung": ["Budi Agung 1", "Budi Agung 2", "Cilebut 1", "Cilebut 2", "Cimanggu", "Kebon Pedes"],
+    "Ciparigi": ["Ciparigi 1", "Ciparigi 2", "Warung Jambu"],
+    "Cipayung": ["Al-Badar", "Al-Ubaidah", "Ciawi", "Tapos"],
+    "Gunung Gede": ["Ciapus", "Cikaret", "Green Arofah", "Gunung Gede", "Pakuan", "Pondok Rumput", "Tajur"],
+    "Gunung Sindur": ["CIP 1", "CIP 2", "GIS", "Mutiara"],
+    "Margajaya": ["Cibanteng", "Cibungbulang", "Ciherang", "Ciomas", "Dewi Sartika", "Margajaya 1", "Margajaya 2"],
+    "Salabenda": ["Parakan Jaya", "Permata Sari", "Pura Bojong", "Salabenda", "Yasmin"],
+    "Sawangan": ["BSI", "Ciseeng", "Inkopad", "Muara Barokah", "Sawangan"]
+  };
 
-  // Using a simple wrapper since useFormState might need newer React/Next versions config
   const handleSubmit = async (formData: FormData) => {
-    // For simplicity in this demo, we'll just call the action directly
-    // Ideally use useFormState for better error handling
+    // Basic validation
+    // If 'Kelompok' is needed but disabled/empty, we might want to ensure it's handled, 
+    // but the required attribute on the select should handle empty submissions if enabled.
+    
+    // Show loading toast or state if desired (not implemented here for simplicity, using form status pending)
+    
     const result = await addData(null, formData);
     if (result.success) {
       setOpen(false);
+      setSelectedDesa(""); // Reset desa
+      toast.success(result.message);
     } else {
-      alert(`Gagal: ${result.message}`);
+        toast.error(`Gagal: ${result.message}`);
     }
+  };
+
+  const renderInput = (header: string) => {
+    // 1. Tanggal Lahir -> Date Input
+    if (header === 'Tanggal Lahir') {
+      return (
+        <Input
+          id={header}
+          name={header}
+          type="date"
+          className="col-span-3"
+          required
+        />
+      );
+    }
+
+    // 2. isMarried -> Dropdown (1/0)
+    if (header === 'isMarried') {
+      return (
+        <select
+          id={header}
+          name={header}
+          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          required
+        >
+          <option value="">Pilih Status</option>
+          <option value="1">Sudah</option>
+          <option value="0">Belum</option>
+        </select>
+      );
+    }
+
+    // 3. Desa -> Dropdown
+    if (header === 'Desa') {
+      return (
+        <select
+          id={header}
+          name={header}
+          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          required
+          value={selectedDesa}
+          onChange={(e) => setSelectedDesa(e.target.value)}
+        >
+          <option value="">Pilih Desa</option>
+          {Object.keys(desaData).map((desa) => (
+            <option key={desa} value={desa}>{desa}</option>
+          ))}
+        </select>
+      );
+    }
+
+    // 4. Kelompok -> Dependent Dropdown
+    if (header === 'Kelompok') {
+      return (
+        <select
+          id={header}
+          name={header}
+          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          required
+          disabled={!selectedDesa}
+        >
+          <option value="">Pilih Kelompok</option>
+          {selectedDesa && desaData[selectedDesa]?.map((kelompok) => (
+            <option key={kelompok} value={kelompok}>{kelompok}</option>
+          ))}
+        </select>
+      );
+    }
+
+    // Default -> Text Input
+    return (
+      <Input
+        id={header}
+        name={header}
+        placeholder={`Isi ${header}...`}
+        className="col-span-3"
+        required
+      />
+    );
   };
 
   return (
@@ -74,7 +159,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
           Tambah Data
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Tambah Data Baru</DialogTitle>
           <DialogDescription>
@@ -88,13 +173,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
                 <Label htmlFor={header} className="text-right capitalize">
                   {header}
                 </Label>
-                <Input
-                  id={header}
-                  name={header}
-                  placeholder={`Isi ${header}...`}
-                  className="col-span-3"
-                  required
-                />
+                {renderInput(header)}
               </div>
             ))}
           </div>
