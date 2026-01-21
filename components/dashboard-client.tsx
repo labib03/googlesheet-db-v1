@@ -234,7 +234,7 @@ export function DashboardClient({
                   const nextDesa = e.target.value;
                   startTransition(() => {
                     setFilterDesa(nextDesa);
-                    setFilterKelompok("");
+                    // setFilterKelompok("");
                     setCurrentPage(1);
                   });
                 }}
@@ -364,24 +364,24 @@ export function DashboardClient({
               {/* Desktop Table View */}
               <div className="hidden md:block rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden bg-white dark:bg-slate-950 shadow-sm">
                 <Table>
-                  <TableHeader className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
+                  <TableHeader className="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
                     <TableRow>
-                      <TableHead className="w-12 text-center font-bold text-slate-700 dark:text-slate-200">
+                      <TableHead className="w-12 text-center font-bold text-slate-700 dark:text-slate-200 border">
                         No
                       </TableHead>
                       {headers.map((header) => (
                         <TableHead
                           key={header}
-                          className="font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap"
+                          className="font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap border"
                         >
                           {header}
                         </TableHead>
                       ))}
-                      <TableHead className="font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap text-center">
+                      <TableHead className="font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap text-center border">
                         Umur
                       </TableHead>
                       {isEnableAction && (
-                        <TableHead className="font-bold text-slate-700 dark:text-slate-200 text-center">
+                        <TableHead className="font-bold text-slate-700 dark:text-slate-200 text-center border">
                           Aksi
                         </TableHead>
                       )}
@@ -394,24 +394,24 @@ export function DashboardClient({
                       return (
                         <TableRow
                           key={originalIndex}
-                          className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors"
+                          className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors border"
                         >
-                          <TableCell className="text-center font-medium text-slate-500">
+                          <TableCell className="text-center font-medium text-slate-500 border">
                             {(currentPage - 1) * pageSize + index + 1}
                           </TableCell>
                           {headers.map((header) => (
                             <TableCell
                               key={`${originalIndex}-${header}`}
-                              className="whitespace-normal max-w-64"
+                              className="whitespace-normal max-w-64 border"
                             >
                               {getValue(header, row[header])}
                             </TableCell>
                           ))}
-                          <TableCell className="whitespace-nowrap">
+                          <TableCell className="whitespace-nowrap border">
                             {row["Umur"] ? `${row["Umur"]} Tahun` : "-"}
                           </TableCell>
                           {isEnableAction && (
-                            <TableCell className="text-right">
+                            <TableCell className="text-right border">
                               <div className="flex justify-end gap-2">
                                 <DataDetailDialog
                                   row={row}
