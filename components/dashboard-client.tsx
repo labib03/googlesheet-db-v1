@@ -47,7 +47,7 @@ export function DashboardClient({
   const [filterKelompok, setFilterKelompok] = useState("");
   const [filterGender, setFilterGender] = useState("");
   const [filterNama, setFilterNama] = useState("");
-  const [debouncedValue] = useDebounceValue(filterNama, 1000)
+  const [debouncedValue] = useDebounceValue(filterNama, 1000);
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -61,20 +61,22 @@ export function DashboardClient({
   const desaOptions = useMemo(() => Object.keys(desaData).sort(), []);
 
   const kelompokOptions = useMemo(() => {
-    if (filterDesa) {
-      return [...(desaData[filterDesa] || [])].sort();
-    }
-    const allKelompok = Object.values(desaData).flat();
-    return Array.from(new Set(allKelompok)).sort();
-  }, [filterDesa]);
-  
+    // if (filterDesa) {
+    //   return [...(desaData[filterDesa] || [])].sort();
+    // }
+    // const allKelompok = Object.values(desaData).flat();
+    // return Array.from(new Set(allKelompok)).sort();
+
+    // munculin semua kelompok tana filter desa
+    return Object.values(desaData).flat();
+  }, []);
+
   const handleChangeNama = (nama: string) => {
     setFilterNama(nama);
   };
 
   // Filter Data
   const filteredData = useMemo(() => {
-
     return initialData.filter((row) => {
       const matchDesa = filterDesa
         ? String(row["DESA"] || "").toLowerCase() === filterDesa.toLowerCase()
@@ -103,7 +105,7 @@ export function DashboardClient({
   const totalPages = Math.ceil(filteredData.length / pageSize);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * pageSize,
-    currentPage * pageSize
+    currentPage * pageSize,
   );
 
   // NOTE: Reset pagination + loading feedback is handled via startTransition()
@@ -121,9 +123,9 @@ export function DashboardClient({
 
   useEffect(() => {
     startTransition(() => {
-        setCurrentPage(1);
-      });
-  }, [debouncedValue])
+      setCurrentPage(1);
+    });
+  }, [debouncedValue]);
 
   const scrollToDataTopWithOffset = () => {
     const element = dataTopRef.current;
@@ -206,7 +208,6 @@ export function DashboardClient({
             </Link>
           </Button>
           {isEnableAction && <AddDataDialog headers={headers} />}
-          <RefreshButton />
         </div>
       </div>
 
@@ -262,7 +263,7 @@ export function DashboardClient({
                     setCurrentPage(1);
                   });
                 }}
-                disabled={!filterDesa}
+                // disabled={!filterDesa}
               >
                 <option value="">Semua Kelompok</option>
                 {kelompokOptions.map((k) => (
@@ -306,6 +307,7 @@ export function DashboardClient({
               <input
                 className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[180px]"
                 value={filterNama}
+                placeholder="Cari berdasarkan nama..."
                 onChange={(e) => {
                   const nama = e.target.value;
                   handleChangeNama(nama);
@@ -315,12 +317,14 @@ export function DashboardClient({
           </div>
         </div>
 
-        <div className="mt-4">
+        <div className="mt-6 flex items-center gap-3">
           <Button onClick={resetFilters}>
             <span className="flex flex-row items-center gap-2.5">
               <X className="w-4 h-4" /> Reset Filter
             </span>
           </Button>
+
+          <RefreshButton />
         </div>
       </div>
 
@@ -419,7 +423,7 @@ export function DashboardClient({
                                   row={row}
                                   rowIndex={originalIndex}
                                 />
-                                <DeleteDataDialog rowIndex={originalIndex} />
+                                {/* <DeleteDataDialog rowIndex={originalIndex} /> */}
                               </div>
                             </TableCell>
                           )}
@@ -431,7 +435,7 @@ export function DashboardClient({
               </div>
 
               {/* Mobile Card View */}
-              <div className="md:hidden grid gap-4">
+              <div className="md:hidden grid gap-8">
                 {paginatedData.map((row, index) => {
                   const originalIndex = Number(row["_index"]);
                   return (
@@ -483,19 +487,19 @@ export function DashboardClient({
                       </DataDetailDialog>
                       {/* Actions */}
                       {isEnableAction && (
-                        <div className="grid grid-cols-2">
+                        <div className="grid grid-cols-1">
                           <EditDataDialog row={row} rowIndex={originalIndex}>
                             <button className="w-full h-full flex items-center justify-center gap-2 py-4 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 font-semibold text-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border-t border-r border-indigo-100 dark:border-indigo-900/50">
                               <Pencil className="w-4 h-4" />
                               Edit Data
                             </button>
                           </EditDataDialog>
-                          <DeleteDataDialog rowIndex={originalIndex}>
+                          {/* <DeleteDataDialog rowIndex={originalIndex}>
                             <button className="w-full h-full flex items-center justify-center gap-2 py-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors border-t border-red-100 dark:border-red-900/50">
                               <Trash2 className="w-4 h-4" />
                               Hapus
                             </button>
-                          </DeleteDataDialog>
+                          </DeleteDataDialog> */}
                         </div>
                       )}
                     </div>
@@ -539,7 +543,7 @@ export function DashboardClient({
                       size="sm"
                       onClick={() =>
                         startTransition(() =>
-                          setCurrentPage((p) => Math.max(1, p - 1))
+                          setCurrentPage((p) => Math.max(1, p - 1)),
                         )
                       }
                       disabled={currentPage === 1}
@@ -553,7 +557,7 @@ export function DashboardClient({
                       size="sm"
                       onClick={() =>
                         startTransition(() =>
-                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                          setCurrentPage((p) => Math.min(totalPages, p + 1)),
                         )
                       }
                       disabled={currentPage === totalPages}

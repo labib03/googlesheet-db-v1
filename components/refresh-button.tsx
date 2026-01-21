@@ -31,7 +31,7 @@ export function RefreshButton() {
       ) : (
         <>
           <RefreshCcw className="h-4 w-4" />
-          Refresh
+          Refresh Data
         </>
       )}
     </Button>

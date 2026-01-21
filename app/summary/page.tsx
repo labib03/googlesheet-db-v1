@@ -90,7 +90,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
     } else {
       // If not found, try to match with canonical desa names
       const canonicalMatch = desaCanonical.find(
-        (d) => normalize(d) === selectedDesaKey
+        (d) => normalize(d) === selectedDesaKey,
       );
       selectedDesaLabel = canonicalMatch || selectedDesaParam || null;
     }
@@ -105,10 +105,12 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   if (selectedDesaKey && selectedDesaLabel) {
     // Try to seed from canonical desaData mapping if we can match
     const canonicalMatch = desaCanonical.find(
-      (d) => normalize(d) === selectedDesaKey
+      (d) => normalize(d) === selectedDesaKey,
     );
+
     if (canonicalMatch && desaData[canonicalMatch]) {
       for (const k of desaData[canonicalMatch]) {
+        console.log("Seeding Kelompok for:", k);
         kelompokCountForSelected.set(normalize(k), {
           label: k,
           count: 0,
@@ -127,6 +129,8 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
       const kelompokLabel = displayOrFallback(kelompokRaw, "Tidak terisi");
 
       if (!kelompokCountForSelected.has(kelompokKey)) {
+        console.log("Adding Kelompok for:", kelompokRaw);
+        console.log("Kelompok Label:", row);
         kelompokCountForSelected.set(kelompokKey, {
           label: kelompokLabel,
           count: 0,
@@ -135,15 +139,19 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
       }
 
       kelompokCountForSelected.get(kelompokKey)!.count += 1;
+
+      // console.log("Counting Kelompok:", kelompokCountForSelected);
     }
   }
 
   const kelompokList =
     selectedDesaKey && selectedDesaLabel
       ? Array.from(kelompokCountForSelected.values()).sort((a, b) =>
-          a.label.localeCompare(b.label, "id-ID")
+          a.label.localeCompare(b.label, "id-ID"),
         )
       : [];
+
+  console.log("Kelompok List:", kelompokCountForSelected.values());
 
   const totalRows = rows.length;
   const showKelompok = selectedDesaKey && selectedDesaLabel;
