@@ -16,17 +16,65 @@ import { Database } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
+// Helper to calculate age from various date formats
+function calculateAge(dateString: string): string {
+  if (!dateString) return '-';
+
+  try {
+    // Handle Indonesian month names
+    const monthMap: { [key: string]: string } = {
+      'Januari': 'January', 'Februari': 'February', 'Maret': 'March',
+      'April': 'April', 'Mei': 'May', 'Juni': 'June',
+      'Juli': 'July', 'Agustus': 'August', 'September': 'September',
+      'Oktober': 'October', 'November': 'November', 'Desember': 'December'
+    };
+
+    let processedDate = dateString;
+    Object.keys(monthMap).forEach(indoMonth => {
+      if (dateString.includes(indoMonth)) {
+        processedDate = dateString.replace(indoMonth, monthMap[indoMonth]);
+      }
+    });
+
+    const birthDate = new Date(processedDate);
+    if (isNaN(birthDate.getTime())) return dateString; // Return original if parse fails
+
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    
+    return age.toString();
+  } catch (e) {
+    return dateString;
+  }
+}
+
 export default async function Home() {
   let data: SheetRow[] = [];
   let error: string | null = null;
   let headers: string[] = [];
 
   try {
-    data = await getSheetData();
-
-    console.log("data ==>", data);
-
-    if (data.length > 0) {
+    const rawData = await getSheetData();
+    
+    if (rawData.length > 0) {
+      // Calculate Age for each row
+      data = rawData.map(row => {
+        const tanggalLahir = String(row['Tanggal Lahir'] || '');
+        // Only override 'Umur' if 'Tanggal Lahir' is present
+        if (tanggalLahir.trim()) {
+           return {
+             ...row,
+             'Umur': calculateAge(tanggalLahir)
+           };
+        }
+        // Otherwise keep original 'Umur' from sheet
+        return row;
+      });
       headers = Object.keys(data[0]);
     }
   } catch (err) {
