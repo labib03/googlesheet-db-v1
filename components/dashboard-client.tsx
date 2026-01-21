@@ -84,8 +84,9 @@ export function DashboardClient({
         : true;
 
       const matchNama = filterNama
-        ? String(row["NAMA LENGKAP"] || "").toLowerCase() ===
-          filterNama.toLowerCase()
+        ? String(row["NAMA LENGKAP"] || "")
+            .toLowerCase()
+            .includes(filterNama.toLowerCase())
         : true;
 
       return matchDesa && matchKelompok && matchGender && matchNama;
