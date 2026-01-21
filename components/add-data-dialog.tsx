@@ -200,10 +200,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
                     key={header}
                     className="grid grid-cols-4 items-center gap-4"
                   >
-                    <Label
-                      htmlFor={header}
-                      className="text-right capitalize flex justify-end items-center gap-1"
-                    >
+                    <Label htmlFor={header} className="text-left capitalize">
                       {header}
                       {isRequired && <span className="text-red-500">*</span>}
                     </Label>
@@ -213,6 +210,10 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
               })}
           </div>
           <DialogFooter>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+
             <SubmitButton />
           </DialogFooter>
         </form>

@@ -56,7 +56,7 @@ export function EditDataDialog({
   const [open, setOpen] = useState(false);
   // Initialize Desa from existing data
   const [selectedDesa, setSelectedDesa] = useState<string>(
-    String(row["DESA"] || "")
+    String(row["DESA"] || ""),
   );
 
   // Sheet Row Index calculation
@@ -258,7 +258,7 @@ export function EditDataDialog({
                 (header) =>
                   header !== "_index" &&
                   header !== "Timestamp" &&
-                  header !== "Umur"
+                  header !== "Umur",
               )
               .map((header) => {
                 const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
@@ -282,6 +282,10 @@ export function EditDataDialog({
               })}
           </div>
           <DialogFooter>
+            <Button variant="secondary" onClick={() => setOpen(false)}>
+              Close
+            </Button>
+
             <SubmitButton />
           </DialogFooter>
         </form>
