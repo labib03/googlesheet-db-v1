@@ -14,7 +14,7 @@ import { DataDetailDialog } from '@/components/data-detail-dialog';
 import { AddDataDialog } from '@/components/add-data-dialog';
 import { EditDataDialog } from '@/components/edit-data-dialog';
 import { DeleteDataDialog } from '@/components/delete-data-dialog';
-import { Database } from 'lucide-react';
+import { Database, Pencil, Trash2, Eye } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
@@ -162,7 +162,8 @@ export default async function Home() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="overflow-x-auto">
+              {/* Desktop View: Table */}
+              <div className="hidden md:block overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-slate-50/80 dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-900">
@@ -200,6 +201,96 @@ export default async function Home() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+
+              {/* Mobile View: Cards */}
+              <div className="md:hidden grid gap-4 p-4">
+                {data.map((row, index) => {
+                  // Friendly Label Mapping
+                  const labelMap: { [key: string]: string } = {
+                    'Tanggal Lahir': 'Tgl Lahir',
+                    'isMarried': 'Status Menikah',
+                    'Nama': 'Nama Lengkap',
+                    'Desa': 'Desa / Cabang',
+                    'Kelompok': 'Kelompok Pengajian',
+                    'Umur': 'Usia'
+                  };
+
+                  const getKey = (header: string) => labelMap[header] || header;
+
+                  // Format Value (e.g. isMarried 1/0 to text)
+                  const getValue = (header: string, val: any) => {
+                     if (header === 'isMarried') {
+                        return val === '1' || val === 1 ? 'Sudah Menikah' : 'Belum Menikah';
+                     }
+                     return String(val || '-');
+                  };
+
+                  return (
+                    <div key={index} className="bg-white dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+                        {/* Detail Trigger Wrapper */}
+                        <DataDetailDialog row={row} title={`Detail ${row['Nama'] || 'Data'}`}>
+                            <div className="p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors flex-grow">
+                                {/* Card Header */}
+                                <div className="flex items-center gap-4 mb-5 border-b border-slate-100 dark:border-slate-800 pb-4">
+                                    <div className="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 font-bold text-xl ring-4 ring-indigo-50 dark:ring-indigo-950/50">
+                                        {index + 1}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 truncate">
+                                            {String(row['Nama'] || row['Name'] || 'Data Item')}
+                                        </h3>
+                                        {(row['Kelas'] || row['Umur']) && (
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                                                {row['Kelas'] ? row['Kelas'] : ''} 
+                                                {row['Kelas'] && row['Umur'] ? ' • ' : ''}
+                                                {row['Umur'] ? `${row['Umur']} Tahun` : ''}
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div className="text-slate-300 dark:text-slate-600">
+                                       <Eye className="w-5 h-5" />
+                                    </div>
+                                </div>
+
+                                {/* Card Data Fields (Stacked) */}
+                                <div className="space-y-4">
+                                    {headers.slice(0, 5).map(header => {
+                                        if (header === 'Nama' || header === 'Name') return null;
+                                        
+                                        return (
+                                            <div key={header} className="flex flex-col">
+                                                <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                                    {getKey(header)}
+                                                </span>
+                                                <span className="text-base font-semibold text-slate-700 dark:text-slate-200 break-words leading-relaxed">
+                                                    {getValue(header, row[header])}
+                                                </span>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+                            </div>
+                        </DataDetailDialog>
+
+                        {/* Large Action Buttons */}
+                        <div className="grid grid-cols-2">
+                             <EditDataDialog row={row} rowIndex={index}>
+                                <button className="flex items-center justify-center gap-2 py-4 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 font-semibold text-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border-t border-r border-indigo-100 dark:border-indigo-900/50">
+                                    <Pencil className="w-4 h-4" />
+                                    Edit Data
+                                </button>
+                             </EditDataDialog>
+                             
+                             <DeleteDataDialog rowIndex={index}>
+                                <button className="flex items-center justify-center gap-2 py-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors border-t border-red-100 dark:border-red-900/50">
+                                    <Trash2 className="w-4 h-4" />
+                                    Hapus
+                                </button>
+                             </DeleteDataDialog>
+                        </div>
+                  </div>
+                )})}
               </div>
             </CardContent>
           </Card>

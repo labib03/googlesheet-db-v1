@@ -18,9 +18,10 @@ import { Trash2, Loader2 } from 'lucide-react';
 
 interface DeleteDataDialogProps {
   rowIndex: number;
+  children?: React.ReactNode;
 }
 
-export function DeleteDataDialog({ rowIndex }: DeleteDataDialogProps) {
+export function DeleteDataDialog({ rowIndex, children }: DeleteDataDialogProps) {
   const [open, setOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -42,9 +43,13 @@ export function DeleteDataDialog({ rowIndex }: DeleteDataDialogProps) {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {children ? (
+            children
+        ) : (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+        )}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

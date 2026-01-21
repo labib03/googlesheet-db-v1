@@ -16,16 +16,21 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 interface DataDetailDialogProps {
   row: SheetRow;
   title?: string;
+  children?: React.ReactNode;
 }
 
-export function DataDetailDialog({ row, title = "Detail Data" }: DataDetailDialogProps) {
+export function DataDetailDialog({ row, title = "Detail Data", children }: DataDetailDialogProps) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50">
-          <Eye className="h-4 w-4" />
-          <span className="sr-only">Lihat Detail</span>
-        </Button>
+        {children ? (
+            children
+        ) : (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/50">
+              <Eye className="h-4 w-4" />
+              <span className="sr-only">Lihat Detail</span>
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="max-w-md sm:max-w-lg">
         <DialogHeader>

@@ -21,6 +21,7 @@ import { SheetRow } from '@/lib/google-sheets';
 interface EditDataDialogProps {
   row: SheetRow;
   rowIndex: number; // 0-based index from data array, mapping to sheet index handled in action/lib
+  children?: React.ReactNode;
 }
 
 function SubmitButton() {
@@ -40,7 +41,7 @@ function SubmitButton() {
   );
 }
 
-export function EditDataDialog({ row, rowIndex }: EditDataDialogProps) {
+export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps) {
   const [open, setOpen] = useState(false);
   // Initialize Desa from existing data
   const [selectedDesa, setSelectedDesa] = useState<string>(String(row['Desa'] || ''));
@@ -217,9 +218,13 @@ export function EditDataDialog({ row, rowIndex }: EditDataDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
-          <Pencil className="h-4 w-4" />
-        </Button>
+        {children ? (
+            children
+        ) : (
+            <Button variant="ghost" size="icon" className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50">
+              <Pencil className="h-4 w-4" />
+            </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
