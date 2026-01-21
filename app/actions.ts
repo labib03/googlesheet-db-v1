@@ -15,6 +15,18 @@ export async function addData(prevState: any, formData: FormData) {
       }
     }
 
+    // Auto-add Timestamp with current date and time
+    const now = new Date();
+    const timestamp = now.toLocaleString('id-ID', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    rawData['Timestamp'] = timestamp;
+
     await appendSheetData(rawData);
     revalidatePath('/');
     
@@ -37,6 +49,18 @@ export async function updateData(rowIndex: number, prevState: any, formData: For
         rawData[key] = value.toString();
       }
     }
+
+    // Auto-update Timestamp with current date and time
+    const now = new Date();
+    const timestamp = now.toLocaleString('id-ID', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+    });
+    rawData['Timestamp'] = timestamp;
 
     await updateSheetData(rowIndex, rawData);
     revalidatePath('/');

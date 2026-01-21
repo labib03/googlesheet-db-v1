@@ -4,6 +4,10 @@ export interface SheetRow {
   [key: string]: string | number | boolean;
 }
 
+// Get default sheet name from environment variable, fallback to "Sheet1"
+const DEFAULT_SHEET_NAME =
+  (process.env.GOOGLE_SHEET_NAME && process.env.GOOGLE_SHEET_NAME.trim()) || 'Sheet1';
+
 /**
  * Fetches data from a Google Sheet
  * @param sheetName - The name of the sheet/tab to read from (e.g., "Sheet1")
@@ -11,7 +15,7 @@ export interface SheetRow {
  * @returns Array of objects where keys are column headers
  */
 export async function getSheetData(
-  sheetName: string = 'Sheet1',
+  sheetName: string = DEFAULT_SHEET_NAME,
   range?: string
 ): Promise<SheetRow[]> {
   try {
@@ -125,7 +129,7 @@ export async function getSheetNames(): Promise<string[]> {
  */
 export async function appendSheetData(
   rowData: SheetRow,
-  sheetName: string = 'Sheet1'
+  sheetName: string = DEFAULT_SHEET_NAME
 ): Promise<void> {
   try {
     const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -187,7 +191,7 @@ export async function appendSheetData(
 export async function updateSheetData(
   rowIndex: number,
   rowData: SheetRow,
-  sheetName: string = 'Sheet1'
+  sheetName: string = DEFAULT_SHEET_NAME
 ): Promise<void> {
   try {
     const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
@@ -246,7 +250,7 @@ export async function updateSheetData(
  */
 export async function deleteSheetData(
   rowIndex: number,
-  sheetName: string = 'Sheet1'
+  sheetName: string = DEFAULT_SHEET_NAME
 ): Promise<void> {
   try {
     const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;

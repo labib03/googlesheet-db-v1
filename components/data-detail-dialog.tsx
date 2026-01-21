@@ -41,16 +41,23 @@ export function DataDetailDialog({ row, title = "Detail Data", children }: DataD
         </DialogHeader>
         <ScrollArea className="max-h-[60vh] pr-4">
           <div className="grid gap-4 py-4">
-            {Object.entries(row).map(([key, value]) => (
-              <div key={key} className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-3 last:border-0 dark:border-slate-800">
-                <div className="text-sm font-medium text-slate-500 dark:text-slate-400 capitalize">
-                  {key}
+            {Object.entries(row)
+              .filter(
+                ([key]) => key !== "_index" && key !== "Timestamp"
+              )
+              .map(([key, value]) => (
+                <div
+                  key={key}
+                  className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-3 last:border-0 dark:border-slate-800"
+                >
+                  <div className="text-sm font-medium text-slate-500 dark:text-slate-400 capitalize">
+                    {key}
+                  </div>
+                  <div className="col-span-2 text-sm font-semibold text-slate-900 dark:text-slate-100 break-words">
+                    {String(value)}
+                  </div>
                 </div>
-                <div className="col-span-2 text-sm font-semibold text-slate-900 dark:text-slate-100 break-words">
-                  {String(value)}
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </ScrollArea>
       </DialogContent>

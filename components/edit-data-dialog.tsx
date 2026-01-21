@@ -41,6 +41,8 @@ function SubmitButton() {
   );
 }
 
+import { desaData } from '@/lib/constants';
+
 export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps) {
   const [open, setOpen] = useState(false);
   // Initialize Desa from existing data
@@ -50,16 +52,7 @@ export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps)
   const sheetRowIndex = rowIndex + 2;
 
   // Data mapping for Desa -> Kelompok
-  const desaData: { [key: string]: string[] } = {
-    "Budi Agung": ["Budi Agung 1", "Budi Agung 2", "Cilebut 1", "Cilebut 2", "Cimanggu", "Kebon Pedes"],
-    "Ciparigi": ["Ciparigi 1", "Ciparigi 2", "Warung Jambu"],
-    "Cipayung": ["Al-Badar", "Al-Ubaidah", "Ciawi", "Tapos"],
-    "Gunung Gede": ["Ciapus", "Cikaret", "Green Arofah", "Gunung Gede", "Pakuan", "Pondok Rumput", "Tajur"],
-    "Gunung Sindur": ["CIP 1", "CIP 2", "GIS", "Mutiara"],
-    "Margajaya": ["Cibanteng", "Cibungbulang", "Ciherang", "Ciomas", "Dewi Sartika", "Margajaya 1", "Margajaya 2"],
-    "Salabenda": ["Parakan Jaya", "Permata Sari", "Pura Bojong", "Salabenda", "Yasmin"],
-    "Sawangan": ["BSI", "Ciseeng", "Inkopad", "Muara Barokah", "Sawangan"]
-  };
+  // Moved to lib/constants.ts
 
   const handleSubmit = async (formData: FormData) => {
     const result = await updateData(sheetRowIndex, null, formData);
@@ -113,11 +106,11 @@ export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps)
     return processedString;
   };
 
-  const renderInput = (header: string) => {
+  const renderInput = (header: string, isRequired: boolean) => {
     const currentValue = String(row[header] || '');
 
-    // 1. Tanggal Lahir -> Date Input
-    if (header === 'Tanggal Lahir') {
+    // 1. TANGGAL LAHIR -> Date Input
+    if (header === 'TANGGAL LAHIR') {
       return (
         <Input
           id={header}
@@ -125,41 +118,22 @@ export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps)
           type="date"
           defaultValue={getFormattedDateForInput(currentValue)}
           className="col-span-3"
-          required
+          required={isRequired}
         />
       );
     }
 
-    // 2. isMarried -> Dropdown (1/0)
-    if (header === 'isMarried') {
-      return (
-        <select
-          id={header}
-          name={header}
-          defaultValue={currentValue}
-          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          required
-        >
-          <option value="">Pilih Status</option>
-          <option value="1">Sudah</option>
-          <option value="0">Belum</option>
-        </select>
-      );
-    }
-
-    // 3. Desa -> Dropdown
+    // 2. Desa -> Dropdown
     if (header === 'Desa') {
       return (
         <select
           id={header}
           name={header}
           className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          required
+          required={isRequired}
           value={selectedDesa}
           onChange={(e) => {
               setSelectedDesa(e.target.value);
-              // Note: changing Desa typically clears Kelompok, but html select doesn't automagically clear the other input's value in FormData unless we control it or user picks.
-              // For user experience, they will see dependent options update.
           }}
         >
           <option value="">Pilih Desa</option>
@@ -170,15 +144,15 @@ export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps)
       );
     }
 
-    // 4. Kelompok -> Dependent Dropdown
-    if (header === 'Kelompok') {
+    // 3. KELOMPOK -> Dependent Dropdown
+    if (header === 'KELOMPOK') {
         const valueIsValid = selectedDesa && desaData[selectedDesa]?.includes(currentValue);
         return (
         <select
           id={header}
           name={header}
           className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          required
+          required={isRequired}
           disabled={!selectedDesa}
           defaultValue={valueIsValid ? currentValue : ''}
         >
@@ -190,19 +164,6 @@ export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps)
       );
     }
 
-    // ReadOnly for calculated fields
-    if (header === 'Umur') {
-        return (
-            <Input
-              id={header}
-              name={header}
-              defaultValue={currentValue}
-              className="col-span-3 bg-slate-100 dark:bg-slate-800"
-              readOnly
-            />
-        );
-    }
-
     // Default -> Text Input
     return (
       <Input
@@ -210,7 +171,7 @@ export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps)
         name={header}
         defaultValue={currentValue}
         className="col-span-3"
-        required
+        required={isRequired}
       />
     );
   };
@@ -235,14 +196,33 @@ export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps)
         </DialogHeader>
         <form action={handleSubmit}>
           <div className="grid gap-4 py-4">
-            {Object.keys(row).map((header) => (
-              <div key={header} className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor={header} className="text-right capitalize">
-                  {header}
-                </Label>
-                {renderInput(header)}
-              </div>
-            ))}
+            {Object.keys(row)
+              .filter(
+                (header) =>
+                  header !== "_index" &&
+                  header !== "Timestamp" &&
+                  header !== "Umur"
+              )
+              .map((header) => {
+                const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
+                const isRequired = !optionalFields.includes(header);
+
+                return (
+                  <div
+                    key={header}
+                    className="grid grid-cols-4 items-center gap-4"
+                  >
+                    <Label
+                      htmlFor={header}
+                      className="text-right capitalize flex justify-end items-center gap-1"
+                    >
+                      {header}
+                      {isRequired && <span className="text-red-500">*</span>}
+                    </Label>
+                    {renderInput(header, isRequired)}
+                  </div>
+                );
+              })}
           </div>
           <DialogFooter>
             <SubmitButton />
