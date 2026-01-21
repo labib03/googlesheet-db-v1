@@ -18,41 +18,54 @@ import { Database } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
 
-// Helper to calculate age from various date formats
+// Shared date parsing logic
+function parseDate(dateString: string): Date | null {
+  const monthMap: { [key: string]: string } = {
+    'Januari': 'January', 'Februari': 'February', 'Maret': 'March',
+    'April': 'April', 'Mei': 'May', 'Juni': 'June',
+    'Juli': 'July', 'Agustus': 'August', 'September': 'September',
+    'Oktober': 'October', 'November': 'November', 'Desember': 'December'
+  };
+
+  let processedDate = dateString;
+  Object.keys(monthMap).forEach(indoMonth => {
+    if (dateString.includes(indoMonth)) {
+      processedDate = dateString.replace(indoMonth, monthMap[indoMonth]);
+    }
+  });
+
+  const date = new Date(processedDate);
+  return isNaN(date.getTime()) ? null : date;
+}
+
+// Helper to calculate age
 function calculateAge(dateString: string): string {
   if (!dateString) return '-';
+  const birthDate = parseDate(dateString);
+  if (!birthDate) return dateString;
 
-  try {
-    // Handle Indonesian month names
-    const monthMap: { [key: string]: string } = {
-      'Januari': 'January', 'Februari': 'February', 'Maret': 'March',
-      'April': 'April', 'Mei': 'May', 'Juni': 'June',
-      'Juli': 'July', 'Agustus': 'August', 'September': 'September',
-      'Oktober': 'October', 'November': 'November', 'Desember': 'December'
-    };
-
-    let processedDate = dateString;
-    Object.keys(monthMap).forEach(indoMonth => {
-      if (dateString.includes(indoMonth)) {
-        processedDate = dateString.replace(indoMonth, monthMap[indoMonth]);
-      }
-    });
-
-    const birthDate = new Date(processedDate);
-    if (isNaN(birthDate.getTime())) return dateString; // Return original if parse fails
-
-    const today = new Date();
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const m = today.getMonth() - birthDate.getMonth();
-    
-    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    return age.toString();
-  } catch (e) {
-    return dateString;
+  const today = new Date();
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const m = today.getMonth() - birthDate.getMonth();
+  
+  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
   }
+  
+  return age.toString();
+}
+
+// Helper to format date to "20 Maret 2010"
+function formatDate(dateString: string): string {
+  if (!dateString) return '-';
+  const date = parseDate(dateString);
+  if (!date) return dateString;
+
+  return new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).format(date);
 }
 
 export default async function Home() {
@@ -64,18 +77,22 @@ export default async function Home() {
     const rawData = await getSheetData();
     
     if (rawData.length > 0) {
-      // Calculate Age for each row
+      // Process rows: Calculate Age & Format Date
       data = rawData.map(row => {
-        const tanggalLahir = String(row['Tanggal Lahir'] || '');
-        // Only override 'Umur' if 'Tanggal Lahir' is present
-        if (tanggalLahir.trim()) {
-           return {
-             ...row,
-             'Umur': calculateAge(tanggalLahir)
-           };
+        const tanggalLahirRaw = String(row['Tanggal Lahir'] || '');
+        const updatedRow = { ...row };
+
+        // 1. Calculate Age (if DOB exists)
+        if (tanggalLahirRaw.trim()) {
+           updatedRow['Umur'] = calculateAge(tanggalLahirRaw);
         }
-        // Otherwise keep original 'Umur' from sheet
-        return row;
+
+        // 2. Format Date of Birth (if DOB exists)
+        if (tanggalLahirRaw.trim()) {
+           updatedRow['Tanggal Lahir'] = formatDate(tanggalLahirRaw);
+        }
+
+        return updatedRow;
       });
       headers = Object.keys(data[0]);
     }
