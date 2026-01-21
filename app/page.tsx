@@ -276,14 +276,14 @@ export default async function Home() {
                         {/* Large Action Buttons */}
                         <div className="grid grid-cols-2">
                              <EditDataDialog row={row} rowIndex={index}>
-                                <button className="flex items-center justify-center gap-2 py-4 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 font-semibold text-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border-t border-r border-indigo-100 dark:border-indigo-900/50">
+                                <button className="w-full h-full flex items-center justify-center gap-2 py-4 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 font-semibold text-sm hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors border-t border-r border-indigo-100 dark:border-indigo-900/50">
                                     <Pencil className="w-4 h-4" />
                                     Edit Data
                                 </button>
                              </EditDataDialog>
                              
                              <DeleteDataDialog rowIndex={index}>
-                                <button className="flex items-center justify-center gap-2 py-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors border-t border-red-100 dark:border-red-900/50">
+                                <button className="w-full h-full flex items-center justify-center gap-2 py-4 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-semibold text-sm hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors border-t border-red-100 dark:border-red-900/50">
                                     <Trash2 className="w-4 h-4" />
                                     Hapus
                                 </button>
