@@ -11,6 +11,7 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RefreshButton } from '@/components/refresh-button';
 import { DataDetailDialog } from '@/components/data-detail-dialog';
+import { AddDataDialog } from '@/components/add-data-dialog';
 import { Database } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -22,6 +23,9 @@ export default async function Home() {
 
   try {
     data = await getSheetData();
+
+    console.log("data ==>", data);
+
     if (data.length > 0) {
       headers = Object.keys(data[0]);
     }
@@ -84,7 +88,10 @@ export default async function Home() {
                     Menampilkan {data.length} baris data terbaru
                   </CardDescription>
                 </div>
-                <RefreshButton />
+                <div className="flex items-center gap-2">
+                  <AddDataDialog headers={headers} />
+                  <RefreshButton />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-0">

@@ -37,7 +37,9 @@ export async function getSheetData(
         client_email: serviceAccountEmail,
         private_key: privateKey,
       },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+      scopes: [
+        'https://www.googleapis.com/auth/spreadsheets',
+      ],
     });
 
     const sheets = google.sheets({ version: 'v4', auth });
@@ -112,6 +114,66 @@ export async function getSheetNames(): Promise<string[]> {
     return response.data.sheets?.map((sheet) => sheet.properties?.title || '') || [];
   } catch (error) {
     console.error('Error fetching sheet names:', error);
+    throw error;
+  }
+}
+
+/**
+ * Appends a new row of data to the sheet
+ * @param rowData - Object containing the data to append. Keys must match headers.
+ * @param sheetName - The name of the sheet/tab
+ */
+export async function appendSheetData(
+  rowData: SheetRow,
+  sheetName: string = 'Sheet1'
+): Promise<void> {
+  try {
+    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY
+      ?.replace(/\\n/g, '\n')
+      .replace(/^"|"$/g, '');
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+
+    if (!serviceAccountEmail || !privateKey || !sheetId) {
+      throw new Error('Missing required environment variables');
+    }
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: serviceAccountEmail,
+        private_key: privateKey,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    // 1. Get current headers to map object values to correct order
+    const headerResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${sheetName}!1:1`, // First row
+    });
+
+    const headers = headerResponse.data.values?.[0] as string[];
+    if (!headers || headers.length === 0) {
+      throw new Error('Sheet is empty or missing headers');
+    }
+
+    // 2. Map rowData object to array based on headers
+    const values = headers.map((header) => rowData[header] || '');
+
+    // 3. Append data
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: sheetName,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [values],
+      },
+    });
+
+  } catch (error) {
+    console.error('Error appending data:', error);
     throw error;
   }
 }
