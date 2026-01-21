@@ -65,7 +65,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
   // Count per-desa
   for (const row of rows) {
-    const desaRaw = String(row["Desa"] ?? "");
+    const desaRaw = String(row["DESA"] ?? "");
     const desaKey = normalize(desaRaw);
     const desaLabel = displayOrFallback(desaRaw, "Tidak terisi");
 
@@ -119,7 +119,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
     // Count actual data for selected desa
     for (const row of rows) {
-      const desaRaw = String(row["Desa"] ?? "");
+      const desaRaw = String(row["DESA"] ?? "");
       if (normalize(desaRaw) !== selectedDesaKey) continue;
 
       const kelompokRaw = String(row["KELOMPOK"] ?? "");
@@ -147,7 +147,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
   const totalRows = rows.length;
   const showKelompok = selectedDesaKey && selectedDesaLabel;
-  const breadcrumbCurrent = selectedDesaLabel || "Desa";
+  const breadcrumbCurrent = selectedDesaLabel || "DESA";
 
   return (
     <div className="min-h-screen bg-linear-to-br from-slate-50 via-indigo-50/50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 font-sans">

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from 'react';
-import { useFormStatus } from 'react-dom';
-import { addData } from '@/app/actions';
-import { Button } from '@/components/ui/button';
+import { useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
+import { addData } from "@/app/actions";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { PlusCircle, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PlusCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface AddDataDialogProps {
   headers: string[];
@@ -26,20 +26,25 @@ function SubmitButton() {
   const { pending } = useFormStatus();
 
   return (
-    <Button type="submit" disabled={pending} className="bg-indigo-600 hover:bg-indigo-700 text-white">
+    <Button
+      type="submit"
+      disabled={pending}
+      className="bg-indigo-600 hover:bg-indigo-700 text-white"
+    >
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           Menyimpan...
         </>
       ) : (
-        'Simpan Data'
+        "Simpan Data"
       )}
     </Button>
   );
 }
 
-import { desaData } from '@/lib/constants';
+import { desaData, Gender } from "@/lib/constants";
+import { format, parseISO } from "date-fns";
 
 export function AddDataDialog({ headers }: AddDataDialogProps) {
   const [open, setOpen] = useState(false);
@@ -50,24 +55,39 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
 
   const handleSubmit = async (formData: FormData) => {
     // Basic validation
-    // If 'Kelompok' is needed but disabled/empty, we might want to ensure it's handled, 
+    // If 'Kelompok' is needed but disabled/empty, we might want to ensure it's handled,
     // but the required attribute on the select should handle empty submissions if enabled.
-    
+
     // Show loading toast or state if desired (not implemented here for simplicity, using form status pending)
-    
+
+    // Ambil raw value dari input date
+    const rawDate = formData.get("TANGGAL LAHIR") as string; // contoh: "2026-01-22"
+
+    if (rawDate) {
+      const parsed = parseISO(rawDate);
+      const formatted = format(parsed, "dd/MM/yyyy"); // ubah sesuai kebutuhan
+      formData.set("TANGGAL LAHIR", formatted);
+    }
+
     const result = await addData(null, formData);
     if (result.success) {
       setOpen(false);
-      setSelectedDesa(""); // Reset desa
+      setSelectedDesa("");
       toast.success(result.message);
     } else {
-        toast.error(`Gagal: ${result.message}`);
+      toast.error(`Gagal: ${result.message}`);
     }
   };
 
+  useEffect(() => {
+    if (open) {
+      setSelectedDesa("");
+    }
+  }, [open]);
+
   const renderInput = (header: string, isRequired: boolean) => {
     // 1. TANGGAL LAHIR -> Date Input
-    if (header === 'TANGGAL LAHIR') {
+    if (header === "TANGGAL LAHIR") {
       return (
         <Input
           id={header}
@@ -80,7 +100,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
     }
 
     // 2. Desa -> Dropdown
-    if (header === 'Desa') {
+    if (header === "DESA") {
       return (
         <select
           id={header}
@@ -92,14 +112,16 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
         >
           <option value="">Pilih Desa</option>
           {Object.keys(desaData).map((desa) => (
-            <option key={desa} value={desa}>{desa}</option>
+            <option key={desa} value={desa}>
+              {desa}
+            </option>
           ))}
         </select>
       );
     }
 
     // 3. KELOMPOK -> Dependent Dropdown
-    if (header === 'KELOMPOK') {
+    if (header === "KELOMPOK") {
       return (
         <select
           id={header}
@@ -109,8 +131,30 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
           disabled={!selectedDesa}
         >
           <option value="">Pilih Kelompok</option>
-          {selectedDesa && desaData[selectedDesa]?.map((kelompok) => (
-            <option key={kelompok} value={kelompok}>{kelompok}</option>
+          {selectedDesa &&
+            desaData[selectedDesa]?.map((kelompok) => (
+              <option key={kelompok} value={kelompok}>
+                {kelompok}
+              </option>
+            ))}
+        </select>
+      );
+    }
+
+    // JENIS KELAMIN
+    if (header === "JENIS KELAMIN") {
+      return (
+        <select
+          id={header}
+          name={header}
+          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          required={isRequired}
+        >
+          <option value="">Pilih Jenis Kelamin</option>
+          {Gender?.map((g) => (
+            <option key={g} value={g}>
+              {g}
+            </option>
           ))}
         </select>
       );

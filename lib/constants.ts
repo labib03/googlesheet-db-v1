@@ -1,5 +1,5 @@
 export const desaData: { [key: string]: string[] } = {
-  "Budi Agung": [
+  "BUDI AGUNG": [
     "Budi Agung 1",
     "Budi Agung 2",
     "Cilebut 1",
@@ -7,9 +7,9 @@ export const desaData: { [key: string]: string[] } = {
     "Cimanggu",
     "Kebon Pedes",
   ],
-  Ciparigi: ["Ciparigi 1", "Ciparigi 2", "Warung Jambu"],
-  Cipayung: ["Al-Badar", "Al-Ubaidah", "Ciawi", "Tapos"],
-  "Gunung Gede": [
+  CIPARIGI: ["Ciparigi 1", "Ciparigi 2", "Warung Jambu"],
+  CIPAYUNG: ["Al-Badar", "Al-Ubaidah", "Ciawi", "Tapos"],
+  "GUNUNG GEDE": [
     "Ciapus",
     "Cikaret",
     "Green Arofah",
@@ -19,8 +19,8 @@ export const desaData: { [key: string]: string[] } = {
     "Tajur",
     "PPPM BIGG",
   ],
-  "Gunung Sindur": ["CIP 1", "CIP 2", "GIS", "Mutiara"],
-  Margajaya: [
+  "GUNUNG SINDUR": ["CIP 1", "CIP 2", "GIS", "Mutiara"],
+  MARGAJAYA: [
     "Cibanteng",
     "Cibungbulang",
     "Ciherang",
@@ -30,14 +30,14 @@ export const desaData: { [key: string]: string[] } = {
     "Margajaya 2",
     "PPM BI",
   ],
-  Salabenda: [
+  SALABENDA: [
     "Parakan Jaya",
     "Permata Sari",
     "Pura Bojong",
     "Salabenda",
     "Yasmin",
   ],
-  Sawangan: ["BSI", "Ciseeng", "Inkopad", "Muara Barokah", "Sawangan"],
+  SAWANGAN: ["BSI", "Ciseeng", "Inkopad", "Muara Barokah", "Sawangan"],
 };
 
 export const Gender: string[] = ["Laki-Laki", "Perempuan"];

@@ -29,10 +29,10 @@ import {
   ArrowUp,
   Loader2,
   BarChart3,
-  RefreshCcw,
   X,
 } from "lucide-react";
 import { desaData, Gender } from "@/lib/constants";
+import { useDebounceValue } from "usehooks-ts";
 
 interface DashboardClientProps {
   initialData: SheetRow[];
@@ -47,6 +47,7 @@ export function DashboardClient({
   const [filterKelompok, setFilterKelompok] = useState("");
   const [filterGender, setFilterGender] = useState("");
   const [filterNama, setFilterNama] = useState("");
+  const [debouncedValue] = useDebounceValue(filterNama, 1000)
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -66,12 +67,17 @@ export function DashboardClient({
     const allKelompok = Object.values(desaData).flat();
     return Array.from(new Set(allKelompok)).sort();
   }, [filterDesa]);
+  
+  const handleChangeNama = (nama: string) => {
+    setFilterNama(nama);
+  };
 
   // Filter Data
   const filteredData = useMemo(() => {
+
     return initialData.filter((row) => {
       const matchDesa = filterDesa
-        ? String(row["Desa"] || "").toLowerCase() === filterDesa.toLowerCase()
+        ? String(row["DESA"] || "").toLowerCase() === filterDesa.toLowerCase()
         : true;
       const matchKelompok = filterKelompok
         ? String(row["KELOMPOK"] || "").toLowerCase() ===
@@ -83,15 +89,15 @@ export function DashboardClient({
           filterGender.toLowerCase()
         : true;
 
-      const matchNama = filterNama
+      const matchNama = debouncedValue
         ? String(row["NAMA LENGKAP"] || "")
             .toLowerCase()
-            .includes(filterNama.toLowerCase())
+            .includes(debouncedValue.toLowerCase())
         : true;
 
       return matchDesa && matchKelompok && matchGender && matchNama;
     });
-  }, [initialData, filterDesa, filterKelompok, filterGender, filterNama]);
+  }, [initialData, filterDesa, filterKelompok, filterGender, debouncedValue]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -112,6 +118,12 @@ export function DashboardClient({
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    startTransition(() => {
+        setCurrentPage(1);
+      });
+  }, [debouncedValue])
 
   const scrollToDataTopWithOffset = () => {
     const element = dataTopRef.current;
@@ -296,10 +308,7 @@ export function DashboardClient({
                 value={filterNama}
                 onChange={(e) => {
                   const nama = e.target.value;
-                  startTransition(() => {
-                    setFilterNama(nama);
-                    setCurrentPage(1);
-                  });
+                  handleChangeNama(nama);
                 }}
               ></input>
             </div>
@@ -361,16 +370,14 @@ export function DashboardClient({
                           key={header}
                           className="font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap"
                         >
-                          {header.includes("Nomor telpon")
-                            ? "NOMOR HP (WA)"
-                            : header}
+                          {header}
                         </TableHead>
                       ))}
-                      <TableHead className="font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap">
+                      <TableHead className="font-bold text-slate-700 dark:text-slate-200 whitespace-nowrap text-center">
                         Umur
                       </TableHead>
                       {isEnableAction && (
-                        <TableHead className="text-right font-bold text-slate-700 dark:text-slate-200">
+                        <TableHead className="text-right font-bold text-slate-700 dark:text-slate-200 text-center">
                           Aksi
                         </TableHead>
                       )}
@@ -391,7 +398,7 @@ export function DashboardClient({
                           {headers.map((header) => (
                             <TableCell
                               key={`${originalIndex}-${header}`}
-                              className="whitespace-nowrap"
+                              className="whitespace-normal max-w-64"
                             >
                               {getValue(header, row[header])}
                             </TableCell>
