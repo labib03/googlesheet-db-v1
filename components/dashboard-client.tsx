@@ -68,7 +68,9 @@ export function DashboardClient({
     // return Array.from(new Set(allKelompok)).sort();
 
     // munculin semua kelompok tana filter desa
-    return Object.values(desaData).flat();
+    return Object.values(desaData)
+      .flat()
+      .sort((a, b) => a.localeCompare(b, "id", { sensitivity: "base" }));
   }, []);
 
   const handleChangeNama = (nama: string) => {
