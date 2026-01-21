@@ -229,7 +229,7 @@ export function DashboardClient({
                 Kelompok Sambung
               </label>
               <select
-                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[180px]"
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[180px] disabled:cursor-none"
                 value={filterKelompok}
                 onChange={(e) => {
                   const nextKelompok = e.target.value;
