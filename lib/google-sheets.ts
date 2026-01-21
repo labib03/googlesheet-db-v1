@@ -177,3 +177,139 @@ export async function appendSheetData(
     throw error;
   }
 }
+
+/**
+ * Updates a specific row in the sheet
+ * @param rowIndex - The 1-based row index in the sheet (e.g., 2 for the first data row)
+ * @param rowData - The new data for the row
+ * @param sheetName - The sheet name
+ */
+export async function updateSheetData(
+  rowIndex: number,
+  rowData: SheetRow,
+  sheetName: string = 'Sheet1'
+): Promise<void> {
+  try {
+    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY
+      ?.replace(/\\n/g, '\n')
+      .replace(/^"|"$/g, '');
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+
+    if (!serviceAccountEmail || !privateKey || !sheetId) {
+      throw new Error('Missing required environment variables');
+    }
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: serviceAccountEmail,
+        private_key: privateKey,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    // 1. Get headers to ensure correct column order
+    const headerResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${sheetName}!1:1`,
+    });
+
+    const headers = headerResponse.data.values?.[0] as string[];
+    if (!headers || headers.length === 0) {
+      throw new Error('Sheet is empty or missing headers');
+    }
+
+    // 2. Map data
+    const values = headers.map((header) => rowData[header] || '');
+
+    // 3. Update
+    await sheets.spreadsheets.values.update({
+      spreadsheetId: sheetId,
+      range: `${sheetName}!A${rowIndex}`,
+      valueInputOption: 'USER_ENTERED',
+      requestBody: {
+        values: [values],
+      },
+    });
+  } catch (error) {
+    console.error('Error updating data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes a specific row from the sheet
+ * @param rowIndex - The 1-based row index to delete
+ * @param sheetName - The sheet name
+ */
+export async function deleteSheetData(
+  rowIndex: number,
+  sheetName: string = 'Sheet1'
+): Promise<void> {
+  try {
+    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY
+      ?.replace(/\\n/g, '\n')
+      .replace(/^"|"$/g, '');
+    const sheetId = process.env.GOOGLE_SHEET_ID;
+
+    if (!serviceAccountEmail || !privateKey || !sheetId) {
+      throw new Error('Missing required environment variables');
+    }
+
+    const auth = new google.auth.GoogleAuth({
+      credentials: {
+        client_email: serviceAccountEmail,
+        private_key: privateKey,
+      },
+      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    });
+
+    const sheets = google.sheets({ version: 'v4', auth });
+
+    // 1. Find the sheetId logic (integer ID) for the given sheetName
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId: sheetId,
+    });
+    
+    const sheet = spreadsheet.data.sheets?.find(
+      (s) => s.properties?.title === sheetName
+    );
+
+    if (!sheet || typeof sheet.properties?.sheetId !== 'number') {
+      throw new Error(`Sheet "${sheetName}" not found or invalid`);
+    }
+
+    const gridId = sheet.properties.sheetId;
+
+    // 2. Perform delete operation
+    // Note: deleteDimension uses 0-based index. 
+    // rowIndex param is 1-based.
+    // To delete Row X (1-based), we start at index X-1 and end at X.
+    const startIndex = rowIndex - 1;
+    const endIndex = rowIndex;
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: sheetId,
+      requestBody: {
+        requests: [
+          {
+            deleteDimension: {
+              range: {
+                sheetId: gridId,
+                dimension: 'ROWS',
+                startIndex: startIndex,
+                endIndex: endIndex,
+              },
+            },
+          },
+        ],
+      },
+    });
+  } catch (error) {
+    console.error('Error deleting data:', error);
+    throw error;
+  }
+}

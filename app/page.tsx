@@ -12,6 +12,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { RefreshButton } from '@/components/refresh-button';
 import { DataDetailDialog } from '@/components/data-detail-dialog';
 import { AddDataDialog } from '@/components/add-data-dialog';
+import { EditDataDialog } from '@/components/edit-data-dialog';
+import { DeleteDataDialog } from '@/components/delete-data-dialog';
 import { Database } from 'lucide-react';
 
 export const dynamic = 'force-dynamic';
@@ -171,7 +173,11 @@ export default async function Home() {
                           </TableCell>
                         ))}
                         <TableCell className="text-center">
-                          <DataDetailDialog row={row} title={`Detail Data #${index + 1}`} />
+                          <div className="flex items-center justify-center gap-2">
+                            <DataDetailDialog row={row} title={`Detail Data #${index + 1}`} />
+                            <EditDataDialog row={row} rowIndex={index} />
+                            <DeleteDataDialog rowIndex={index} />
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
