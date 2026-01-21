@@ -29,6 +29,8 @@ import {
   ArrowUp,
   Loader2,
   BarChart3,
+  RefreshCcw,
+  X,
 } from "lucide-react";
 import { desaData, Gender } from "@/lib/constants";
 
@@ -44,6 +46,7 @@ export function DashboardClient({
   const [filterDesa, setFilterDesa] = useState("");
   const [filterKelompok, setFilterKelompok] = useState("");
   const [filterGender, setFilterGender] = useState("");
+  const [filterNama, setFilterNama] = useState("");
 
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
@@ -79,9 +82,15 @@ export function DashboardClient({
         ? String(row["JENIS KELAMIN"] || "").toLowerCase() ===
           filterGender.toLowerCase()
         : true;
-      return matchDesa && matchKelompok && matchGender;
+
+      const matchNama = filterNama
+        ? String(row["NAMA LENGKAP"] || "").toLowerCase() ===
+          filterNama.toLowerCase()
+        : true;
+
+      return matchDesa && matchKelompok && matchGender && matchNama;
     });
-  }, [initialData, filterDesa, filterKelompok, filterGender]);
+  }, [initialData, filterDesa, filterKelompok, filterGender, filterNama]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -128,6 +137,8 @@ export function DashboardClient({
     startTransition(() => {
       setFilterDesa("");
       setFilterKelompok("");
+      setFilterGender("");
+      setFilterNama("");
       setCurrentPage(1);
     });
   };
@@ -273,7 +284,33 @@ export function DashboardClient({
                 ))}
               </select>
             </div>
+
+            {/* Filter Nama */}
+            <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-slate-500 uppercase">
+                Nama Generus
+              </label>
+              <input
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[180px]"
+                value={filterNama}
+                onChange={(e) => {
+                  const nama = e.target.value;
+                  startTransition(() => {
+                    setFilterNama(nama);
+                    setCurrentPage(1);
+                  });
+                }}
+              ></input>
+            </div>
           </div>
+        </div>
+
+        <div className="mt-4">
+          <Button onClick={resetFilters}>
+            <span className="flex flex-row items-center gap-2.5">
+              <X className="w-4 h-4" /> Reset Filter
+            </span>
+          </Button>
         </div>
       </div>
 
