@@ -17,7 +17,12 @@ export async function getSheetData(
   try {
     // Get credentials from environment variables
     const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    // Handle various formatting issues with Vercel environment variables
+    // 1. Unescape newlines (\n -> actual newline)
+    // 2. Remove surrounding quotes if accidentally pasted
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY
+      ?.replace(/\\n/g, '\n')
+      .replace(/^"|"$/g, '');
     const sheetId = process.env.GOOGLE_SHEET_ID;
 
     if (!serviceAccountEmail || !privateKey || !sheetId) {
@@ -78,7 +83,10 @@ export async function getSheetData(
 export async function getSheetNames(): Promise<string[]> {
   try {
     const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n');
+    // Same robust handling for getSheetNames
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY
+      ?.replace(/\\n/g, '\n')
+      .replace(/^"|"$/g, '');
     const sheetId = process.env.GOOGLE_SHEET_ID;
 
     if (!serviceAccountEmail || !privateKey || !sheetId) {
