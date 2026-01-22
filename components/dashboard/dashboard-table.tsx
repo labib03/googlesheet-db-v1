@@ -98,7 +98,7 @@ export function DashboardTable({
                         row={row}
                         title={`Detail ${rowNama || "Data"}`}
                       />
-                      {isEnableEdit && (
+                      {/* {isEnableEdit && (
                         <EditDataDialog row={row} rowIndex={originalIndex} />
                       )}
                       {isEnableDelete && (
@@ -106,7 +106,7 @@ export function DashboardTable({
                           rowIndex={originalIndex + 2} 
                           dataName={capitalizeWords(rowNama || "Data")}
                         />
-                      )}
+                      )} */}
                     </div>
                   </TableCell>
                 )}
