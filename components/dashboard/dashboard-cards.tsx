@@ -25,8 +25,7 @@ export function DashboardCards({
   isEnableEdit,
   isEnableDelete,
 }: DashboardCardsProps) {
-  // const isAnyActionEnabled = isEnableEdit || isEnableDelete;
-  const isAnyActionEnabled = false;
+  const isAnyActionEnabled = isEnableEdit || isEnableDelete;
 
   
   const getKeyLabel = (label: string) => {

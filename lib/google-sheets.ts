@@ -12,6 +12,28 @@ const DEFAULT_SHEET_NAME =
 const escapeSheetName = (name: string) => `'${name.replace(/'/g, "''")}'`;
 
 /**
+ * Helper to get auth client to avoid repeating code
+ */
+async function getAuth() {
+  const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY
+    ?.replace(/\\n/g, '\n')
+    .replace(/^"|"$/g, '');
+
+  if (!serviceAccountEmail || !privateKey) {
+    throw new Error('Missing required environment variables: GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY');
+  }
+
+  return new google.auth.GoogleAuth({
+    credentials: {
+      client_email: serviceAccountEmail,
+      private_key: privateKey,
+    },
+    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+  });
+}
+
+/**
  * Fetches data from a Google Sheet
  * @param sheetName - The name of the sheet/tab to read from (e.g., "Sheet1")
  * @param range - Optional range in A1 notation (e.g., "A1:D10"). If not provided, reads all data.
@@ -22,33 +44,8 @@ export async function getSheetData(
   range?: string
 ): Promise<SheetRow[]> {
   try {
-    // Get credentials from environment variables
-    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    // Handle various formatting issues with Vercel environment variables
-    // 1. Unescape newlines (\n -> actual newline)
-    // 2. Remove surrounding quotes if accidentally pasted
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY
-      ?.replace(/\\n/g, '\n')
-      .replace(/^"|"$/g, '');
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-
-    if (!serviceAccountEmail || !privateKey || !sheetId) {
-      throw new Error(
-        'Missing required environment variables: GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY, or GOOGLE_SHEET_ID'
-      );
-    }
-
-    // Create auth client
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: serviceAccountEmail,
-        private_key: privateKey,
-      },
-      scopes: [
-        'https://www.googleapis.com/auth/spreadsheets',
-      ],
-    });
-
+    const auth = await getAuth();
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
     const sheets = google.sheets({ version: 'v4', auth });
 
     // Construct the range with escaped sheet name
@@ -136,27 +133,8 @@ export async function appendSheetData(
   sheetName: string = DEFAULT_SHEET_NAME
 ): Promise<void> {
   try {
-    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY
-      ?.replace(/\\n/g, '\n')
-      .replace(/^"|"$/g, '');
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-
-    if (!serviceAccountEmail || !privateKey || !sheetId) {
-      throw new Error('Missing required environment variables');
-    }
-
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: serviceAccountEmail,
-        private_key: privateKey,
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    // Ensure sheet name is escaped
+    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
     const escapedName = escapeSheetName(sheetName);
 
     // 1. Get current headers to map object values to correct order
@@ -199,7 +177,7 @@ export async function appendSheetData(
 
 /**
  * Updates a specific row in the sheet
- * @param rowIndex - The 1-based row index in the sheet (e.g., 2 for the first data row)
+ * @param rowIndex - The 1-based row index in the sheet
  * @param rowData - The new data for the row
  * @param sheetName - The sheet name
  */
@@ -209,26 +187,8 @@ export async function updateSheetData(
   sheetName: string = DEFAULT_SHEET_NAME
 ): Promise<void> {
   try {
-    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY
-      ?.replace(/\\n/g, '\n')
-      .replace(/^"|"$/g, '');
-    const sheetId = process.env.GOOGLE_SHEET_ID;
-
-    if (!serviceAccountEmail || !privateKey || !sheetId) {
-      throw new Error('Missing required environment variables');
-    }
-
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: serviceAccountEmail,
-        private_key: privateKey,
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-
-    const sheets = google.sheets({ version: 'v4', auth });
-
+    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
     const escapedName = escapeSheetName(sheetName);
 
     // 1. Get headers to ensure correct column order
@@ -275,27 +235,9 @@ export async function deleteSheetData(
   sheetName: string = DEFAULT_SHEET_NAME
 ): Promise<void> {
   try {
-    const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY
-      ?.replace(/\\n/g, '\n')
-      .replace(/^"|"$/g, '');
-    const sheetId = process.env.GOOGLE_SHEET_ID;
+    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
 
-    if (!serviceAccountEmail || !privateKey || !sheetId) {
-      throw new Error('Missing required environment variables');
-    }
-
-    const auth = new google.auth.GoogleAuth({
-      credentials: {
-        client_email: serviceAccountEmail,
-        private_key: privateKey,
-      },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets'],
-    });
-
-    const sheets = google.sheets({ version: 'v4', auth });
-
-    // 1. Find the sheetId logic (integer ID) for the given sheetName
     const spreadsheet = await sheets.spreadsheets.get({
       spreadsheetId: sheetId,
     });
@@ -311,12 +253,6 @@ export async function deleteSheetData(
     const gridId = sheet.properties.sheetId;
 
     // 2. Perform delete operation
-    // Note: deleteDimension uses 0-based index. 
-    // rowIndex param is 1-based.
-    // To delete Row X (1-based), we start at index X-1 and end at X.
-    const startIndex = rowIndex - 1;
-    const endIndex = rowIndex;
-
     await sheets.spreadsheets.batchUpdate({
       spreadsheetId: sheetId,
       requestBody: {
@@ -326,8 +262,8 @@ export async function deleteSheetData(
               range: {
                 sheetId: gridId,
                 dimension: 'ROWS',
-                startIndex: startIndex,
-                endIndex: endIndex,
+                startIndex: rowIndex - 1,
+                endIndex: rowIndex,
               },
             },
           },
