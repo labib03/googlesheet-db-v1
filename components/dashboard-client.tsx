@@ -34,8 +34,6 @@ export function DashboardClient({
 
   const [showBackToTop, setShowBackToTop] = useState(false);
   const dataTopRef = useRef<HTMLDivElement | null>(null);
-  const isFirstMount = useRef(true);
-
   const isEnableAdd = process.env.NEXT_PUBLIC_ENABLE_ADD === "true";
   const isEnableEdit = process.env.NEXT_PUBLIC_ENABLE_EDIT === "true";
   const isEnableDelete = process.env.NEXT_PUBLIC_ENABLE_DELETE === "true";
@@ -62,15 +60,9 @@ export function DashboardClient({
     window.scrollTo(0, 0);
   }, []);
 
-  // Auto scroll to top when data changes (paging, filtering, or page size)
-  useEffect(() => {
-    if (isFirstMount.current) {
-      isFirstMount.current = false;
-      return;
-    }
-    scrollToTop();
-  }, [pagination.currentPage, status.isFiltered, pagination.pageSize]);
-
+  // Auto scroll logic removed from useEffect to respect user request:
+  // only scroll on manual pagination or page size change.
+  
   return (
     <div className="space-y-8 relative pb-20">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -93,7 +85,7 @@ export function DashboardClient({
             className="gap-2 rounded-xl h-10 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shadow-sm"
           >
             <Link href="/summary">
-              <BarChart3 className="h-4 w-4 text-indigo-500" />
+              < BarChart3 className="h-4 w-4 text-indigo-500" />
               Summary
             </Link>
           </Button>
@@ -149,7 +141,7 @@ export function DashboardClient({
                 currentPage={pagination.currentPage}
                 pageSize={pagination.pageSize}
                 isEnableEdit={isEnableEdit}
-                isEnableDelete={false}
+                isEnableDelete={isEnableDelete}
               />
 
               <DashboardCards
@@ -158,7 +150,7 @@ export function DashboardClient({
                 currentPage={pagination.currentPage}
                 pageSize={pagination.pageSize}
                 isEnableEdit={isEnableEdit}
-                isEnableDelete={false}
+                isEnableDelete={isEnableDelete}
               />
 
               {data.filteredData.length > 0 && (
@@ -167,14 +159,16 @@ export function DashboardClient({
                   totalPages={pagination.totalPages}
                   pageSize={pagination.pageSize}
                   onPageChange={(p) =>
-                    actions.handleStartTransition(() =>
-                      pagination.setCurrentPage(p)
-                    )
+                    actions.handleStartTransition(() => {
+                      pagination.setCurrentPage(p);
+                      scrollToTop();
+                    })
                   }
                   onPageSizeChange={(s) =>
                     actions.handleStartTransition(() => {
                       pagination.setPageSize(s);
                       pagination.setCurrentPage(1);
+                      scrollToTop();
                     })
                   }
                 />
