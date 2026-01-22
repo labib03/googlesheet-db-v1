@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { desaData, Gender } from "@/lib/constants";
 import { useDebounceValue } from "usehooks-ts";
+import { compareAsc, compareDesc, parse } from "date-fns";
 
 interface DashboardClientProps {
   initialData: SheetRow[];
@@ -79,28 +80,37 @@ export function DashboardClient({
 
   // Filter Data
   const filteredData = useMemo(() => {
-    return initialData.filter((row) => {
-      const matchDesa = filterDesa
-        ? String(row["DESA"] || "").toLowerCase() === filterDesa.toLowerCase()
-        : true;
-      const matchKelompok = filterKelompok
-        ? String(row["KELOMPOK"] || "").toLowerCase() ===
-          filterKelompok.toLowerCase()
-        : true;
+    const formatString = "M/d/yyyy HH:mm:ss";
 
-      const matchGender = filterGender
-        ? String(row["JENIS KELAMIN"] || "").toLowerCase() ===
-          filterGender.toLowerCase()
-        : true;
+    return initialData
+      .filter((row) => {
+        const matchDesa = filterDesa
+          ? String(row["DESA"] || "").toLowerCase() === filterDesa.toLowerCase()
+          : true;
+        const matchKelompok = filterKelompok
+          ? String(row["KELOMPOK"] || "").toLowerCase() ===
+            filterKelompok.toLowerCase()
+          : true;
 
-      const matchNama = debouncedValue
-        ? String(row["NAMA LENGKAP"] || "")
-            .toLowerCase()
-            .includes(debouncedValue.toLowerCase())
-        : true;
+        const matchGender = filterGender
+          ? String(row["JENIS KELAMIN"] || "").toLowerCase() ===
+            filterGender.toLowerCase()
+          : true;
 
-      return matchDesa && matchKelompok && matchGender && matchNama;
-    });
+        const matchNama = debouncedValue
+          ? String(row["NAMA LENGKAP"] || "")
+              .toLowerCase()
+              .includes(debouncedValue.toLowerCase())
+          : true;
+
+        return matchDesa && matchKelompok && matchGender && matchNama;
+      })
+      .sort((a, b) => {
+        const dateA = parse(String(a["Timestamp"]), formatString, new Date());
+        const dateB = parse(String(b["Timestamp"]), formatString, new Date());
+
+        return compareDesc(dateA, dateB);
+      });
   }, [initialData, filterDesa, filterKelompok, filterGender, debouncedValue]);
 
   // Pagination
