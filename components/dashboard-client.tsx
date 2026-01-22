@@ -109,7 +109,7 @@ export function DashboardClient({
         const dateA = parse(String(a["Timestamp"]), formatString, new Date());
         const dateB = parse(String(b["Timestamp"]), formatString, new Date());
 
-        console.log({ dateA, dateB });
+        console.log(String(a["Timestamp"]), String(b["Timestamp"]));
 
         return compareDesc(dateA, dateB);
       });
