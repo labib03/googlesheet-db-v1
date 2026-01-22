@@ -25,9 +25,9 @@ export function DashboardCards({
   isEnableEdit,
   isEnableDelete,
 }: DashboardCardsProps) {
-  const isAnyActionEnabled = isEnableEdit || isEnableDelete;
+  // const isAnyActionEnabled = isEnableEdit || isEnableDelete;
+  const isAnyActionEnabled = false; // Temporarily disable action buttons
 
-  
   const getKeyLabel = (label: string) => {
     const map: Record<string, string> = {
       [COLUMNS.NAMA]: "Nama Lengkap",
@@ -99,7 +99,7 @@ export function DashboardCards({
                       {rowJenjang && (
                         <p
                           className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${generateBgChipJenjang(
-                            rowJenjang
+                            rowJenjang,
                           )}`}
                         >
                           {rowJenjang}
@@ -133,19 +133,23 @@ export function DashboardCards({
             </DataDetailDialog>
             {/* Actions */}
             {isAnyActionEnabled && (
-              <div className={`grid ${isEnableEdit && isEnableDelete ? 'grid-cols-2' : 'grid-cols-1'} border-t border-slate-100 dark:border-slate-800`}>
+              <div
+                className={`grid ${isEnableEdit && isEnableDelete ? "grid-cols-2" : "grid-cols-1"} border-t border-slate-100 dark:border-slate-800`}
+              >
                 {isEnableEdit && (
                   <EditDataDialog row={row} rowIndex={originalIndex}>
-                    <button className={`w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-50/50 dark:bg-indigo-950/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs transition-colors hover:bg-indigo-100 dark:hover:bg-indigo-950/20 ${isEnableDelete ? 'border-r border-slate-100 dark:border-slate-800' : ''}`}>
+                    <button
+                      className={`w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-50/50 dark:bg-indigo-950/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs transition-colors hover:bg-indigo-100 dark:hover:bg-indigo-950/20 ${isEnableDelete ? "border-r border-slate-100 dark:border-slate-800" : ""}`}
+                    >
                       <Pencil className="w-3.5 h-3.5" />
                       Edit Data
                     </button>
                   </EditDataDialog>
                 )}
-                
+
                 {isEnableDelete && (
-                  <DeleteDataDialog 
-                    rowIndex={originalIndex + 2} 
+                  <DeleteDataDialog
+                    rowIndex={originalIndex + 2}
                     dataName={capitalizeWords(rowNamaRaw || "Data")}
                   >
                     <button className="w-full flex items-center justify-center gap-2 py-3.5 bg-rose-50/50 dark:bg-rose-950/10 text-rose-600 dark:text-rose-400 font-bold text-xs transition-colors hover:bg-rose-100 dark:hover:bg-rose-950/20">
