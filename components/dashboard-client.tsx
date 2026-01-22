@@ -80,7 +80,7 @@ export function DashboardClient({
 
   // Filter Data
   const filteredData = useMemo(() => {
-    const formatString = "M/d/yyyy HH:mm:ss";
+    const formatString = "dd/MM/yyyy HH:mm:ss";
 
     return initialData
       .filter((row) => {
