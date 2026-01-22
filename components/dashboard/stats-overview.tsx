@@ -19,6 +19,7 @@ export function StatsOverview({ data }: StatsOverviewProps) {
     let perempuan = 0;
     const jenjangCounts: Record<string, number> = {};
     const desaSet = new Set<string>();
+    const kelompokSet = new Set<string>();
 
     data.forEach((row) => {
       // Gender
@@ -33,6 +34,10 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       // Desa
       const desa = getCellValue(row, COLUMNS.DESA);
       if (desa) desaSet.add(desa.toLowerCase());
+
+      // Kelompok
+      const kelompok = getCellValue(row, COLUMNS.KELOMPOK);
+      if (kelompok) kelompokSet.add(kelompok.toLowerCase());
     });
 
     const topJenjangEntry = Object.entries(jenjangCounts).sort((a, b) => b[1] - a[1])[0];
@@ -43,6 +48,7 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       perempuan,
       topJenjang: topJenjangEntry ? topJenjangEntry[0] : "-",
       activeDesa: desaSet.size,
+      activeKelompok: kelompokSet.size,
       jenjangCounts
     };
   }, [data]);
@@ -62,7 +68,7 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       icon: Mars,
       color: "bg-sky-300",
       textColor: "text-sky-900",
-      description: `${Math.round((stats.lakiLaki / stats.total) * 100) || 0}% dari total`
+      description: `${Math.round((stats.lakiLaki / (stats.total || 1)) * 100) || 0}% dari total`
     },
     {
       label: "Perempuan",
@@ -70,15 +76,17 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       icon: Venus,
       color: "bg-rose-300",
       textColor: "text-rose-900",
-      description: `${Math.round((stats.perempuan / stats.total) * 100) || 0}% dari total`
+      description: `${Math.round((stats.perempuan / (stats.total || 1)) * 100) || 0}% dari total`
     },
     {
       label: "Aktif di",
-      value: `${stats.activeDesa} Desa`,
+      value: stats.activeDesa === 1 
+        ? `${stats.activeKelompok} Kelompok` 
+        : `${stats.activeDesa} Desa`,
       icon: MapPin,
       color: "bg-emerald-300",
       textColor: "text-emerald-900",
-      description: "Kabupaten/Kota Bogor"
+      description: stats.activeDesa === 1 ? "Kelompok di Desa ini" : "Kabupaten/Kota Bogor"
     },
   ];
 
