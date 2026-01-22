@@ -111,6 +111,9 @@ export function DashboardClient({
 
         console.log(String(a["Timestamp"]), String(b["Timestamp"]));
 
+        console.log("dateA:", dateA);
+        console.log("compare:", compareDesc(dateA, dateB));
+
         return compareDesc(dateA, dateB);
       });
   }, [initialData, filterDesa, filterKelompok, filterGender, debouncedValue]);
