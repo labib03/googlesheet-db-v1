@@ -6,7 +6,6 @@ import {
   deleteSheetData,
   SheetRow,
 } from "@/lib/google-sheets";
-import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
 
 export type ActionState = {
@@ -26,10 +25,18 @@ export async function addData(prevState: ActionState, formData: FormData) {
       }
     }
 
-    // Auto-add Timestamp with current date and time
-    const now = new Date();
-
-    const timestamp = format(now, "dd/MM/yyyy H:mm:ss");
+    // Auto-add Timestamp with current date and time (WIB - Jakarta)
+    const timestamp = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(new Date()).replace(",", "");
+    
     rawData["Timestamp"] = timestamp;
 
     await appendSheetData(rawData);
@@ -61,9 +68,18 @@ export async function updateData(
       }
     }
 
-    // Auto-update Timestamp with current date and time
-    const now = new Date();
-    const timestamp = format(now, "dd/MM/yyyy H:mm:ss");
+    // Auto-update Timestamp with current date and time (WIB - Jakarta)
+    const timestamp = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(new Date()).replace(",", "");
+
     rawData["Timestamp"] = timestamp;
 
     await updateSheetData(rowIndex, rawData);
