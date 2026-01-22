@@ -31,7 +31,7 @@ import {
   BarChart3,
   X,
 } from "lucide-react";
-import { desaData, Gender } from "@/lib/constants";
+import { desaData, Gender, kelas } from "@/lib/constants";
 import { useDebounceValue } from "usehooks-ts";
 import { compareAsc, compareDesc, parse } from "date-fns";
 import { capitalizeWords } from "@/lib/helper";
@@ -48,6 +48,7 @@ export function DashboardClient({
   const [filterDesa, setFilterDesa] = useState("");
   const [filterKelompok, setFilterKelompok] = useState("");
   const [filterGender, setFilterGender] = useState("");
+  const [filterJenjangKelas, setFilterJenjangKelas] = useState("");
   const [filterNama, setFilterNama] = useState("");
   const [debouncedValue] = useDebounceValue(filterNama, 1000);
 
@@ -104,7 +105,19 @@ export function DashboardClient({
               .includes(debouncedValue.toLowerCase())
           : true;
 
-        return matchDesa && matchKelompok && matchGender && matchNama;
+        const matchJenjangKelas = filterJenjangKelas
+          ? String(row["Jenjang Kelas"] || "")
+              .toLowerCase()
+              .includes(filterJenjangKelas.toLowerCase())
+          : true;
+
+        return (
+          matchDesa &&
+          matchKelompok &&
+          matchGender &&
+          matchNama &&
+          matchJenjangKelas
+        );
       })
       .sort((a, b) => {
         const dateA = parse(String(a["Timestamp"]), formatString, new Date());
@@ -112,7 +125,14 @@ export function DashboardClient({
 
         return compareDesc(dateA, dateB);
       });
-  }, [initialData, filterDesa, filterKelompok, filterGender, debouncedValue]);
+  }, [
+    initialData,
+    filterDesa,
+    filterKelompok,
+    filterGender,
+    debouncedValue,
+    filterJenjangKelas,
+  ]);
 
   // Pagination
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -166,6 +186,7 @@ export function DashboardClient({
       setFilterDesa("");
       setFilterKelompok("");
       setFilterGender("");
+      setFilterJenjangKelas("");
       setFilterNama("");
       setCurrentPage(1);
     });
@@ -206,6 +227,27 @@ export function DashboardClient({
     }
 
     return String(val ?? "-");
+  };
+
+  const generateBgChipJenjang = (jenjang: string) => {
+    switch (jenjang.toLowerCase()) {
+      case "paud":
+        return "bg-emerald-300 text-emerald-900";
+      case "caberawit a":
+        return "bg-stone-300 text-stone-900";
+      case "caberawit b":
+        return "bg-indigo-300 text-indigo-900";
+      case "caberawit c":
+        return "bg-amber-300 text-amber-900";
+      case "pra remaja":
+        return "bg-sky-300 text-sky-900";
+      case "remaja":
+        return "bg-teal-300 text-teal-900";
+      case "pra nikah":
+        return "bg-purple-300 text-purple-900";
+      default:
+        return "bg-gray-300 text-gray-900";
+    }
   };
 
   return (
@@ -316,6 +358,31 @@ export function DashboardClient({
               >
                 <option value="">Semua</option>
                 {Gender.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filter Jenjang Kelas */}
+            <div className="flex flex-col gap-1.5 w-full sm:w-auto">
+              <label className="text-xs font-semibold text-slate-500 uppercase">
+                Jenjang Kelas
+              </label>
+              <select
+                className="h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[180px]"
+                value={filterJenjangKelas}
+                onChange={(e) => {
+                  const kelas = e.target.value;
+                  startTransition(() => {
+                    setFilterJenjangKelas(kelas);
+                    setCurrentPage(1);
+                  });
+                }}
+              >
+                <option value="">Semua</option>
+                {kelas.map((g) => (
                   <option key={g} value={g}>
                     {g}
                   </option>
@@ -469,7 +536,7 @@ export function DashboardClient({
                     >
                       <DataDetailDialog
                         row={row}
-                        title={`Detail ${row["NAMA LENGKAP"] || "Data"}`}
+                        title={`Detail ${capitalizeWords(row["NAMA LENGKAP"] as string) || "Data"}`}
                       >
                         <div className="p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors grow">
                           {/* Header */}
@@ -483,11 +550,23 @@ export function DashboardClient({
                                   String(row["NAMA LENGKAP"]) || "Data Generus",
                                 )}
                               </h3>
-                              {row["Umur"] && (
-                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                                  {`${row["Umur"]} Tahun`}
-                                </p>
-                              )}
+                              <div className="flex gap-1 items-center mt-0.5">
+                                {/* {row["Umur"] && (
+                                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                                    {`${row["Umur"]} Tahun`}
+                                  </p>
+                                )} */}
+
+                                {row["Jenjang Kelas"] && (
+                                  <>
+                                    <p
+                                      className={`text-sm px-2.5 rounded-full ${generateBgChipJenjang(row["Jenjang Kelas"] as string)}`}
+                                    >
+                                      {row["Jenjang Kelas"]}
+                                    </p>
+                                  </>
+                                )}
+                              </div>
                             </div>
                             <div className="text-slate-300 dark:text-slate-600">
                               <Eye className="w-5 h-5" />
@@ -495,8 +574,19 @@ export function DashboardClient({
                           </div>
                           {/* Body */}
                           <div className="space-y-4">
+                            <div className="flex flex-col">
+                              <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                                Umur
+                              </span>
+                              <span className="text-base font-semibold text-slate-700 dark:text-slate-200 wrap-break-word leading-relaxed">
+                                {getValue("Umur", row["Umur"] as string)}
+                              </span>
+                            </div>
+
                             {headers.slice(0, 7).map((header) => {
                               if (header === "NAMA LENGKAP") return null;
+                              if (header === "TANGGAL LAHIR") return null;
+
                               return (
                                 <div key={header} className="flex flex-col">
                                   <span className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">

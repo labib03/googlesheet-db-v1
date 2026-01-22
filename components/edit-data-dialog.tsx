@@ -258,7 +258,8 @@ export function EditDataDialog({
                 (header) =>
                   header !== "_index" &&
                   header !== "Timestamp" &&
-                  header !== "Umur",
+                  header !== "Umur" &&
+                  header !== "Jenjang Kelas",
               )
               .map((header) => {
                 const optionalFields = ["HOBI", "SKILL / CITA-CITA"];

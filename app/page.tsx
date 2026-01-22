@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/card";
 import { differenceInYears, parse, format } from "date-fns";
 import { id } from "date-fns/locale";
+import { jenjangClassMap } from "@/lib/constants";
+import { getJenjangKelas } from "@/lib/helper";
 
 export const dynamic = "force-dynamic";
 
@@ -84,6 +86,12 @@ export default async function Home() {
           updatedRow["TANGGAL LAHIR"] = formatDate(tanggalLahirRaw);
         }
 
+        if (updatedRow["Umur"] != undefined) {
+          updatedRow["Jenjang Kelas"] = getJenjangKelas(
+            updatedRow["Umur"] as string,
+          );
+        }
+
         return updatedRow;
       });
       // Headers come from first row which is data[0]'s keys if data exists?
@@ -91,7 +99,7 @@ export default async function Home() {
       // So Object.keys of first row is correct.
       if (data.length > 0) {
         headers = Object.keys(data[0]).filter(
-          (k) => k !== "_index" && k !== "Timestamp" && k !== "Umur"
+          (k) => k !== "_index" && k !== "Timestamp" && k !== "Umur",
         ); // Exclude internal index, Timestamp, and Umur (calculated field)
       }
     }

@@ -190,7 +190,12 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
         <form action={handleSubmit}>
           <div className="grid gap-4 py-4">
             {headers
-              .filter((header) => header !== "Timestamp" && header !== "Umur")
+              .filter(
+                (header) =>
+                  header !== "Timestamp" &&
+                  header !== "Umur" &&
+                  header !== "Jenjang Kelas",
+              )
               .map((header) => {
                 const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
                 const isRequired = !optionalFields.includes(header);

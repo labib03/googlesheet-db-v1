@@ -41,3 +41,22 @@ export const desaData: { [key: string]: string[] } = {
 };
 
 export const Gender: string[] = ["Laki-Laki", "Perempuan"];
+export const kelas: string[] = [
+  "PAUD",
+  "Caberawit A",
+  "Caberawit B",
+  "Caberawit C",
+  "Pra Remaja",
+  "Remaja",
+  "Pra Nikah",
+];
+
+export const jenjangClassMap: { [key: string]: number } = {
+  paud: 5,
+  "caberawit a": 6,
+  "caberawit b": 8,
+  "caberawit c": 10,
+  "pra remaja": 12,
+  remaja: 15,
+  "pra nikah": 19,
+};
