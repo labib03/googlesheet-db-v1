@@ -1,9 +1,11 @@
 import NextAuth from "next-auth"
 import Credentials from "next-auth/providers/credentials"
+import { authConfig } from "./auth.config"
 import { findUserByUsername } from "@/lib/user-sheets"
 import bcrypt from "bcryptjs"
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  ...authConfig,
   providers: [
     Credentials({
       credentials: {
@@ -36,26 +38,4 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  callbacks: {
-    jwt({ token, user }) {
-      if (user) {
-        token.role = (user as any).role;
-        token.desa = (user as any).desa;
-      }
-      return token;
-    },
-    session({ session, token }) {
-      if (session.user) {
-        (session.user as any).role = token.role as string;
-        (session.user as any).desa = token.desa as string;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
-  session: {
-    strategy: "jwt",
-  },
 })

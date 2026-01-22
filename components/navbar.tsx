@@ -1,7 +1,9 @@
+"use client";
+
 import { useState, useEffect } from 'react';
 import { Menu, X, Home, BarChart3, LogIn, LogOut, Settings, User as UserIcon } from 'lucide-react';
-import Link from 'next/link';
 import { useSession, signOut } from "next-auth/react";
+import Link from 'next/link';
 import { Button } from './ui/button';
 
 export function Navbar() {
