@@ -34,6 +34,7 @@ export function DashboardClient({
 
   const [showBackToTop, setShowBackToTop] = useState(false);
   const dataTopRef = useRef<HTMLDivElement | null>(null);
+  const isFirstMount = useRef(true);
 
   const isEnableAdd = process.env.NEXT_PUBLIC_ENABLE_ADD === "true";
   const isEnableEdit = process.env.NEXT_PUBLIC_ENABLE_EDIT === "true";
@@ -41,7 +42,7 @@ export function DashboardClient({
 
   useEffect(() => {
     const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 400);
+      setShowBackToTop(window.scrollY >= window.innerHeight * 2);
     };
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -49,9 +50,26 @@ export function DashboardClient({
 
   const scrollToTop = () => {
     if (dataTopRef.current) {
-      dataTopRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+      // Small timeout ensures the DOM has updated its height before scrolling
+      setTimeout(() => {
+        dataTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     }
   };
+
+  // Force scroll to absolute top on initial load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Auto scroll to top when data changes (paging, filtering, or page size)
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    scrollToTop();
+  }, [pagination.currentPage, status.isFiltered, pagination.pageSize]);
 
   return (
     <div className="space-y-8 relative pb-20">

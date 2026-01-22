@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { AddDataDialog } from "@/components/add-data-dialog";
 import { SheetRow } from "@/lib/google-sheets";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -33,12 +33,36 @@ export function AdminDashboardClient({
   } = useDashboardData({ initialData });
 
   const dataTopRef = useRef<HTMLDivElement | null>(null);
+  const isFirstMount = useRef(true);
 
   const isEnableAdd = process.env.NEXT_PUBLIC_ENABLE_ADD === "true";
   // Force delete feature to true on Admin page, but respect ENV for visibility flag
   const isEnableDelete = process.env.NEXT_PUBLIC_ENABLE_DELETE === "true";
   // On Admin page, we allow Edit as well if needed, but the primary request was to move Delete here.
   const isEnableEdit = process.env.NEXT_PUBLIC_ENABLE_EDIT === "true";
+
+  const scrollToTop = () => {
+    if (dataTopRef.current) {
+      // Small timeout ensures the DOM has updated its height before scrolling
+      setTimeout(() => {
+        dataTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  };
+
+  // Force scroll to absolute top on initial load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Auto scroll to top when data changes (paging, filtering, or page size)
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    scrollToTop();
+  }, [pagination.currentPage, status.isFiltered, pagination.pageSize]);
 
   if (error) {
     return (
