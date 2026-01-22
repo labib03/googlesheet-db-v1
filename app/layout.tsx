@@ -18,6 +18,8 @@ export const metadata: Metadata = {
   description: "Dashboard Generus Bogsel",
 };
 
+import { SessionProvider } from "@/components/providers/session-provider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,9 +30,11 @@ export default function RootLayout({
       <body
         className={`${outfit.variable} ${syne.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50`}
       >
-        <main className="animate-in fade-in duration-700 slide-in-from-top-1">
-          {children}
-        </main>
+        <SessionProvider>
+          <main className="animate-in fade-in duration-700 slide-in-from-top-1">
+            {children}
+          </main>
+        </SessionProvider>
         <Toaster />
       </body>
     </html>

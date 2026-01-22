@@ -9,12 +9,12 @@ const DEFAULT_SHEET_NAME =
   (process.env.GOOGLE_SHEET_NAME && process.env.GOOGLE_SHEET_NAME.trim()) || 'Sheet1';
 
 // Helper to escape sheet names for A1 notation
-const escapeSheetName = (name: string) => `'${name.replace(/'/g, "''")}'`;
+export const escapeSheetName = (name: string) => `'${name.replace(/'/g, "''")}'`;
 
 /**
  * Helper to get auth client to avoid repeating code
  */
-async function getAuth() {
+export async function getAuth() {
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
   const privateKey = process.env.GOOGLE_PRIVATE_KEY
     ?.replace(/\\n/g, '\n')
