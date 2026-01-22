@@ -109,7 +109,7 @@ export function DashboardClient({
         const dateA = parse(String(a["Timestamp"]), formatString, new Date());
         const dateB = parse(String(b["Timestamp"]), formatString, new Date());
 
-        return compareDesc(dateA, dateB);
+        return compareAsc(dateA, dateB);
       });
   }, [initialData, filterDesa, filterKelompok, filterGender, debouncedValue]);
 
