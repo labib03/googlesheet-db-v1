@@ -34,6 +34,7 @@ import {
 import { desaData, Gender } from "@/lib/constants";
 import { useDebounceValue } from "usehooks-ts";
 import { compareAsc, compareDesc, parse } from "date-fns";
+import { capitalizeWords } from "@/lib/helper";
 
 interface DashboardClientProps {
   initialData: SheetRow[];
@@ -194,7 +195,18 @@ export function DashboardClient({
 
   const getKey = (header: string) => labelMap[header] || header;
 
-  const getValue = (header: string, val: unknown) => String(val ?? "-");
+  const getValue = (header: string, val: string) => {
+    if (
+      header.toLowerCase() === "nama lengkap" ||
+      header.toLowerCase() === "nama ayah" ||
+      header.toLowerCase() === "nama ibu" ||
+      header.toLowerCase() === "desa"
+    ) {
+      return String(capitalizeWords(val) ?? "-");
+    }
+
+    return String(val ?? "-");
+  };
 
   return (
     <div className="space-y-6 relative">
@@ -416,7 +428,7 @@ export function DashboardClient({
                               key={`${originalIndex}-${header}`}
                               className="whitespace-normal max-w-64 border"
                             >
-                              {getValue(header, row[header])}
+                              {getValue(header, row[header] as string)}
                             </TableCell>
                           ))}
                           <TableCell className="whitespace-nowrap border">
@@ -467,7 +479,9 @@ export function DashboardClient({
                             </div>
                             <div className="flex-1 min-w-0">
                               <h3 className="font-bold text-lg text-slate-900 dark:text-slate-100 truncate">
-                                {String(row["NAMA LENGKAP"] || "Data Generus")}
+                                {capitalizeWords(
+                                  String(row["NAMA LENGKAP"]) || "Data Generus",
+                                )}
                               </h3>
                               {row["Umur"] && (
                                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
@@ -489,7 +503,7 @@ export function DashboardClient({
                                     {getKey(header)}
                                   </span>
                                   <span className="text-base font-semibold text-slate-700 dark:text-slate-200 wrap-break-word leading-relaxed">
-                                    {getValue(header, row[header])}
+                                    {getValue(header, row[header] as string)}
                                   </span>
                                 </div>
                               );
