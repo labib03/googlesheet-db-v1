@@ -8,56 +8,11 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { differenceInYears, parse, format } from "date-fns";
-import { id } from "date-fns/locale";
-import { jenjangClassMap } from "@/lib/constants";
-import { getJenjangKelas } from "@/lib/helper";
+import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
 
 export const dynamic = "force-dynamic";
 
-// Helper to calculate age
-function calculateAge(dateString: string): string {
-  if (!dateString) return "-";
 
-  try {
-    // Parsing string "DD/MM/YYYY" menjadi Date
-    const birthDate = parse(dateString, "dd/MM/yyyy", new Date());
-
-    if (isNaN(birthDate.getTime())) {
-      console.error("Invalid date:", dateString);
-      return "-";
-    }
-
-    const today = new Date();
-    const age = differenceInYears(today, birthDate);
-
-    return age.toString();
-  } catch (error) {
-    console.error("Error parsing date:", error);
-    return "-";
-  }
-}
-
-// Helper to format date to "DD MMMM YYYY" (e.g., "20 Maret 2010")
-function formatDate(dateString: string): string {
-  if (!dateString) return "-";
-
-  try {
-    // Parsing string "DD/MM/YYYY" menjadi Date
-    const date = parse(dateString, "dd/MM/yyyy", new Date());
-
-    if (isNaN(date.getTime())) {
-      console.error("Invalid date:", dateString);
-      return "-";
-    }
-
-    // Format ke "dd MMMM yyyy" dengan locale Indonesia
-    return format(date, "dd MMMM yyyy", { locale: id });
-  } catch (error) {
-    console.error("Error parsing date:", error);
-    return "-";
-  }
-}
 
 export default async function Home() {
   let data: SheetRow[] = [];
@@ -112,42 +67,44 @@ export default async function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-indigo-50/50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 font-sans">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {/* Error State */}
         {error && (
-          <Card className="mx-auto mb-8 max-w-2xl border-l-4 border-l-red-500 border-y-0 border-r-0 shadow-lg bg-white dark:bg-slate-900 mt-8">
-            <CardHeader>
-              <CardTitle className="text-red-600 dark:text-red-400 flex items-center gap-2">
-                <span>⚠️</span> Terjadi Kesalahan
+          <Card className="mx-auto mb-8 max-w-2xl border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800">
+            <div className="h-2 bg-red-500" />
+            <CardHeader className="pt-6">
+              <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span className="p-1 bg-red-100 dark:bg-red-950/20 rounded-md">
+                   <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </span>
+                Connection Failure
               </CardTitle>
-              <CardDescription className="text-red-700 dark:text-red-500 font-medium">
+              <CardDescription className="text-slate-500 dark:text-slate-400 mt-1">
                 {error}
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="rounded-lg bg-red-50 p-4 dark:bg-red-950/20">
-                <p className="mb-3 text-sm font-bold text-red-900 dark:text-red-200">
-                  Langkah Perbaikan:
+            <CardContent className="pb-8">
+              <div className="bg-slate-50 dark:bg-slate-950/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
+                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                  Recommended troubleshooting steps:
                 </p>
-                <ol className="list-inside list-decimal space-y-2 text-sm text-red-800 dark:text-red-300">
-                  <li>
-                    Pastikan Service Account sudah dibuat di Google Cloud
-                    Console
+                <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold">•</span>
+                    Check Google Cloud Service Account credentials.
                   </li>
-                  <li>
-                    Cek kembali file{" "}
-                    <code className="rounded bg-red-200/50 px-1.5 py-0.5 font-mono text-xs">
-                      .env.local
-                    </code>
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold">•</span>
+                    Verify environment variables in <code className="bg-white dark:bg-slate-900 px-1 py-0.5 rounded border border-slate-200 dark:border-slate-800">.env.local</code>.
                   </li>
-                  <li>
-                    Undang email service account sebagai <strong>Editor</strong>{" "}
-                    di Google Sheet
+                  <li className="flex items-start gap-2">
+                    <span className="text-indigo-500 font-bold">•</span>
+                    Ensure the Sheet is shared with the Service Account email as <span className="underline underline-offset-2">Editor</span>.
                   </li>
-                </ol>
+                </ul>
               </div>
             </CardContent>
           </Card>

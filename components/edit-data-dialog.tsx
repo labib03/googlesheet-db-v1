@@ -1,118 +1,133 @@
 "use client";
 
-import { useState } from "react";
-import { useFormStatus } from "react-dom";
+import { useState, useRef, useEffect, useCallback, useTransition } from "react";
 import { updateData } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Pencil, Loader2 } from "lucide-react";
+import { Pencil, Loader2, ChevronDown, Save, RefreshCw } from "lucide-react";
 import { SheetRow } from "@/lib/google-sheets";
+import { desaData, Gender, COLUMNS } from "@/lib/constants";
+import { format, parseISO } from "date-fns";
+import { getCellValue } from "@/lib/helper";
+import { toast } from "sonner";
 
 interface EditDataDialogProps {
   row: SheetRow;
-  rowIndex: number; // 0-based index from data array, mapping to sheet index handled in action/lib
+  rowIndex: number;
   children?: React.ReactNode;
 }
 
-function SubmitButton() {
-  const { pending } = useFormStatus();
-
+function SubmitButton({ formId, isPending }: { formId: string; isPending: boolean }) {
   return (
     <Button
       type="submit"
-      disabled={pending}
-      className="bg-blue-600 hover:bg-blue-700 text-white"
+      form={formId}
+      disabled={isPending}
+      className="w-full bg-sky-600 hover:bg-sky-700 text-white rounded-xl h-11 transition-all active:scale-95 shadow-lg shadow-sky-100 dark:shadow-none font-semibold"
     >
-      {pending ? (
+      {isPending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Menyimpan...
+          Memproses...
         </>
       ) : (
-        "Simpan Perubahan"
+        <div className="flex items-center gap-2">
+          <Save className="w-4 h-4" />
+          <span>Simpan Perubahan</span>
+        </div>
       )}
     </Button>
   );
 }
-
-import { desaData, Gender } from "@/lib/constants";
-import { format, parseISO } from "date-fns";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function EditDataDialog({
   row,
   rowIndex,
   children,
 }: EditDataDialogProps) {
+  const formId = "edit-data-form";
   const [open, setOpen] = useState(false);
-  // Initialize Desa from existing data
-  const [selectedDesa, setSelectedDesa] = useState<string>(
-    String(row["DESA"] || ""),
-  );
+  const [selectedDesa, setSelectedDesa] = useState<string>("");
+  const [isPending, startTransition] = useTransition();
 
-  // Sheet Row Index calculation
+  // Initialize/Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      const initialDesa = getCellValue(row, COLUMNS.DESA).toUpperCase();
+      setSelectedDesa(initialDesa);
+    }
+  }, [open, row]);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const checkScroll = useCallback(() => {
+    if (scrollRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+      const canScrollDown = scrollHeight > clientHeight + scrollTop + 10;
+      setShowScrollIndicator(canScrollDown);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (open) {
+      const timer = setTimeout(checkScroll, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [open, checkScroll]);
+
   const sheetRowIndex = rowIndex + 2;
 
-  // Data mapping for Desa -> Kelompok
-  // Moved to lib/constants.ts
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
 
-  const handleSubmit = async (formData: FormData) => {
-    const rawDate = formData.get("TANGGAL LAHIR") as string; // contoh: "2026-01-22"
+    startTransition(async () => {
+      const keys = Array.from(formData.keys());
+      const tanggalLahirKey = keys.find(k => k.toLowerCase() === COLUMNS.TANGGAL_LAHIR.toLowerCase()) || COLUMNS.TANGGAL_LAHIR;
+      
+      const rawDate = formData.get(tanggalLahirKey) as string;
 
-    if (rawDate) {
-      const parsed = parseISO(rawDate);
-      const formatted = format(parsed, "dd/MM/yyyy"); // ubah sesuai kebutuhan
-      formData.set("TANGGAL LAHIR", formatted);
-    }
+      if (rawDate) {
+        try {
+          const parsed = parseISO(rawDate);
+          const formatted = format(parsed, "dd/MM/yyyy");
+          formData.set(tanggalLahirKey, formatted);
+        } catch (e) {
+          // Fallback or ignore
+        }
+      }
 
-    const result = await updateData(sheetRowIndex, null, formData);
-    if (result.success) {
-      setOpen(false);
-    } else {
-      alert(`Gagal: ${result.message}`);
-    }
+      const result = await updateData(sheetRowIndex, null, formData);
+      if (result.success) {
+        setOpen(false);
+        toast.success(result.message);
+      } else {
+        toast.error(`Gagal: ${result.message}`);
+      }
+    });
   };
 
-  // Helper to convert display date (e.g. "20 Maret 2010" or "2010-03-20") to YYYY-MM-DD for input
   const getFormattedDateForInput = (dateString: string) => {
     if (!dateString) return "";
-
-    // Check if already in YYYY-MM-DD format (simple check)
     if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) return dateString;
 
-    // Try parsing Indonesian format
     const monthMap: { [key: string]: string } = {
-      Januari: "01",
-      Februari: "02",
-      Maret: "03",
-      April: "04",
-      Mei: "05",
-      Juni: "06",
-      Juli: "07",
-      Agustus: "08",
-      September: "09",
-      Oktober: "10",
-      November: "11",
-      Desember: "12",
+      Januari: "01", Februari: "02", Maret: "03", April: "04", Mei: "05", Juni: "06",
+      Juli: "07", Agustus: "08", September: "09", Oktober: "10", November: "11", Desember: "12",
     };
 
-    // Attempt to replace month name with number
     let processedString = dateString;
     Object.keys(monthMap).forEach((monthName) => {
       if (dateString.includes(monthName)) {
-        // "20 Maret 2010" -> replace "Maret" with "March" for Date constructor?
-        // no, let's just create a valid date object
-        // If the format is strictly "DD MMMM YYYY"
         const parts = dateString.split(" ");
         if (parts.length === 3) {
           const day = parts[0].padStart(2, "0");
@@ -123,7 +138,6 @@ export function EditDataDialog({
       }
     });
 
-    // Fallback: Use Date parser if replacement didn't produce YYYY-MM-DD
     if (!/^\d{4}-\d{2}-\d{2}$/.test(processedString)) {
       const date = new Date(dateString);
       if (!isNaN(date.getTime())) {
@@ -136,102 +150,127 @@ export function EditDataDialog({
 
   const renderInput = (header: string, isRequired: boolean) => {
     const currentValue = String(row[header] || "");
+    const selectBaseClass = "flex h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/20 focus-visible:border-sky-500 appearance-none";
+    const inputBaseClass = "h-11 w-full rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 focus-visible:ring-sky-500/20 focus-visible:border-sky-500 transition-all";
 
-    // 1. TANGGAL LAHIR -> Date Input
-    if (header === "TANGGAL LAHIR") {
+    const headerLower = header.toLowerCase();
+
+    if (headerLower === COLUMNS.TANGGAL_LAHIR.toLowerCase()) {
       return (
         <Input
           id={header}
           name={header}
           type="date"
           defaultValue={getFormattedDateForInput(currentValue)}
-          className="col-span-3"
+          className={inputBaseClass}
           required={isRequired}
         />
       );
     }
 
-    // 2. Desa -> Dropdown
-    if (header === "DESA") {
+    if (headerLower.toUpperCase() === COLUMNS.DESA.toUpperCase()) {
       return (
-        <select
-          id={header}
-          name={header}
-          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          required={isRequired}
-          value={selectedDesa}
-          onChange={(e) => {
-            setSelectedDesa(e.target.value);
-          }}
-        >
-          <option value="">Pilih Desa</option>
-          {Object.keys(desaData).map((desa) => (
-            <option key={desa} value={desa}>
-              {desa}
-            </option>
-          ))}
-        </select>
+        <div className="relative w-full">
+          <select
+            id={header}
+            name={header}
+            className={selectBaseClass}
+            required={isRequired}
+            value={selectedDesa}
+            onChange={(e) => setSelectedDesa(e.target.value)}
+          >
+            <option value="">Pilih Desa</option>
+            {Object.keys(desaData).map((desa) => (
+              <option key={desa} value={desa}>
+                {desa}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-3.5 pointer-events-none opacity-40">
+             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          </div>
+        </div>
       );
     }
 
-    // 3. KELOMPOK -> Dependent Dropdown
-    if (header === "KELOMPOK") {
-      const valueIsValid =
-        selectedDesa && desaData[selectedDesa]?.includes(currentValue);
+    if (headerLower === COLUMNS.KELOMPOK.toLowerCase()) {
+      const normalizedSelectedDesa = selectedDesa.toUpperCase();
+      const kelompokList = desaData[normalizedSelectedDesa] || [];
+      const valueIsValid = kelompokList.some(k => k.toLowerCase() === currentValue.toLowerCase());
+      
+      const matchedValue = valueIsValid 
+        ? kelompokList.find(k => k.toLowerCase() === currentValue.toLowerCase()) 
+        : "";
+
       return (
-        <select
-          id={header}
-          name={header}
-          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          required={isRequired}
-          disabled={!selectedDesa}
-          defaultValue={valueIsValid ? currentValue : ""}
-        >
-          <option value="">Pilih Kelompok</option>
-          {selectedDesa &&
-            desaData[selectedDesa]?.map((kelompok) => (
+        <div className="relative w-full">
+          <select
+            id={header}
+            name={header}
+            className={selectBaseClass}
+            required={isRequired}
+            disabled={!normalizedSelectedDesa}
+            defaultValue={matchedValue}
+          >
+            <option value="">Pilih Kelompok</option>
+            {kelompokList.map((kelompok) => (
               <option key={kelompok} value={kelompok}>
                 {kelompok}
               </option>
             ))}
-        </select>
+          </select>
+          <div className="absolute right-3 top-3.5 pointer-events-none opacity-40">
+             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          </div>
+        </div>
       );
     }
 
-    // JENIS KELAMIN
-    if (header === "JENIS KELAMIN") {
+    if (headerLower === COLUMNS.GENDER.toLowerCase()) {
       return (
-        <select
-          id={header}
-          name={header}
-          className="col-span-3 flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-          required={isRequired}
-          defaultValue={currentValue}
-        >
-          <option value="">Pilih Jenis Kelamin</option>
-          {Gender?.map((g) => (
-            <option key={g} value={g}>
-              {g}
-            </option>
-          ))}
-        </select>
+        <div className="relative w-full">
+          <select
+            id={header}
+            name={header}
+            className={selectBaseClass}
+            required={isRequired}
+            defaultValue={currentValue}
+          >
+            <option value="">Pilih Jenis Kelamin</option>
+            {Gender?.map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+          <div className="absolute right-3 top-3.5 pointer-events-none opacity-40">
+             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+          </div>
+        </div>
       );
     }
 
-    // Default -> Text Input
     return (
       <Input
         id={header}
         name={header}
         defaultValue={currentValue}
-        className="col-span-3"
+        className={inputBaseClass}
         required={isRequired}
       />
     );
   };
 
+  const ignoredKeys = ["_index", "timestamp", "umur", "jenjang kelas"];
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog 
+      open={open} 
+      onOpenChange={(newOpen) => {
+        if (isPending) return;
+        setOpen(newOpen);
+      }}
+    >
       <DialogTrigger asChild>
         {children ? (
           children
@@ -239,61 +278,110 @@ export function EditDataDialog({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+            className="h-9 w-9 text-sky-600 hover:text-sky-700 hover:bg-sky-50 rounded-xl transition-all active:scale-90"
           >
             <Pencil className="h-4 w-4" />
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] max-h-[70vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Data</DialogTitle>
-          <DialogDescription>
-            Ubah data di bawah ini. Pastikan data yang dimasukkan benar.
-          </DialogDescription>
-        </DialogHeader>
-        <ScrollArea className="max-h-[45vh] pr-4">
-          <form action={handleSubmit}>
-            <div className="grid gap-4 py-4">
-              {Object.keys(row)
-                .filter(
-                  (header) =>
-                    header !== "_index" &&
-                    header !== "Timestamp" &&
-                    header !== "Umur" &&
-                    header !== "Jenjang Kelas",
-                )
-                .map((header) => {
-                  const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
-                  const isRequired = !optionalFields.includes(header);
+      <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl h-[92vh] max-h-[92vh] flex flex-col font-outfit">
+        {/* Header - Fixed */}
+        <div className="bg-gradient-to-br from-sky-600 to-sky-700 p-6 md:p-8 text-white relative shrink-0">
+           <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Pencil className="w-24 h-24" />
+           </div>
+           <DialogHeader>
+             <DialogTitle className="text-xl md:text-2xl font-bold tracking-tight font-syne">Edit Data Generus</DialogTitle>
+             <DialogDescription className="text-sky-100 font-medium text-xs md:text-sm">
+               Perbarui informasi detail untuk entitas generus ini. Pastikan data tetap akurat.
+             </DialogDescription>
+           </DialogHeader>
+        </div>
 
-                  return (
-                    <div
-                      key={header}
-                      className="grid grid-cols-4 items-center gap-4"
-                    >
-                      <Label
-                        htmlFor={header}
-                        className="text-right capitalize flex justify-end items-center gap-1"
-                      >
-                        {header}
-                        {isRequired && <span className="text-red-500">*</span>}
-                      </Label>
-                      {renderInput(header, isRequired)}
+        {/* Content - Scrollable */}
+        <div className="relative flex-1 min-h-0 bg-white dark:bg-slate-900">
+          {/* Stunning Animation Overlay */}
+          {isPending && (
+            <div className="absolute inset-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm flex flex-col items-center justify-center p-8 animate-in fade-in duration-300">
+               <div className="relative mb-6">
+                  <div className="absolute inset-0 bg-sky-500 blur-2xl opacity-20 animate-pulse rounded-full"></div>
+                  <div className="relative h-20 w-20 rounded-2xl bg-sky-600 flex items-center justify-center text-white shadow-xl">
+                    <RefreshCw className="w-10 h-10 animate-spin" />
+                  </div>
+                  <div className="absolute -bottom-2 -right-2">
+                    <div className="h-8 w-8 rounded-full bg-white dark:bg-slate-800 flex items-center justify-center shadow-lg">
+                       <Loader2 className="w-5 h-5 text-sky-600 animate-spin" />
                     </div>
-                  );
-                })}
+                  </div>
+               </div>
+               <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Memperbarui Data...</h3>
+               <p className="text-slate-500 dark:text-slate-400 text-center text-sm max-w-[240px]">
+                 Sinkronisasi perubahan sedang berlangsung. Harap tunggu sebentar.
+               </p>
             </div>
-          </form>
-        </ScrollArea>
+          )}
 
-        <DialogFooter>
-          <Button variant="secondary" onClick={() => setOpen(false)}>
-            Close
-          </Button>
+          <div 
+            ref={scrollRef}
+            onScroll={checkScroll}
+            className="h-full overflow-y-auto px-5 md:px-8 py-6 space-y-5 md:space-y-6 scrollbar-hide"
+          >
+            <form id={formId} onSubmit={handleSubmit} className="pb-4">
+              <div className="grid gap-5 md:gap-6">
+                {Object.keys(row)
+                  .filter((h) => !ignoredKeys.includes(h.toLowerCase()))
+                  .map((header) => {
+                    const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
+                    const isRequired = !optionalFields.includes(header.toUpperCase());
 
-          <SubmitButton />
-        </DialogFooter>
+                    return (
+                      <div
+                        key={header}
+                        className="grid grid-cols-1 md:grid-cols-4 md:items-center gap-1.5 md:gap-4 group"
+                      >
+                        <Label
+                          htmlFor={header}
+                          className="font-semibold text-slate-600 dark:text-slate-400 group-focus-within:text-sky-600 transition-colors text-xs md:text-sm"
+                        >
+                          {header}
+                          {isRequired && <span className="text-rose-500 ml-1 font-bold">*</span>}
+                        </Label>
+                        <div className="md:col-span-3">
+                          {renderInput(header, isRequired)}
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+            </form>
+          </div>
+
+          {/* Scroll Indicator Icon */}
+          <div 
+            className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-8 bg-sky-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-none md:hidden ${
+              showScrollIndicator ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            }`}
+          >
+            <ChevronDown className="w-5 h-5 animate-bounce" />
+          </div>
+        </div>
+
+        {/* Footer - Fixed */}
+        <div className="p-5 md:p-8 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+          <div className="flex gap-3">
+            <Button 
+              variant="ghost" 
+              className="flex-1 rounded-xl h-11 transition-all font-semibold outline-none" 
+              onClick={() => setOpen(false)}
+              disabled={isPending}
+            >
+              Batal
+            </Button>
+            <div className="flex-1">
+               <SubmitButton formId={formId} isPending={isPending} />
+            </div>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

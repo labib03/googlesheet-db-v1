@@ -9,7 +9,12 @@ import {
 import { format } from "date-fns";
 import { revalidatePath } from "next/cache";
 
-export async function addData(prevState: any, formData: FormData) {
+export type ActionState = {
+  success: boolean;
+  message: string;
+} | null;
+
+export async function addData(prevState: ActionState, formData: FormData) {
   try {
     const rawData: SheetRow = {};
 
@@ -29,6 +34,7 @@ export async function addData(prevState: any, formData: FormData) {
 
     await appendSheetData(rawData);
     revalidatePath("/");
+    revalidatePath("/admin-restricted");
 
     return { success: true, message: "Data berhasil ditambahkan!" };
   } catch (error) {
@@ -43,7 +49,7 @@ export async function addData(prevState: any, formData: FormData) {
 
 export async function updateData(
   rowIndex: number,
-  prevState: any,
+  prevState: ActionState,
   formData: FormData,
 ) {
   try {
@@ -62,6 +68,7 @@ export async function updateData(
 
     await updateSheetData(rowIndex, rawData);
     revalidatePath("/");
+    revalidatePath("/admin-restricted");
 
     return { success: true, message: "Data berhasil diperbarui!" };
   } catch (error) {
@@ -78,6 +85,7 @@ export async function deleteData(rowIndex: number) {
   try {
     await deleteSheetData(rowIndex);
     revalidatePath("/");
+    revalidatePath("/admin-restricted");
     return { success: true, message: "Data berhasil dihapus!" };
   } catch (error) {
     console.error("Failed to delete data:", error);

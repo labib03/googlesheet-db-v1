@@ -1,0 +1,22 @@
+
+C:\Users\Raven\web_development\Next\antigravity\app\page.tsx
+  11:10  warning  'jenjangClassMap' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\app\summary\page.tsx
+   21:10  warning  'Home' is defined but never used                        @typescript-eslint/no-unused-vars
+  171:9   warning  'breadcrumbCurrent' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard-client.tsx
+  28:3   warning  'Users' is defined but never used          @typescript-eslint/no-unused-vars
+  29:3   warning  'MapPin' is defined but never used         @typescript-eslint/no-unused-vars
+  35:10  warning  'StatsOverview' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard\stats-overview.tsx
+  5:28  warning  'GraduationCap' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\summary-list.tsx
+   3:10  warning  'ArrowLeft' is defined but never used  @typescript-eslint/no-unused-vars
+  26:3   warning  'icon' is defined but never used       @typescript-eslint/no-unused-vars
+
+Γ£û 9 problems (0 errors, 9 warnings)
+

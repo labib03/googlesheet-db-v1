@@ -18,198 +18,127 @@ import {
 } from "@/components/ui/breadcrumb";
 import { SummaryList } from "@/components/summary-list";
 import { SummaryDesaList } from "@/components/summary-desa-list";
-import { ArrowLeft, Users, Home } from "lucide-react";
-import { desaData } from "@/lib/constants";
+import { BarChart, ArrowLeft } from "lucide-react";
+import { StatsOverview } from "@/components/dashboard/stats-overview";
+import { AnalyticsService } from "@/services/analytics-service";
 
 export const dynamic = "force-dynamic";
 
-function normalize(value: unknown): string {
-  return String(value ?? "")
-    .trim()
-    .toLowerCase();
-}
-
-function displayOrFallback(value: string, fallback: string) {
-  return value.trim().length > 0 ? value : fallback;
-}
-
 interface SummaryPageProps {
-  searchParams?: Promise<{ desa?: string }>;
+  searchParams?: Promise<{ desa?: string; kelompok?: string }>;
 }
 
 export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   let rows: SheetRow[] = [];
   let error: string | null = null;
+  
+  // Resolve search params
+  const resolvedParams = searchParams ? await searchParams : {};
+  const selectedDesa = resolvedParams.desa || "";
+  const selectedKelompok = resolvedParams.kelompok || "";
 
   try {
-    rows = await getSheetData();
+    const rawData = await getSheetData();
+    rows = AnalyticsService.processRows(rawData);
   } catch (err) {
     error = err instanceof Error ? err.message : "Gagal memuat data";
   }
 
-  let selectedDesaParam = "";
-  if (searchParams) {
-    const resolved = await searchParams;
-    selectedDesaParam = resolved?.desa ?? "";
-  }
-  const selectedDesaKey = normalize(selectedDesaParam);
+  // Get Desa Summary
+  const desaList = AnalyticsService.getDesaSummary(rows);
+  const selectedDesaNode = desaList.find(d => d.key === selectedDesa.toLowerCase());
+  const selectedDesaLabel = selectedDesaNode ? selectedDesaNode.label : selectedDesa;
 
-  const desaCanonical = Object.keys(desaData);
+  // Get Kelompok Summary (only if desa is selected)
+  const kelompokList = selectedDesa
+    ? AnalyticsService.getKelompokSummary(rows, selectedDesa)
+    : [];
+  const selectedKelompokNode = kelompokList.find(k => k.key === selectedKelompok.toLowerCase());
+  const selectedKelompokLabel = selectedKelompokNode ? selectedKelompokNode.label : selectedKelompok;
 
-  const desaCount = new Map<string, { label: string; count: number }>();
-
-  // Seed canonical values so they always show (even 0)
-  for (const d of desaCanonical) {
-    desaCount.set(normalize(d), { label: d, count: 0 });
-  }
-
-  // Count per-desa
-  for (const row of rows) {
-    const desaRaw = String(row["DESA"] ?? "");
-    const desaKey = normalize(desaRaw);
-    const desaLabel = displayOrFallback(desaRaw, "Tidak terisi");
-
-    if (!desaCount.has(desaKey)) {
-      desaCount.set(desaKey, { label: desaLabel, count: 0 });
-    }
-
-    desaCount.get(desaKey)!.count += 1;
-  }
-
-  const desaList = Array.from(desaCount.entries())
-    .map(([key, value]) => ({ key, ...value }))
-    .sort((a, b) => a.label.localeCompare(b.label, "id-ID"));
-
-  // Determine canonical desa label for selected key (if any)
-  let selectedDesaLabel: string | null = null;
-  if (selectedDesaKey) {
-    // First try to find in desaList
-    const match = desaList.find((d) => d.key === selectedDesaKey);
-    if (match) {
-      selectedDesaLabel = match.label;
-    } else {
-      // If not found, try to match with canonical desa names
-      const canonicalMatch = desaCanonical.find(
-        (d) => normalize(d) === selectedDesaKey,
-      );
-      selectedDesaLabel = canonicalMatch || selectedDesaParam || null;
-    }
-  }
-
-  // Build kelompok counts only for selected desa (if any)
-  const kelompokCountForSelected = new Map<
-    string,
-    { label: string; count: number; key: string }
-  >();
-
-  if (selectedDesaKey && selectedDesaLabel) {
-    // Try to seed from canonical desaData mapping if we can match
-    const canonicalMatch = desaCanonical.find(
-      (d) => normalize(d) === selectedDesaKey,
-    );
-
-    if (canonicalMatch && desaData[canonicalMatch]) {
-      for (const k of desaData[canonicalMatch]) {
-        console.log("Seeding Kelompok for:", k);
-        kelompokCountForSelected.set(normalize(k), {
-          label: k,
-          count: 0,
-          key: normalize(k),
-        });
-      }
-    }
-
-    // Count actual data for selected desa
-    for (const row of rows) {
-      const desaRaw = String(row["DESA"] ?? "");
-      if (normalize(desaRaw) !== selectedDesaKey) continue;
-
-      const kelompokRaw = String(row["KELOMPOK"] ?? "");
-      const kelompokKey = normalize(kelompokRaw);
-      const kelompokLabel = displayOrFallback(kelompokRaw, "Tidak terisi");
-
-      if (!kelompokCountForSelected.has(kelompokKey)) {
-        console.log("Adding Kelompok for:", kelompokRaw);
-        console.log("Kelompok Label:", row);
-        kelompokCountForSelected.set(kelompokKey, {
-          label: kelompokLabel,
-          count: 0,
-          key: kelompokKey,
-        });
-      }
-
-      kelompokCountForSelected.get(kelompokKey)!.count += 1;
-
-      // console.log("Counting Kelompok:", kelompokCountForSelected);
-    }
-  }
-
-  const kelompokList =
-    selectedDesaKey && selectedDesaLabel
-      ? Array.from(kelompokCountForSelected.values()).sort((a, b) =>
-          a.label.localeCompare(b.label, "id-ID"),
-        )
-      : [];
-
-  console.log("Kelompok List:", kelompokCountForSelected.values());
-
+  // Filter for Stats
+  const filteredRowsForStats = AnalyticsService.filterRows(rows, selectedDesa, selectedKelompok);
+  
   const totalRows = rows.length;
-  const showKelompok = selectedDesaKey && selectedDesaLabel;
-  const breadcrumbCurrent = selectedDesaLabel || "DESA";
+  const showKelompokView = !!selectedDesa;
 
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-indigo-50/50 to-blue-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950 font-sans">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       <Navbar />
 
-      <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-6">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 space-y-10">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
           <div className="space-y-1">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-              Summary Data
-            </h2>
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+              Summary Analytics
+            </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Rekap total data per Desa dan per Kelompok •{" "}
-              <span className="font-semibold text-slate-700 dark:text-slate-200">
-                {totalRows.toLocaleString("id-ID")} data
-              </span>
+              Distribution and distribution metrics for <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{totalRows.toLocaleString("id-ID")}</span> entities.
             </p>
           </div>
 
-          <div className="w-full md:w-auto flex justify-end">
-            <Button asChild variant="outline" className="gap-2">
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4" />
-                Kembali ke Data
-              </Link>
-            </Button>
+          <div className="flex gap-3">
+             <Button asChild variant="ghost" className="rounded-xl px-4 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors">
+                <Link href="/">
+                   <ArrowLeft className="h-4 w-4 mr-2" />
+                   Back to Dashboard
+                </Link>
+             </Button>
           </div>
         </div>
 
-        {/* Breadcrumb (selalu tampil) */}
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href="/summary" className="flex items-center gap-1">
-                  <Home className="h-4 w-4" />
-                  Summary
-                </Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>{breadcrumbCurrent}</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
+        {/* Global Statistics Overview */}
+        <div key={`${selectedDesa}-${selectedKelompok}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+           <StatsOverview data={filteredRowsForStats} />
+        </div>
+
+        {/* Breadcrumb */}
+        <div className="bg-white dark:bg-slate-900 px-5 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="flex items-center gap-3">
+            <div className="bg-indigo-100 dark:bg-indigo-950/40 p-1.5 rounded-lg">
+               <BarChart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <Breadcrumb>
+              <BreadcrumbList>
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href="/summary" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">
+                      Summary
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator />
+                <BreadcrumbItem>
+                  <BreadcrumbLink asChild>
+                    <Link href={selectedDesa ? `/summary?desa=${encodeURIComponent(selectedDesaLabel)}` : "/summary"} className="hover:text-indigo-600 transition-colors font-medium">
+                       {selectedDesaLabel || "Desa Overview"}
+                    </Link>
+                  </BreadcrumbLink>
+                </BreadcrumbItem>
+                {selectedKelompok && (
+                  <>
+                    <BreadcrumbSeparator />
+                    <BreadcrumbItem>
+                      <BreadcrumbPage className="font-semibold text-slate-900 dark:text-white">
+                        {selectedKelompokLabel}
+                      </BreadcrumbPage>
+                    </BreadcrumbItem>
+                  </>
+                )}
+              </BreadcrumbList>
+            </Breadcrumb>
+          </div>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">Analytics Node / Active</span>
+        </div>
 
         {error && (
-          <Card className="border-l-4 border-l-red-500 border-y-0 border-r-0 bg-white dark:bg-slate-950">
+          <Card className="mx-auto max-w-2xl border-none shadow-sm bg-white dark:bg-slate-900 rounded-2xl ring-1 ring-red-100 dark:ring-red-900/30 overflow-hidden animate-in zoom-in-95 duration-500">
+            <div className="h-1.5 bg-red-500" />
             <CardHeader>
-              <CardTitle className="text-red-600 dark:text-red-400">
-                Terjadi Kesalahan
+              <CardTitle className="text-xl font-bold text-red-600 flex items-center gap-2">
+                <span>⚠️</span> Sync Error
               </CardTitle>
-              <CardDescription className="text-red-700 dark:text-red-500">
+              <CardDescription className="text-slate-500">
                 {error}
               </CardDescription>
             </CardHeader>
@@ -217,25 +146,29 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
         )}
 
         {!error && (
-          <div className="grid grid-cols-1 gap-3">
-            {showKelompok ? (
-              // Show Kelompok when Desa is selected
-              <div className="space-y-1 relative">
+          <div className="grid grid-cols-1 gap-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
+            {showKelompokView ? (
+              <div className="space-y-6 relative">
+                <div className="flex justify-start">
+                   <Button asChild variant="ghost" size="sm" className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors">
+                      <Link href="/summary">
+                         <ArrowLeft className="h-4 w-4 mr-2" />
+                         Kembali Pilih Desa
+                      </Link>
+                   </Button>
+                </div>
                 <SummaryList
-                  title="Total per Kelompok"
-                  description={`Jumlah data berdasarkan kolom KELOMPOK untuk Desa ${selectedDesaLabel}`}
-                  icon={
-                    <Users className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
-                  }
+                  title="Distribution [Kelompok]"
+                  description={`Audit data clusters for region: ${selectedDesaLabel}. Click a group to filter analytics.`}
                   items={kelompokList}
-                  showAsLink={false}
-                  isKelompok={true}
-                  isClickable={false}
+                  selectedKey={selectedKelompok.toLowerCase()}
+                  isClickable={true}
+                  selectionType="kelompok"
+                  baseParams={{ desa: selectedDesaLabel }}
                 />
               </div>
             ) : (
-              // Show Desa list by default
-              <SummaryDesaList items={desaList} selectedKey={selectedDesaKey} />
+              <SummaryDesaList items={desaList} selectedKey={selectedDesa.toLowerCase()} />
             )}
           </div>
         )}

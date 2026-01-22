@@ -1,0 +1,27 @@
+
+C:\Users\Raven\web_development\Next\antigravity\app\summary\page.tsx
+  21:10  warning  'GraduationCap' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\add-data-dialog.tsx
+  11:3  warning  'DialogFooter' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard-client.tsx
+  25:3  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard\stats-overview.tsx
+  5:17  warning  'UserCheck' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\data-detail-dialog.tsx
+  7:3  warning  'DialogDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  8:3  warning  'DialogFooter' is defined but never used       @typescript-eslint/no-unused-vars
+  9:3  warning  'DialogHeader' is defined but never used       @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\edit-data-dialog.tsx
+  11:3  warning  'DialogFooter' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\skeletons.tsx
+  1:10  warning  'Card' is defined but never used         @typescript-eslint/no-unused-vars
+  1:16  warning  'CardContent' is defined but never used  @typescript-eslint/no-unused-vars
+
+Γ£û 10 problems (0 errors, 10 warnings)
+

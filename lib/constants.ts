@@ -60,3 +60,17 @@ export const jenjangClassMap: { [key: string]: number } = {
   remaja: 15,
   "pra nikah": 19,
 };
+
+// Canonical Column Names from Google Sheets
+export const COLUMNS = {
+  NAMA: "NAMA LENGKAP",
+  DESA: "DESA",
+  KELOMPOK: "KELOMPOK",
+  GENDER: "JENIS KELAMIN",
+  TANGGAL_LAHIR: "TANGGAL LAHIR",
+  TIMESTAMP: "Timestamp",
+  HOBI: "HOBI",
+  SKILL: "SKILL / CITA-CITA",
+  UMUR: "Umur",
+  JENJANG: "Jenjang Kelas",
+} as const;

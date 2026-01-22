@@ -1,4 +1,45 @@
+import { differenceInYears, parse, format } from "date-fns";
+import { id } from "date-fns/locale";
 import { jenjangClassMap } from "./constants";
+
+export function calculateAge(dateString: string): string {
+  if (!dateString) return "-";
+
+  try {
+    const birthDate = parse(dateString, "dd/MM/yyyy", new Date());
+
+    if (isNaN(birthDate.getTime())) {
+      console.error("Invalid date:", dateString);
+      return "-";
+    }
+
+    const today = new Date();
+    const age = differenceInYears(today, birthDate);
+
+    return age.toString();
+  } catch (error) {
+    console.error("Error parsing date:", error);
+    return "-";
+  }
+}
+
+export function formatDate(dateString: string): string {
+  if (!dateString) return "-";
+
+  try {
+    const date = parse(dateString, "dd/MM/yyyy", new Date());
+
+    if (isNaN(date.getTime())) {
+      console.error("Invalid date:", dateString);
+      return "-";
+    }
+
+    return format(date, "dd MMMM yyyy", { locale: id });
+  } catch (error) {
+    console.error("Error parsing date:", error);
+    return "-";
+  }
+}
 
 export function capitalizeWords(input: string): string {
   return input
@@ -28,4 +69,23 @@ export function getJenjangKelas(age: string) {
   }
 
   return "-";
+}
+
+/**
+ * Safety helper to get cell value from a row case-insensitively.
+ * Prevents logic breaking if Google Sheet column names change case.
+ */
+export function getCellValue(row: Record<string, any>, columnName: string): string {
+  if (!row) return "";
+  const keys = Object.keys(row);
+  const targetKey = keys.find((k) => k.toLowerCase() === columnName.toLowerCase());
+  return targetKey ? String(row[targetKey] as string || "").trim() : "";
+}
+
+/**
+ * Safety helper to find the actual header key from a list of headers.
+ */
+export function findColumnKey(headers: string[], columnName: string): string {
+  if (!headers) return columnName;
+  return headers.find((h) => h.toLowerCase() === columnName.toLowerCase()) || columnName;
 }

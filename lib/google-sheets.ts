@@ -8,6 +8,9 @@ export interface SheetRow {
 const DEFAULT_SHEET_NAME =
   (process.env.GOOGLE_SHEET_NAME && process.env.GOOGLE_SHEET_NAME.trim()) || 'Sheet1';
 
+// Helper to escape sheet names for A1 notation
+const escapeSheetName = (name: string) => `'${name.replace(/'/g, "''")}'`;
+
 /**
  * Fetches data from a Google Sheet
  * @param sheetName - The name of the sheet/tab to read from (e.g., "Sheet1")
@@ -48,8 +51,9 @@ export async function getSheetData(
 
     const sheets = google.sheets({ version: 'v4', auth });
 
-    // Construct the range
-    const fullRange = range ? `${sheetName}!${range}` : sheetName;
+    // Construct the range with escaped sheet name
+    const escapedName = escapeSheetName(sheetName);
+    const fullRange = range ? `${escapedName}!${range}` : escapedName;
 
     // Fetch data from the sheet
     const response = await sheets.spreadsheets.values.get({
@@ -152,10 +156,13 @@ export async function appendSheetData(
 
     const sheets = google.sheets({ version: 'v4', auth });
 
+    // Ensure sheet name is escaped
+    const escapedName = escapeSheetName(sheetName);
+
     // 1. Get current headers to map object values to correct order
     const headerResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: `${sheetName}!1:1`, // First row
+      range: `${escapedName}!1:1`, // First row
     });
 
     const headers = headerResponse.data.values?.[0] as string[];
@@ -163,14 +170,22 @@ export async function appendSheetData(
       throw new Error('Sheet is empty or missing headers');
     }
 
-    // 2. Map rowData object to array based on headers
-    const values = headers.map((header) => rowData[header] || '');
+    // 2. Map rowData object to array based on headers (case-insensitive)
+    const values = headers.map((header) => {
+      const targetKey = Object.keys(rowData).find(
+        (key) => key.toLowerCase() === header.toLowerCase()
+      );
+      return targetKey ? rowData[targetKey] : '';
+    });
 
-    // 3. Append data
+    // 3. Append data at the end of the table
+    // Using INSERT_ROWS ensures we always add new rows and don't overwrite if there's data.
+    // Starting search at A1 is most reliable.
     await sheets.spreadsheets.values.append({
       spreadsheetId: sheetId,
-      range: sheetName,
-      valueInputOption: 'USER_ENTERED',
+      range: `${escapedName}!A1`,
+      valueInputOption: 'RAW',
+      insertDataOption: 'INSERT_ROWS',
       requestBody: {
         values: [values],
       },
@@ -214,10 +229,12 @@ export async function updateSheetData(
 
     const sheets = google.sheets({ version: 'v4', auth });
 
+    const escapedName = escapeSheetName(sheetName);
+
     // 1. Get headers to ensure correct column order
     const headerResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
-      range: `${sheetName}!1:1`,
+      range: `${escapedName}!1:1`,
     });
 
     const headers = headerResponse.data.values?.[0] as string[];
@@ -225,14 +242,19 @@ export async function updateSheetData(
       throw new Error('Sheet is empty or missing headers');
     }
 
-    // 2. Map data
-    const values = headers.map((header) => rowData[header] || '');
+    // 2. Map data case-insensitively
+    const values = headers.map((header) => {
+      const targetKey = Object.keys(rowData).find(
+        (key) => key.toLowerCase() === header.toLowerCase()
+      );
+      return targetKey ? rowData[targetKey] : '';
+    });
 
     // 3. Update
     await sheets.spreadsheets.values.update({
       spreadsheetId: sheetId,
-      range: `${sheetName}!A${rowIndex}`,
-      valueInputOption: 'USER_ENTERED',
+      range: `${escapedName}!A${rowIndex}`,
+      valueInputOption: 'RAW',
       requestBody: {
         values: [values],
       },
