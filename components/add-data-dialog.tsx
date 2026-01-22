@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { PlusCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -180,48 +181,52 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
           Tambah Data
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[425px] max-h-[70vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Tambah Data Baru</DialogTitle>
           <DialogDescription>
             Isi formulir berikut untuk menambahkan baris baru ke Google Sheet.
           </DialogDescription>
         </DialogHeader>
-        <form action={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            {headers
-              .filter(
-                (header) =>
-                  header !== "Timestamp" &&
-                  header !== "Umur" &&
-                  header !== "Jenjang Kelas",
-              )
-              .map((header) => {
-                const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
-                const isRequired = !optionalFields.includes(header);
 
-                return (
-                  <div
-                    key={header}
-                    className="grid grid-cols-4 items-center gap-4"
-                  >
-                    <Label htmlFor={header} className="text-left capitalize">
-                      {header}
-                      {isRequired && <span className="text-red-500">*</span>}
-                    </Label>
-                    {renderInput(header, isRequired)}
-                  </div>
-                );
-              })}
-          </div>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
-              Close
-            </Button>
+        <ScrollArea className="max-h-[45vh] pr-4">
+          <form action={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              {headers
+                .filter(
+                  (header) =>
+                    header !== "Timestamp" &&
+                    header !== "Umur" &&
+                    header !== "Jenjang Kelas",
+                )
+                .map((header) => {
+                  const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
+                  const isRequired = !optionalFields.includes(header);
 
-            <SubmitButton />
-          </DialogFooter>
-        </form>
+                  return (
+                    <div
+                      key={header}
+                      className="grid grid-cols-4 items-center gap-4"
+                    >
+                      <Label htmlFor={header} className="text-left capitalize">
+                        {header}
+                        {isRequired && <span className="text-red-500">*</span>}
+                      </Label>
+                      {renderInput(header, isRequired)}
+                    </div>
+                  );
+                })}
+            </div>
+          </form>
+        </ScrollArea>
+
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            Close
+          </Button>
+
+          <SubmitButton />
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

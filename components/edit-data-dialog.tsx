@@ -47,6 +47,7 @@ function SubmitButton() {
 
 import { desaData, Gender } from "@/lib/constants";
 import { format, parseISO } from "date-fns";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function EditDataDialog({
   row,
@@ -244,52 +245,55 @@ export function EditDataDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] max-h-[85vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[425px] max-h-[70vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Data</DialogTitle>
           <DialogDescription>
             Ubah data di bawah ini. Pastikan data yang dimasukkan benar.
           </DialogDescription>
         </DialogHeader>
-        <form action={handleSubmit}>
-          <div className="grid gap-4 py-4">
-            {Object.keys(row)
-              .filter(
-                (header) =>
-                  header !== "_index" &&
-                  header !== "Timestamp" &&
-                  header !== "Umur" &&
-                  header !== "Jenjang Kelas",
-              )
-              .map((header) => {
-                const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
-                const isRequired = !optionalFields.includes(header);
+        <ScrollArea className="max-h-[45vh] pr-4">
+          <form action={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              {Object.keys(row)
+                .filter(
+                  (header) =>
+                    header !== "_index" &&
+                    header !== "Timestamp" &&
+                    header !== "Umur" &&
+                    header !== "Jenjang Kelas",
+                )
+                .map((header) => {
+                  const optionalFields = ["HOBI", "SKILL / CITA-CITA"];
+                  const isRequired = !optionalFields.includes(header);
 
-                return (
-                  <div
-                    key={header}
-                    className="grid grid-cols-4 items-center gap-4"
-                  >
-                    <Label
-                      htmlFor={header}
-                      className="text-right capitalize flex justify-end items-center gap-1"
+                  return (
+                    <div
+                      key={header}
+                      className="grid grid-cols-4 items-center gap-4"
                     >
-                      {header}
-                      {isRequired && <span className="text-red-500">*</span>}
-                    </Label>
-                    {renderInput(header, isRequired)}
-                  </div>
-                );
-              })}
-          </div>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setOpen(false)}>
-              Close
-            </Button>
+                      <Label
+                        htmlFor={header}
+                        className="text-right capitalize flex justify-end items-center gap-1"
+                      >
+                        {header}
+                        {isRequired && <span className="text-red-500">*</span>}
+                      </Label>
+                      {renderInput(header, isRequired)}
+                    </div>
+                  );
+                })}
+            </div>
+          </form>
+        </ScrollArea>
 
-            <SubmitButton />
-          </DialogFooter>
-        </form>
+        <DialogFooter>
+          <Button variant="secondary" onClick={() => setOpen(false)}>
+            Close
+          </Button>
+
+          <SubmitButton />
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

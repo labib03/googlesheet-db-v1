@@ -287,7 +287,7 @@ export function DashboardClient({
         </div>
 
         <div className="flex flex-col md:flex-row gap-6 justify-between items-end">
-          <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto flex-1">
+          <div className="flex flex-col flex-wrap sm:flex-row gap-4 w-full md:w-auto flex-1">
             {/* Filter Desa */}
             <div className="flex flex-col gap-1.5 w-full sm:w-auto">
               <label className="text-xs font-semibold text-slate-500 uppercase">

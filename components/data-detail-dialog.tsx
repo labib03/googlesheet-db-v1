@@ -43,7 +43,7 @@ export function DataDetailDialog({
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md sm:max-w-lg">
+      <DialogContent className="sm:max-w-[425px] max-h-[70vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold text-slate-900 dark:text-slate-100">
             {title}
@@ -52,7 +52,7 @@ export function DataDetailDialog({
             Informasi lengkap dari baris data yang dipilih.
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[60vh] pr-4">
+        <ScrollArea className="max-h-[45vh] pr-4">
           <div className="grid gap-4 py-4">
             {Object.entries(row)
               .filter(([key]) => key !== "_index" && key !== "Timestamp")
