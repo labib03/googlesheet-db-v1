@@ -8,7 +8,7 @@ export const desaData: { [key: string]: string[] } = {
     "Kebon Pedes",
   ],
   CIPARIGI: ["Ciparigi 1", "Ciparigi 2", "Warung Jambu"],
-  CIPAYUNG: ["Al-Badar", "Al Ubaidah", "Ciawi 1", "Ciawi 2", "Tapos"],
+  CIPAYUNG: ["Al Badar", "Al Ubaidah", "Ciawi 1", "Ciawi 2", "Tapos"],
   "GUNUNG GEDE": [
     "Ciapus",
     "Cikaret",
