@@ -12,13 +12,14 @@ interface UseDashboardDataProps {
 }
 
 export function useDashboardData({ initialData }: UseDashboardDataProps) {
-  const [filterDesa, setFilterDesa] = useState("");
-  const [filterKelompok, setFilterKelompok] = useState("");
+  const [filterDesa, setFilterDesa] = useState<string[]>([]);
+  const [filterKelompok, setFilterKelompok] = useState<string[]>([]);
   const [filterGender, setFilterGender] = useState("");
-  const [filterJenjangKelas, setFilterJenjangKelas] = useState("");
+  const [filterJenjangKelas, setFilterJenjangKelas] = useState<string[]>([]);
   const [filterNama, setFilterNama] = useState("");
   const [debouncedValue] = useDebounceValue(filterNama, 1000);
 
+  const [showDuplicates, setShowDuplicates] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
@@ -54,6 +55,34 @@ export function useDashboardData({ initialData }: UseDashboardDataProps) {
   const filteredData = useMemo(() => {
     const formatString = "dd/MM/yyyy HH:mm:ss";
 
+    if (showDuplicates) {
+      const nameCounts = new Map<string, number>();
+      initialData.forEach((row) => {
+        const name = getCellValue(row, COLUMNS.NAMA).toLowerCase().trim();
+        if (name) {
+          nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
+        }
+      });
+
+      return initialData
+        .filter((row) => {
+          const name = getCellValue(row, COLUMNS.NAMA).toLowerCase().trim();
+          return name && (nameCounts.get(name) || 0) > 1;
+        })
+        .sort((a, b) => {
+          const nameA = getCellValue(a, COLUMNS.NAMA).toLowerCase().trim();
+          const nameB = getCellValue(b, COLUMNS.NAMA).toLowerCase().trim();
+          if (nameA < nameB) return -1;
+          if (nameA > nameB) return 1;
+
+          const tsA = getCellValue(a, COLUMNS.TIMESTAMP);
+          const tsB = getCellValue(b, COLUMNS.TIMESTAMP);
+          const dateA = tsA ? parse(tsA, formatString, new Date()) : new Date(0);
+          const dateB = tsB ? parse(tsB, formatString, new Date()) : new Date(0);
+          return compareDesc(dateA, dateB);
+        });
+    }
+
     return initialData
       .filter((row) => {
         const rowDesa = getCellValue(row, COLUMNS.DESA);
@@ -62,11 +91,11 @@ export function useDashboardData({ initialData }: UseDashboardDataProps) {
         const rowNama = getCellValue(row, COLUMNS.NAMA);
         const rowJenjang = getCellValue(row, COLUMNS.JENJANG);
 
-        const matchDesa = filterDesa
-          ? rowDesa.toLowerCase() === filterDesa.toLowerCase()
+        const matchDesa = filterDesa.length > 0
+          ? filterDesa.some(d => d.toLowerCase() === rowDesa.toLowerCase())
           : true;
-        const matchKelompok = filterKelompok
-          ? rowKelompok.toLowerCase() === filterKelompok.toLowerCase()
+        const matchKelompok = filterKelompok.length > 0
+          ? filterKelompok.some(k => k.toLowerCase() === rowKelompok.toLowerCase())
           : true;
         const matchGender = filterGender
           ? rowGender.toLowerCase() === filterGender.toLowerCase()
@@ -74,8 +103,8 @@ export function useDashboardData({ initialData }: UseDashboardDataProps) {
         const matchNama = debouncedValue
           ? rowNama.toLowerCase().includes(debouncedValue.toLowerCase())
           : true;
-        const matchJenjangKelas = filterJenjangKelas
-          ? rowJenjang.toLowerCase() === filterJenjangKelas.toLowerCase()
+        const matchJenjangKelas = filterJenjangKelas.length > 0
+          ? filterJenjangKelas.some(j => j.toLowerCase() === rowJenjang.toLowerCase())
           : true;
 
         return (
@@ -89,7 +118,7 @@ export function useDashboardData({ initialData }: UseDashboardDataProps) {
       .sort((a, b) => {
         const tsA = getCellValue(a, COLUMNS.TIMESTAMP);
         const tsB = getCellValue(b, COLUMNS.TIMESTAMP);
-        
+
         const dateA = tsA ? parse(tsA, formatString, new Date()) : new Date(0);
         const dateB = tsB ? parse(tsB, formatString, new Date()) : new Date(0);
         return compareDesc(dateA, dateB);
@@ -101,28 +130,33 @@ export function useDashboardData({ initialData }: UseDashboardDataProps) {
     filterGender,
     debouncedValue,
     filterJenjangKelas,
+    showDuplicates,
   ]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
-  
+
   const paginatedData = useMemo(() => {
-     return filteredData.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    return filteredData.slice(
+      (currentPage - 1) * pageSize,
+      currentPage * pageSize
+    );
   }, [filteredData, currentPage, pageSize]);
 
   const isFiltered =
-    filterDesa !== "" ||
-    filterKelompok !== "" ||
+    filterDesa.length > 0 ||
+    filterKelompok.length > 0 ||
     filterGender !== "" ||
     debouncedValue !== "" ||
-    filterJenjangKelas !== "";
+    filterJenjangKelas.length > 0;
 
   const resetFilters = () => {
     handleStartTransition(() => {
-      setFilterDesa("");
-      setFilterKelompok("");
+      setFilterDesa([]);
+      setFilterKelompok([]);
       setFilterGender("");
-      setFilterJenjangKelas("");
+      setFilterJenjangKelas([]);
       setFilterNama("");
+      setShowDuplicates(false);
       setCurrentPage(1);
     });
   };
@@ -134,11 +168,13 @@ export function useDashboardData({ initialData }: UseDashboardDataProps) {
       filterGender,
       filterJenjangKelas,
       filterNama,
+      showDuplicates,
       setFilterDesa,
       setFilterKelompok,
       setFilterGender,
       setFilterJenjangKelas,
       setFilterNama,
+      setShowDuplicates,
     },
     pagination: {
       currentPage,
@@ -163,6 +199,6 @@ export function useDashboardData({ initialData }: UseDashboardDataProps) {
     actions: {
       handleStartTransition,
       resetFilters,
-    }
+    },
   };
 }
