@@ -18,6 +18,8 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
     setIsMounted(true);
   }, []);
 
+  const [showChildren, setShowChildren] = useState(false);
+
   useEffect(() => {
     if (isVisible) {
       // Aggressive scroll lock when preloader starts
@@ -39,10 +41,17 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
           body.style.overflow = '';
           body.style.height = '';
           document.documentElement.removeAttribute('data-preloader');
+          setShowChildren(true);
         }, 1100);
       }, 3200);
       
       return () => clearTimeout(timer);
+    } else {
+      // If we are not showing preloader (e.g. standard navigation where layout is already mounted)
+      // or if it was already cleared
+      if (!document.documentElement.hasAttribute('data-preloader')) {
+        setShowChildren(true);
+      }
     }
   }, [isVisible]);
 
@@ -126,11 +135,10 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
       </AnimatePresence>
 
       {/* 
-         Content reveals naturally. 
-         If preloader is active, it sits at z-[999999] covering EVERYTHING 
-         (including app/loading.tsx). Once it slides up, the app is ready.
+         Content reveals only after preloader exits. 
+         This ensures Framer Motion staggered reveals start exactly when visible.
       */}
-      {children}
+      {showChildren && children}
     </>
   );
 }

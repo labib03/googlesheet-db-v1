@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "@/components/skeletons";
 import { ShieldCheck, AlertCircle, History } from "lucide-react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 interface AdminDashboardClientProps {
   initialData: SheetRow[];
@@ -20,6 +21,21 @@ interface AdminDashboardClientProps {
   headers: string[];
   error: string | null;
 }
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
 
 export function AdminDashboardClient({
   initialData,
@@ -65,25 +81,36 @@ export function AdminDashboardClient({
 
   if (error) {
     return (
-      <Card className="mx-auto max-w-2xl border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800">
-        <div className="h-2 bg-red-500" />
-        <CardHeader className="pt-6">
-          <CardTitle className="text-xl font-bold flex items-center gap-2">
-            <AlertCircle className="w-5 h-5 text-red-600" />
-            Admin Access Error
-          </CardTitle>
-          <CardDescription>{error}</CardDescription>
-        </CardHeader>
-      </Card>
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="mx-auto max-w-2xl px-4"
+      >
+        <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 font-outfit">
+          <div className="h-2 bg-red-500" />
+          <CardHeader className="pt-6">
+            <CardTitle className="text-xl font-bold flex items-center gap-2">
+              <AlertCircle className="w-5 h-5 text-red-600" />
+              Admin Access Error
+            </CardTitle>
+            <CardDescription>{error}</CardDescription>
+          </CardHeader>
+        </Card>
+      </motion.div>
     );
   }
 
   return (
-    <div className="space-y-8 relative">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <motion.div 
+      initial="hidden"
+      animate="show"
+      variants={staggerContainer}
+      className="space-y-8 relative font-outfit"
+    >
+      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200 dark:shadow-none">
+            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
               <ShieldCheck className="w-6 h-6" />
             </div>
             <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight font-syne">
@@ -99,12 +126,12 @@ export function AdminDashboardClient({
           <Link href="/admin-restricted/trash">
             <Button 
                 variant="outline" 
-                className="gap-2 rounded-xl h-10 px-5 border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 hover:border-rose-100 transition-all font-semibold"
+                className="gap-2 rounded-xl h-10 px-5 border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 hover:border-rose-100 transition-all font-semibold shadow-sm"
             >
                 <History className="h-4 w-4" />
                 <span>Lihat Trash</span>
                 {trashData.length > 0 && (
-                    <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900">
+                    <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse">
                         {trashData.length}
                     </span>
                 )}
@@ -115,67 +142,73 @@ export function AdminDashboardClient({
             <AddDataDialog headers={headers} />
           )}
         </div>
-      </div>
+      </motion.div>
 
-      <DashboardFilters
-        filters={filters}
-        options={options}
-        status={status}
-        pagination={pagination}
-        totalCount={data.filteredData.length}
-        filteredCount={data.filteredData.length}
-        actions={{
-          ...actions,
-          setCurrentPage: pagination.setCurrentPage,
-        }}
-      />
+      <motion.div variants={itemVariants}>
+        <DashboardFilters
+          filters={filters}
+          options={options}
+          status={status}
+          pagination={pagination}
+          totalCount={initialData.length}
+          filteredCount={data.filteredData.length}
+          actions={{
+            ...actions,
+            setCurrentPage: pagination.setCurrentPage,
+          }}
+        />
+      </motion.div>
 
       <div ref={dataTopRef} className="scroll-mt-16" />
 
-      <Card className="border-none shadow-none bg-transparent">
-        <CardContent className="p-0 relative">
-          {status.isVisualPending ? (
-            <div className="p-8">
-              <TableSkeleton />
-            </div>
-          ) : data.filteredData.length === 0 ? (
-            <div className="p-20 text-center">
-               <p className="text-slate-500 font-medium">No records found matching your selection.</p>
-            </div>
-          ) : (
-            <>
-              <DashboardTable
-                data={data.paginatedData}
-                headers={headers}
-                currentPage={pagination.currentPage}
-                pageSize={pagination.pageSize}
-                isEnableEdit={isEnableEdit}
-                isEnableDelete={isEnableDelete}
-              />
+      <motion.div variants={itemVariants}>
+        <Card className="border-none shadow-none bg-transparent">
+          <CardContent className="p-0 relative">
+            {status.isVisualPending ? (
+              <div className="p-8">
+                <TableSkeleton />
+              </div>
+            ) : data.filteredData.length === 0 ? (
+              <div className="p-20 text-center bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800 shadow-sm mx-1">
+                 <p className="text-slate-500 font-medium">No records found matching your selection.</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                <DashboardTable
+                  data={data.paginatedData}
+                  headers={headers}
+                  currentPage={pagination.currentPage}
+                  pageSize={pagination.pageSize}
+                  isEnableEdit={isEnableEdit}
+                  isEnableDelete={isEnableDelete}
+                />
 
-              <DashboardCards
-                data={data.paginatedData}
-                headers={headers}
-                currentPage={pagination.currentPage}
-                pageSize={pagination.pageSize}
-                isEnableEdit={isEnableEdit}
-                isEnableDelete={isEnableDelete}
-              />
+                <DashboardCards
+                  data={data.paginatedData}
+                  headers={headers}
+                  currentPage={pagination.currentPage}
+                  pageSize={pagination.pageSize}
+                  isEnableEdit={isEnableEdit}
+                  isEnableDelete={isEnableDelete}
+                />
 
-              <DashboardPagination
-                currentPage={pagination.currentPage}
-                totalPages={pagination.totalPages}
-                pageSize={pagination.pageSize}
-                onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
-                onPageSizeChange={(s) => actions.handleStartTransition(() => {
-                  pagination.setPageSize(s);
-                  pagination.setCurrentPage(1);
-                })}
-              />
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+                <div className="pt-2">
+                    <DashboardPagination
+                      currentPage={pagination.currentPage}
+                      totalPages={pagination.totalPages}
+                      pageSize={pagination.pageSize}
+                      onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
+                      onPageSizeChange={(s) => actions.handleStartTransition(() => {
+                        pagination.setPageSize(s);
+                        pagination.setCurrentPage(1);
+                      })}
+                    />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 }

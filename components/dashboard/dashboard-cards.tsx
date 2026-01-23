@@ -7,6 +7,7 @@ import { DeleteDataDialog } from "@/components/delete-data-dialog";
 import { getCellValue, capitalizeWords } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
 import { Pencil, Trash2 } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface DashboardCardsProps {
   data: SheetRow[];
@@ -17,9 +18,19 @@ interface DashboardCardsProps {
   isEnableDelete: boolean;
 }
 
-import { memo } from "react";
+const cardVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { 
+        duration: 0.4, 
+        ease: "easeOut" 
+    } 
+  },
+};
 
-export const DashboardCards = memo(function DashboardCards({
+export function DashboardCards({
   data,
   headers,
   currentPage,
@@ -78,8 +89,11 @@ export const DashboardCards = memo(function DashboardCards({
         const rowUmur = getCellValue(row, COLUMNS.UMUR);
 
         return (
-          <div
+          <motion.div
             key={originalIndex}
+            variants={cardVariants}
+            initial="hidden"
+            animate="show"
             className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col"
           >
             <DataDetailDialog
@@ -161,9 +175,9 @@ export const DashboardCards = memo(function DashboardCards({
                 )}
               </div>
             )}
-          </div>
+          </motion.div>
         );
       })}
     </div>
   );
-});
+}
