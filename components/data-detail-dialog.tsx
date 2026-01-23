@@ -51,7 +51,7 @@ export function DataDetailDialog({ row, children }: DataDetailDialogProps) {
       </div>
 
       <Dialog open={isOpen} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl h-[92vh] max-h-[92vh] flex flex-col font-outfit">
+        <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl h-auto max-h-[92vh] flex flex-col font-outfit">
           <LoadingOverlay isPending={false} />
           <div className="flex-1 min-h-0">
             <GenerusDetail 

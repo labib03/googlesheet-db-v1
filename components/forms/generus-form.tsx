@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -40,12 +41,14 @@ export function GenerusForm({
       const canScrollDown = scrollHeight > clientHeight + scrollTop + 40;
       setShowScrollIndicator(canScrollDown);
     }
+  
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(checkScroll, 100);
+    // Initial check after a short delay
+    const timer = setTimeout(checkScroll, 500);
     return () => clearTimeout(timer);
-  }, [checkScroll]);
+  }, [checkScroll, headers]);
 
   const ignoredKeys = ["_index", "timestamp", "umur", "jenjang kelas"];
 
@@ -56,11 +59,19 @@ export function GenerusForm({
     const headerLower = header.toLowerCase();
     const defaultValue = initialData ? String(initialData[header] || "") : "";
 
-    // For date inputs, we need to convert dd/MM/yyyy to yyyy-MM-dd
-    let finalDefaultValue = defaultValue;
-    if (headerLower === COLUMNS.TANGGAL_LAHIR.toLowerCase() && defaultValue.includes("/")) {
-      const [d, m, y] = defaultValue.split("/");
-      finalDefaultValue = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+    let finalDefaultValue = "";
+    const rawDate = (initialData as any)?._rawBirthDate as string || defaultValue;
+
+    if (headerLower === COLUMNS.TANGGAL_LAHIR.toLowerCase() && rawDate && rawDate.includes("/")) {
+      const parts = rawDate.split("/");
+      if (parts.length === 3) {
+        const [d, m, y] = parts;
+        finalDefaultValue = `${y}-${m.padStart(2, "0")}-${d.padStart(2, "0")}`;
+      }
+    } else if (headerLower === COLUMNS.TANGGAL_LAHIR.toLowerCase()) {
+      finalDefaultValue = defaultValue;
+    } else {
+      finalDefaultValue = defaultValue;
     }
 
     if (headerLower === COLUMNS.TANGGAL_LAHIR.toLowerCase()) {
@@ -168,18 +179,20 @@ export function GenerusForm({
   };
 
   return (
-    <div className="flex flex-col h-screen max-h-screen bg-white dark:bg-slate-900 overflow-hidden">
+    <div className="flex flex-col h-auto max-h-[92vh] bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
       {title && (
-        <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-6 md:p-8 text-white relative shrink-0">
+        <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-5 md:p-6 text-white relative shrink-0">
           <h2 className="text-xl md:text-2xl font-bold tracking-tight font-syne">{title}</h2>
         </div>
       )}
 
-      <div className="relative flex-1 min-h-0">
+      <ScrollArea 
+        className="flex-1 h-auto overflow-y-auto"
+        onScrollCapture={checkScroll}
+        ref={scrollRef}
+      >
         <div 
-          ref={scrollRef}
-          onScroll={checkScroll}
-          className="h-full overflow-y-auto px-5 md:px-8 py-6 space-y-6"
+          className="px-5 md:px-8 py-6 space-y-6" 
         >
           <form id="generus-form" onSubmit={(e) => { e.preventDefault(); onSubmit(new FormData(e.currentTarget)); }}>
             <div className="grid gap-5 md:gap-6">
@@ -203,20 +216,20 @@ export function GenerusForm({
             </div>
           </form>
         </div>
+      </ScrollArea>
 
-        {/* Scroll Indicator Icon */}
-        <div
-          className={`absolute bottom-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-none ${
-            showScrollIndicator
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-4"
-          }`}
-        >
-          <ChevronDown className="w-5 h-5 animate-bounce" />
-        </div>
+      {/* Scroll Indicator Icon */}
+      <div
+        className={`absolute bottom-[100px] left-1/2 -translate-x-1/2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-none z-[9999] ${
+          showScrollIndicator
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-4"
+        }`}
+      >
+        <ChevronDown className="w-5 h-5 animate-bounce" />
       </div>
 
-      <div className="p-5 md:p-8 border-t border-slate-100 dark:border-slate-800 shrink-0 pb-10 md:pb-8">
+      <div className="shrink-0 p-4 md:p-6 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-20">
         <div className="flex gap-3">
           <Button variant="ghost" className="flex-1 rounded-xl h-11 font-semibold" onClick={onCancel} disabled={isPending}>
             Batal

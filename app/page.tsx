@@ -39,6 +39,7 @@ export default async function Home() {
 
         // 2. Format Date of Birth (if DOB exists)
         if (tanggalLahirRaw.trim()) {
+          updatedRow["_rawBirthDate"] = tanggalLahirRaw;
           updatedRow["TANGGAL LAHIR"] = formatDate(tanggalLahirRaw);
         }
 

@@ -12,7 +12,7 @@ import { SheetRow } from "@/lib/google-sheets";
 import { DataDetailDialog } from "@/components/data-detail-dialog";
 import { EditDataDialog } from "@/components/edit-data-dialog";
 import { DeleteDataDialog } from "@/components/delete-data-dialog";
-import { getCellValue, capitalizeWords } from "@/lib/helper";
+import { getCellValue, capitalizeWords, formatDate } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
 
 interface DashboardTableProps {
@@ -35,8 +35,14 @@ export const DashboardTable = memo(function DashboardTable({
   isEnableDelete,
 }: DashboardTableProps) {
   const getValue = (header: string, value: string) => {
-    if (header === COLUMNS.NAMA || header === COLUMNS.DESA)
-      return capitalizeWords(String(value));
+    if (header === COLUMNS.NAMA || header === COLUMNS.DESA) {
+      return capitalizeWords(String(value))
+    };
+
+    if (header === COLUMNS.TANGGAL_LAHIR) {
+      return formatDate(String(value), "dd MMMM yyyy")
+    }
+
     return value;
   };
 

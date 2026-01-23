@@ -1,11 +1,12 @@
 "use client";
 
 import { SheetRow } from "@/lib/google-sheets";
-import { capitalizeWords, getCellValue } from "@/lib/helper";
+import { capitalizeWords, formatDate, getCellValue } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface GenerusDetailProps {
   row: SheetRow;
@@ -20,13 +21,13 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
   const checkScroll = useCallback(() => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      const canScrollDown = scrollHeight > clientHeight + scrollTop + 10;
+      const canScrollDown = scrollHeight > clientHeight + scrollTop + 40;
       setShowScrollIndicator(canScrollDown);
     }
   }, []);
 
   useEffect(() => {
-    const timer = setTimeout(checkScroll, 100);
+    const timer = setTimeout(checkScroll, 500);
     return () => clearTimeout(timer);
   }, [checkScroll]);
 
@@ -41,12 +42,12 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
     .slice(0, 2)
     .toUpperCase();
 
-  const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase()];
+  const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase(), "_rawbirthdate"];
 
   return (
-    <div className="flex flex-col h-screen max-h-screen bg-white dark:bg-slate-900 overflow-hidden font-outfit">
+    <div className="flex flex-col h-auto max-h-[92vh] bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
       {/* Header - Fixed */}
-      <div className="bg-slate-50 dark:bg-slate-950 p-5 md:p-6 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
+      <div className="bg-slate-50 dark:bg-slate-950 p-4 md:p-5 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
         <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 font-syne">
           {initials}
         </div>
@@ -61,13 +62,13 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
       </div>
 
       {/* Content - Scrollable */}
-      <div className="relative flex-1 min-h-0">
-        <div
-          ref={scrollRef}
-          onScroll={checkScroll}
-          className="h-full overflow-y-auto px-5 md:px-8 py-4 scrollbar-hide"
-        >
-          <div className="grid gap-1 pb-4">
+      <ScrollArea 
+        className="flex-1 h-auto overflow-y-auto"
+        onScrollCapture={checkScroll}
+        ref={scrollRef}
+      >
+        <div className="px-5 md:px-8 py-6">
+          <div className="grid gap-1">
             {Object.entries(row)
               .filter(([key]) => !ignoredKeys.includes(key.toLowerCase()))
               .map(([key, value]) => (
@@ -79,27 +80,27 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
                     {key}
                   </span>
                   <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 break-words leading-relaxed">
-                    {String(value) || "-"}
+                    {key === "TANGGAL LAHIR" ? formatDate(value as string, "dd MMMM yyyy") : String(value) || "-"}
                   </span>
                 </div>
               ))}
           </div>
         </div>
+      </ScrollArea>
 
-        {/* Scroll Indicator Icon */}
-        <div
-          className={`absolute bottom-4 left-1/2 -translate-x-1/2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-none ${
-            showScrollIndicator
-              ? "opacity-100 translate-y-0"
-              : "opacity-0 translate-y-4"
-          }`}
-        >
-          <ChevronDown className="w-5 h-5 animate-bounce" />
-        </div>
+      {/* Scroll Indicator Icon */}
+      <div
+        className={`absolute bottom-[100px] left-1/2 -translate-x-1/2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-none z-[9999] ${
+          showScrollIndicator
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 translate-y-4"
+        }`}
+      >
+        <ChevronDown className="w-5 h-5 animate-bounce" />
       </div>
 
       {/* Footer - Fixed */}
-      <div className="p-5 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0 pb-12 md:pb-6">
+      <div className="shrink-0 p-2 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm">
         <Button
           variant="ghost"
           className="w-full rounded-xl h-12 transition-all font-bold hover:bg-slate-50 dark:hover:bg-slate-800"

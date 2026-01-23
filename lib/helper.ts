@@ -23,7 +23,7 @@ export function calculateAge(dateString: string): string {
   }
 }
 
-export function formatDate(dateString: string): string {
+export function formatDate(dateString: string, formatOutputDate: string = "dd/MM/yyyy"): string {
   if (!dateString) return "-";
 
   try {
@@ -34,7 +34,7 @@ export function formatDate(dateString: string): string {
       return "-";
     }
 
-    return format(date, "dd MMMM yyyy", { locale: id });
+    return format(date, formatOutputDate, { locale: id });
   } catch (error) {
     console.error("Error parsing date:", error);
     return "-";

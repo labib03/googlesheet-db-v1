@@ -9,6 +9,7 @@ import { useTransition, useMemo } from "react";
 import { parseISO, format } from "date-fns";
 import { motion } from "framer-motion";
 import { PageTransitionWrapper } from "@/components/page-transition-wrapper";
+import { formatDate } from "@/lib/helper";
 
 export default function EditGenerusPage() {
   const { data, headers, refreshData, isLoading } = useDashboard();
@@ -17,7 +18,9 @@ export default function EditGenerusPage() {
   const index = Number(params.index);
 
   const row = useMemo(() => {
-    return data.find(r => Number(r._index) === index);
+    const targetData = data.find(r => Number(r._index) === index)
+
+    return targetData ;
   }, [data, index]);
 
   const handleSubmit = (formData: FormData, onClose: () => void) => {
