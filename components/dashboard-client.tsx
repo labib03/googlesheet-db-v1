@@ -11,9 +11,9 @@ import { DashboardTable } from "./dashboard/dashboard-table";
 import { DashboardCards } from "./dashboard/dashboard-cards";
 import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { useDashboard } from "@/context/dashboard-context";
 import Link from "next/link";
 import { ArrowUp, BarChart3 } from "lucide-react";
-import { AddDataDialog } from "./add-data-dialog";
 
 interface DashboardClientProps {
   initialData: SheetRow[];
@@ -24,6 +24,7 @@ export function DashboardClient({
   initialData,
   headers,
 }: DashboardClientProps) {
+  const { scrollPosition, setScrollPosition } = useDashboard();
   const { filters, pagination, status, data, options, actions } =
     useDashboardData({ initialData });
 
@@ -32,6 +33,7 @@ export function DashboardClient({
   const isEnableEdit = process.env.NEXT_PUBLIC_ENABLE_EDIT === "true";
   const isEnableDelete = process.env.NEXT_PUBLIC_ENABLE_DELETE === "true";
 
+  // Handle Scroll to Top Button Visibility
   useEffect(() => {
     const handleScroll = () => {
       setShowBackToTop(window.scrollY >= window.innerHeight * 2);
@@ -40,9 +42,26 @@ export function DashboardClient({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Restore scroll position on mount
+  useEffect(() => {
+    if (scrollPosition > 0) {
+      // Small delay to ensure content is rendered
+      const timer = setTimeout(() => {
+        window.scrollTo({ top: scrollPosition, behavior: "instant" });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [scrollPosition]);
+
+  // Record scroll position before unmounting (moving to sub-pages)
+  useEffect(() => {
+    return () => {
+      setScrollPosition(window.scrollY);
+    };
+  }, [setScrollPosition]);
+
   const scrollToTop = () => {
     if (dataTopRef.current) {
-      // Small timeout ensures the DOM has updated its height before scrolling
       setTimeout(() => {
         dataTopRef.current?.scrollIntoView({
           behavior: "smooth",
@@ -51,8 +70,6 @@ export function DashboardClient({
       }, 100);
     }
   };
-
-  // Auto scroll logic removed to respect user request.
 
   return (
     <div className="space-y-8 relative">

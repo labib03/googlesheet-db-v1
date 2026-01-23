@@ -36,7 +36,7 @@ export default function EditGenerusPage() {
       const result = await updateData(index + 2, null, formData);
       if (result.success) {
         toast.success(result.message);
-        await refreshData();
+        await refreshData(true);
         onClose();
       } else {
         toast.error(`Gagal: ${result.message}`);

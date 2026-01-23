@@ -16,16 +16,19 @@ interface UseDashboardDataProps {
 export function useDashboardData({ initialData: propsData }: UseDashboardDataProps = {}) {
   const context = useDashboard();
   const initialData = propsData || context.data;
-  const [filterDesa, setFilterDesa] = useState<string[]>([]);
-  const [filterKelompok, setFilterKelompok] = useState<string[]>([]);
-  const [filterGender, setFilterGender] = useState("");
-  const [filterJenjangKelas, setFilterJenjangKelas] = useState<string[]>([]);
-  const [filterNama, setFilterNama] = useState("");
-  const [debouncedValue] = useDebounceValue(filterNama, 1000);
 
-  const [showDuplicates, setShowDuplicates] = useState(false);
-  const [pageSize, setPageSize] = useState(10);
-  const [currentPage, setCurrentPage] = useState(1);
+  const {
+    filterDesa, setFilterDesa,
+    filterKelompok, setFilterKelompok,
+    filterGender, setFilterGender,
+    filterJenjangKelas, setFilterJenjangKelas,
+    filterNama, setFilterNama,
+    showDuplicates, setShowDuplicates,
+    pageSize, setPageSize,
+    currentPage, setCurrentPage,
+  } = context;
+
+  const [debouncedValue] = useDebounceValue(filterNama, 1000);
   const [isPending, startTransition] = useTransition();
   const [keepShowingSkeleton, setKeepShowingSkeleton] = useState(true);
 

@@ -5,11 +5,36 @@ import { SheetRow } from "@/lib/google-sheets";
 import { getSheetDataAction } from "@/app/actions";
 
 interface DashboardContextType {
+  // Data
   data: SheetRow[];
   headers: string[];
   isLoading: boolean;
   isPending: boolean;
-  refreshData: () => Promise<void>;
+  refreshData: (silent?: boolean) => Promise<void>;
+
+  // Filter State
+  filterDesa: string[];
+  setFilterDesa: React.Dispatch<React.SetStateAction<string[]>>;
+  filterKelompok: string[];
+  setFilterKelompok: React.Dispatch<React.SetStateAction<string[]>>;
+  filterGender: string;
+  setFilterGender: React.Dispatch<React.SetStateAction<string>>;
+  filterJenjangKelas: string[];
+  setFilterJenjangKelas: React.Dispatch<React.SetStateAction<string[]>>;
+  filterNama: string;
+  setFilterNama: React.Dispatch<React.SetStateAction<string>>;
+  showDuplicates: boolean;
+  setShowDuplicates: React.Dispatch<React.SetStateAction<boolean>>;
+
+  // Pagination State
+  pageSize: number;
+  setPageSize: React.Dispatch<React.SetStateAction<number>>;
+  currentPage: number;
+  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
+
+  // Scroll Position
+  scrollPosition: number;
+  setScrollPosition: (pos: number) => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -28,15 +53,24 @@ export function DashboardProvider({
   const [isLoading, setIsLoading] = useState(initialData.length === 0);
   const [isPending, startTransition] = useTransition();
 
-  const refreshData = useCallback(async () => {
-    setIsLoading(true);
+  // Persisted View States
+  const [filterDesa, setFilterDesa] = useState<string[]>([]);
+  const [filterKelompok, setFilterKelompok] = useState<string[]>([]);
+  const [filterGender, setFilterGender] = useState("");
+  const [filterJenjangKelas, setFilterJenjangKelas] = useState<string[]>([]);
+  const [filterNama, setFilterNama] = useState("");
+  const [showDuplicates, setShowDuplicates] = useState(false);
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  const refreshData = useCallback(async (silent: boolean = false) => {
+    if (!silent) setIsLoading(true);
     try {
       const result = await getSheetDataAction();
       if (result.success && result.data) {
         setData(result.data);
         if (result.data.length > 0) {
-           // We might need to recalculate headers here if they changed
-           // But for simplicity, we keep existing or update if empty
            setHeaders(Object.keys(result.data[0]).filter(
              (k) => k !== "_index" && k !== "Timestamp" && k !== "Umur"
            ));
@@ -45,18 +79,54 @@ export function DashboardProvider({
     } catch (error) {
       console.error("Failed to refresh data:", error);
     } finally {
-      setIsLoading(false);
+      if (!silent) setIsLoading(false);
     }
   }, []);
 
+  // Update data and headers if initialData changes (hydration)
   useEffect(() => {
-    if (initialData.length === 0) {
+    if (initialData.length > 0) {
+      setData(initialData);
+    }
+    if (initialHeaders.length > 0) {
+      setHeaders(initialHeaders);
+    }
+  }, [initialData, initialHeaders]);
+
+  useEffect(() => {
+    if (data.length === 0) {
       refreshData();
     }
-  }, [initialData.length, refreshData]);
+  }, [data.length, refreshData]);
+
+  const value = {
+    data,
+    headers,
+    isLoading,
+    isPending,
+    refreshData,
+    filterDesa,
+    setFilterDesa,
+    filterKelompok,
+    setFilterKelompok,
+    filterGender,
+    setFilterGender,
+    filterJenjangKelas,
+    setFilterJenjangKelas,
+    filterNama,
+    setFilterNama,
+    showDuplicates,
+    setShowDuplicates,
+    pageSize,
+    setPageSize,
+    currentPage,
+    setCurrentPage,
+    scrollPosition,
+    setScrollPosition,
+  };
 
   return (
-    <DashboardContext.Provider value={{ data, headers, isLoading, isPending, refreshData }}>
+    <DashboardContext.Provider value={value}>
       {children}
     </DashboardContext.Provider>
   );

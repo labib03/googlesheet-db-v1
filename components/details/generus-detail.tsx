@@ -44,7 +44,7 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
   const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase()];
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900 overflow-hidden font-outfit">
+    <div className="flex flex-col h-screen max-h-screen bg-white dark:bg-slate-900 overflow-hidden font-outfit">
       {/* Header - Fixed */}
       <div className="bg-slate-50 dark:bg-slate-950 p-5 md:p-6 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
         <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 font-syne">
@@ -99,7 +99,7 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
       </div>
 
       {/* Footer - Fixed */}
-      <div className="p-5 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
+      <div className="p-5 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0 pb-12 md:pb-6">
         <Button
           variant="ghost"
           className="w-full rounded-xl h-12 transition-all font-bold hover:bg-slate-50 dark:hover:bg-slate-800"

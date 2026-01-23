@@ -168,7 +168,7 @@ export function GenerusForm({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
+    <div className="flex flex-col h-screen max-h-screen bg-white dark:bg-slate-900 overflow-hidden">
       {title && (
         <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-6 md:p-8 text-white relative shrink-0">
           <h2 className="text-xl md:text-2xl font-bold tracking-tight font-syne">{title}</h2>
@@ -216,7 +216,7 @@ export function GenerusForm({
         </div>
       </div>
 
-      <div className="p-5 md:p-8 border-t border-slate-100 dark:border-slate-800 shrink-0">
+      <div className="p-5 md:p-8 border-t border-slate-100 dark:border-slate-800 shrink-0 pb-10 md:pb-8">
         <div className="flex gap-3">
           <Button variant="ghost" className="flex-1 rounded-xl h-11 font-semibold" onClick={onCancel} disabled={isPending}>
             Batal

@@ -29,7 +29,7 @@ export default function AddGenerusPage() {
       const result = await addData(null, formData);
       if (result.success) {
         toast.success(result.message);
-        await refreshData();
+        await refreshData(true);
         onClose();
       } else {
         toast.error(`Gagal: ${result.message}`);

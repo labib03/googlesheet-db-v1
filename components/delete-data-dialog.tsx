@@ -16,6 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useDashboard } from "@/context/dashboard-context";
 
 interface DeleteDataDialogProps {
   rowIndex: number;
@@ -28,6 +29,7 @@ export function DeleteDataDialog({
   dataName = "data ini",
   children,
 }: DeleteDataDialogProps) {
+  const { refreshData } = useDashboard();
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
 
@@ -36,6 +38,7 @@ export function DeleteDataDialog({
       const result = await deleteData(rowIndex);
       if (result.success) {
         toast.success(result.message);
+        await refreshData(true);
         setOpen(false);
       } else {
         toast.error(result.message);
