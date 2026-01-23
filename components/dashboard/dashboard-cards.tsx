@@ -25,8 +25,7 @@ export function DashboardCards({
   isEnableEdit,
   isEnableDelete,
 }: DashboardCardsProps) {
-  // const isAnyActionEnabled = isEnableEdit || isEnableDelete;
-  const isAnyActionEnabled = false; // Temporarily disable action buttons
+  const isAnyActionEnabled = isEnableEdit || isEnableDelete;
 
   const getKeyLabel = (label: string) => {
     const map: Record<string, string> = {
@@ -92,7 +91,7 @@ export function DashboardCards({
                     {(currentPage - 1) * pageSize + index + 1}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-lg text-slate-900 dark:text-white tracking-tight leading-tight">
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white tracking-tight leading-tight whitespace-normal wrap-break-word">
                       {capitalizeWords(rowNamaRaw || "Data Generus")}
                     </h3>
                     <div className="flex flex-wrap gap-2 items-center mt-1.5">

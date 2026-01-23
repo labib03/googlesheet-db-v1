@@ -1,20 +1,53 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { SheetRow } from "@/lib/google-sheets";
 import { Users, MapPin, BarChart2, Venus, Mars } from "lucide-react";
 import { getCellValue } from "@/lib/helper";
 import { COLUMNS, kelas } from "@/lib/constants";
 import { AnimatedNumber } from "@/components/animated-number";
+import { is } from "date-fns/locale";
 
 interface StatsOverviewProps {
   data: SheetRow[];
 }
 
+function getStatsInfo(stats: {
+  total: number;
+  lakiLaki: number;
+  perempuan: number;
+  topJenjang: string;
+  activeDesa: number;
+  activeKelompok: number;
+  jenjangCounts: Record<string, number>;
+}) {
+  let label, value, description;
+
+  if (stats.activeDesa === 0 && stats.activeKelompok === 0) {
+    label = "Belum ada yang input data";
+    value = "0 Records";
+    description = "";
+  } else if (stats.activeDesa === 1 && stats.activeKelompok === 1) {
+    label = "Kelompok yang input data";
+    value = "1 Kelompok";
+    description = "";
+  } else if (stats.activeDesa === 1) {
+    label = "Jumlah kelompok yang input data";
+    value = `${stats.activeKelompok} Kelompok`;
+    description = "";
+  } else {
+    label = "Jumlah desa yang input data";
+    value = `${stats.activeDesa} Desa`;
+    description = "";
+  }
+
+  return { label, value, description };
+}
+
 export function StatsOverview({ data }: StatsOverviewProps) {
   const stats = useMemo(() => {
     const total = data.length;
-    
+
     let lakiLaki = 0;
     let perempuan = 0;
     const jenjangCounts: Record<string, number> = {};
@@ -40,7 +73,9 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       if (kelompok) kelompokSet.add(kelompok.toLowerCase());
     });
 
-    const topJenjangEntry = Object.entries(jenjangCounts).sort((a, b) => b[1] - a[1])[0];
+    const topJenjangEntry = Object.entries(jenjangCounts).sort(
+      (a, b) => b[1] - a[1],
+    )[0];
 
     return {
       total,
@@ -49,7 +84,7 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       topJenjang: topJenjangEntry ? topJenjangEntry[0] : "-",
       activeDesa: desaSet.size,
       activeKelompok: kelompokSet.size,
-      jenjangCounts
+      jenjangCounts,
     };
   }, [data]);
 
@@ -60,7 +95,8 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       icon: Users,
       color: "bg-indigo-300",
       textColor: "text-indigo-900",
-      description: "Total data terdaftar"
+      description: "Total data terdaftar",
+      isShow: true,
     },
     {
       label: "Laki-laki",
@@ -68,7 +104,8 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       icon: Mars,
       color: "bg-sky-300",
       textColor: "text-sky-900",
-      description: `${Math.round((stats.lakiLaki / (stats.total || 1)) * 100) || 0}% dari total`
+      description: `${Math.round((stats.lakiLaki / (stats.total || 1)) * 100) || 0}% dari total`,
+      isShow: true,
     },
     {
       label: "Perempuan",
@@ -76,17 +113,15 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       icon: Venus,
       color: "bg-rose-300",
       textColor: "text-rose-900",
-      description: `${Math.round((stats.perempuan / (stats.total || 1)) * 100) || 0}% dari total`
+      description: `${Math.round((stats.perempuan / (stats.total || 1)) * 100) || 0}% dari total`,
+      isShow: true,
     },
     {
-      label: "Aktif di",
-      value: stats.activeDesa === 1 
-        ? `${stats.activeKelompok} Kelompok` 
-        : `${stats.activeDesa} Desa`,
+      ...getStatsInfo(stats),
       icon: MapPin,
       color: "bg-emerald-300",
       textColor: "text-emerald-900",
-      description: stats.activeDesa === 1 ? "Kelompok di Desa ini" : "Kabupaten/Kota Bogor"
+      isShow: stats.activeDesa == 1 && stats.activeKelompok == 1 ? false : true,
     },
   ];
 
@@ -95,51 +130,71 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       {/* Main KPI Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {mainCards.map((card) => (
-          <div
-            key={card.label}
-            className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group"
-          >
-            <div className="flex items-center justify-between mb-4">
-               <div className={`${card.color} p-2 rounded-xl transition-colors`}>
-                  <card.icon className={`w-5 h-5 ${card.textColor}`} />
-               </div>
-               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Live Sync</span>
-            </div>
-            <div className="space-y-1">
-               <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">{card.label}</h3>
-               <div className="flex items-baseline gap-2">
-                  <span className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                    {typeof card.value === 'number' ? <AnimatedNumber value={card.value} /> : card.value}
+          <>
+            {card.isShow && (
+              <div
+                key={card.label}
+                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group"
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <div
+                    className={`${card.color} p-2 rounded-xl transition-colors`}
+                  >
+                    <card.icon className={`w-5 h-5 ${card.textColor}`} />
+                  </div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                    Live Sync
                   </span>
-               </div>
-               <p className="text-[11px] text-slate-400 dark:text-slate-500">{card.description}</p>
-            </div>
-          </div>
+                </div>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {card.label}
+                  </h3>
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                      {typeof card.value === "number" ? (
+                        <AnimatedNumber value={card.value} />
+                      ) : (
+                        card.value
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                    {card.description}
+                  </p>
+                </div>
+              </div>
+            )}
+          </>
         ))}
       </div>
 
       {/* Jenjang Kelas Distribution */}
       <div className="space-y-6">
         <div className="flex items-center gap-3">
-           <div className="bg-indigo-600 rounded-lg p-1.5 shadow-lg shadow-indigo-200 dark:shadow-none">
-              <BarChart2 className="w-4 h-4 text-white" />
-           </div>
-           <h2 className="text-xl font-bold text-slate-800 dark:text-white">Distribusi Jenjang Kelas</h2>
+          <div className="bg-indigo-300 rounded-lg p-1.5 shadow-lg shadow-indigo-200 dark:shadow-none">
+            <BarChart2 className="w-4 h-4 text-indigo-900" />
+          </div>
+          <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+            Distribusi Jenjang Kelas
+          </h2>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {kelas.map((j) => {
             const count = stats.jenjangCounts[j] || 0;
-            
+
             return (
-              <div 
-                key={j} 
+              <div
+                key={j}
                 className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center text-center space-y-1 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all hover:scale-105"
               >
-                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{j}</span>
-                 <span className="text-2xl font-bold text-slate-900 dark:text-white">
-                   <AnimatedNumber value={count} />
-                 </span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                  {j}
+                </span>
+                <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                  <AnimatedNumber value={count} />
+                </span>
               </div>
             );
           })}

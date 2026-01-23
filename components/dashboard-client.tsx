@@ -23,14 +23,8 @@ export function DashboardClient({
   initialData,
   headers,
 }: DashboardClientProps) {
-  const {
-    filters,
-    pagination,
-    status,
-    data,
-    options,
-    actions,
-  } = useDashboardData({ initialData });
+  const { filters, pagination, status, data, options, actions } =
+    useDashboardData({ initialData });
 
   const [showBackToTop, setShowBackToTop] = useState(false);
   const dataTopRef = useRef<HTMLDivElement | null>(null);
@@ -50,7 +44,10 @@ export function DashboardClient({
     if (dataTopRef.current) {
       // Small timeout ensures the DOM has updated its height before scrolling
       setTimeout(() => {
-        dataTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        dataTopRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 100);
     }
   };
@@ -62,7 +59,7 @@ export function DashboardClient({
 
   // Auto scroll logic removed from useEffect to respect user request:
   // only scroll on manual pagination or page size change.
-  
+
   return (
     <div className="space-y-8 relative pb-20">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
@@ -85,7 +82,7 @@ export function DashboardClient({
             className="gap-2 rounded-xl h-10 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shadow-sm"
           >
             <Link href="/summary">
-              < BarChart3 className="h-4 w-4 text-indigo-500" />
+              <BarChart3 className="h-4 w-4 text-indigo-500" />
               Summary
             </Link>
           </Button>
@@ -140,8 +137,8 @@ export function DashboardClient({
                 headers={headers}
                 currentPage={pagination.currentPage}
                 pageSize={pagination.pageSize}
-                isEnableEdit={isEnableEdit}
-                isEnableDelete={isEnableDelete}
+                isEnableEdit={false}
+                isEnableDelete={false}
               />
 
               <DashboardCards
@@ -149,8 +146,8 @@ export function DashboardClient({
                 headers={headers}
                 currentPage={pagination.currentPage}
                 pageSize={pagination.pageSize}
-                isEnableEdit={isEnableEdit}
-                isEnableDelete={isEnableDelete}
+                isEnableEdit={false}
+                isEnableDelete={false}
               />
 
               {data.filteredData.length > 0 && (

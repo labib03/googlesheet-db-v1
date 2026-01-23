@@ -32,8 +32,6 @@ export function DashboardTable({
   isEnableEdit,
   isEnableDelete,
 }: DashboardTableProps) {
-  const isAnyActionEnabled = isEnableEdit || isEnableDelete;
-  
   const getValue = (header: string, value: string) => {
     if (header === COLUMNS.NAMA || header === COLUMNS.DESA)
       return capitalizeWords(String(value));
@@ -44,26 +42,24 @@ export function DashboardTable({
     <div className="hidden md:block overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative">
       <Table>
         <TableHeader className="bg-slate-50 dark:bg-slate-950/50">
-          <TableRow className="hover:bg-transparent border-slate-200 dark:border-slate-800">
-            <TableHead className="w-16 text-center font-semibold text-slate-500 text-xs tracking-wider">
+          <TableRow className="border-slate-200 dark:border-slate-800 min-h-9 bg-indigo-500">
+            <TableHead className="w-16 h-14 text-center font-semibold text-white text-xs tracking-wider px-4">
               ID
             </TableHead>
             {headers.map((header) => (
               <TableHead
                 key={header}
-                className="font-semibold text-slate-500 text-xs tracking-wider whitespace-nowrap"
+                className="font-semibold text-white text-xs tracking-wider whitespace-nowrap px-4"
               >
                 {header}
               </TableHead>
             ))}
-            <TableHead className="font-semibold text-slate-500 text-xs tracking-wider whitespace-nowrap text-center">
+            <TableHead className="font-semibold text-white text-xs tracking-wider whitespace-nowrap text-center px-4">
               AGE
             </TableHead>
-            {isAnyActionEnabled && (
-              <TableHead className="font-semibold text-indigo-500 text-xs tracking-wider text-center">
-                ACTIONS
-              </TableHead>
-            )}
+            <TableHead className="font-semibold text-white text-xs tracking-wider text-center px-4">
+              ACTIONS
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -83,7 +79,7 @@ export function DashboardTable({
                 {headers.map((header) => (
                   <TableCell
                     key={`${originalIndex}-${header}`}
-                    className="text-sm text-slate-600 dark:text-slate-300 py-3 px-4"
+                    className={`text-sm text-slate-600 dark:text-slate-300 py-3 px-4 max-w-200 ${header.toLowerCase().includes("skill") ? "min-w-100" : ""} whitespace-normal wrap-break-word`}
                   >
                     {getValue(header, String(row[header] || ""))}
                   </TableCell>
@@ -91,25 +87,23 @@ export function DashboardTable({
                 <TableCell className="text-center text-sm font-medium text-slate-600 dark:text-slate-300">
                   {rowAge}
                 </TableCell>
-                {isAnyActionEnabled && (
-                  <TableCell className="py-2">
-                    <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <DataDetailDialog
-                        row={row}
-                        title={`Detail ${rowNama || "Data"}`}
+                <TableCell className="py-2">
+                  <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <DataDetailDialog
+                      row={row}
+                      title={`Detail ${rowNama || "Data"}`}
+                    />
+                    {isEnableEdit && (
+                      <EditDataDialog row={row} rowIndex={originalIndex} />
+                    )}
+                    {isEnableDelete && (
+                      <DeleteDataDialog
+                        rowIndex={originalIndex + 2}
+                        dataName={capitalizeWords(rowNama || "Data")}
                       />
-                      {/* {isEnableEdit && (
-                        <EditDataDialog row={row} rowIndex={originalIndex} />
-                      )}
-                      {isEnableDelete && (
-                        <DeleteDataDialog 
-                          rowIndex={originalIndex + 2} 
-                          dataName={capitalizeWords(rowNama || "Data")}
-                        />
-                      )} */}
-                    </div>
-                  </TableCell>
-                )}
+                    )}
+                  </div>
+                </TableCell>
               </TableRow>
             );
           })}

@@ -31,7 +31,7 @@ interface SummaryPageProps {
 export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   let rows: SheetRow[] = [];
   let error: string | null = null;
-  
+
   // Resolve search params
   const resolvedParams = searchParams ? await searchParams : {};
   const selectedDesa = resolvedParams.desa || "";
@@ -46,19 +46,31 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
   // Get Desa Summary
   const desaList = AnalyticsService.getDesaSummary(rows);
-  const selectedDesaNode = desaList.find(d => d.key === selectedDesa.toLowerCase());
-  const selectedDesaLabel = selectedDesaNode ? selectedDesaNode.label : selectedDesa;
+  const selectedDesaNode = desaList.find(
+    (d) => d.key === selectedDesa.toLowerCase(),
+  );
+  const selectedDesaLabel = selectedDesaNode
+    ? selectedDesaNode.label
+    : selectedDesa;
 
   // Get Kelompok Summary (only if desa is selected)
   const kelompokList = selectedDesa
     ? AnalyticsService.getKelompokSummary(rows, selectedDesa)
     : [];
-  const selectedKelompokNode = kelompokList.find(k => k.key === selectedKelompok.toLowerCase());
-  const selectedKelompokLabel = selectedKelompokNode ? selectedKelompokNode.label : selectedKelompok;
+  const selectedKelompokNode = kelompokList.find(
+    (k) => k.key === selectedKelompok.toLowerCase(),
+  );
+  const selectedKelompokLabel = selectedKelompokNode
+    ? selectedKelompokNode.label
+    : selectedKelompok;
 
   // Filter for Stats
-  const filteredRowsForStats = AnalyticsService.filterRows(rows, selectedDesa, selectedKelompok);
-  
+  const filteredRowsForStats = AnalyticsService.filterRows(
+    rows,
+    selectedDesa,
+    selectedKelompok,
+  );
+
   const totalRows = rows.length;
   const showKelompokView = !!selectedDesa;
 
@@ -73,36 +85,50 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
               Summary Analytics
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400">
-              Distribution and distribution metrics for <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{totalRows.toLocaleString("id-ID")}</span> entities.
+              Distribution and distribution metrics for{" "}
+              <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
+                {totalRows.toLocaleString("id-ID")}
+              </span>{" "}
+              records.
             </p>
           </div>
 
           <div className="flex gap-3">
-             <Button asChild variant="ghost" className="rounded-xl px-4 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors">
-                <Link href="/">
-                   <ArrowLeft className="h-4 w-4 mr-2" />
-                   Back to Dashboard
-                </Link>
-             </Button>
+            <Button
+              asChild
+              variant="ghost"
+              className="rounded-xl px-4 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+            >
+              <Link href="/">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Link>
+            </Button>
           </div>
         </div>
 
         {/* Global Statistics Overview */}
-        <div key={`${selectedDesa}-${selectedKelompok}`} className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-           <StatsOverview data={filteredRowsForStats} />
+        <div
+          key={`${selectedDesa}-${selectedKelompok}`}
+          className="animate-in fade-in slide-in-from-bottom-4 duration-700"
+        >
+          <StatsOverview data={filteredRowsForStats} />
         </div>
 
         {/* Breadcrumb */}
         <div className="bg-white dark:bg-slate-900 px-5 py-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center justify-between animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-100 dark:bg-indigo-950/40 p-1.5 rounded-lg">
-               <BarChart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <BarChart className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
             </div>
             <Breadcrumb>
               <BreadcrumbList>
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link href="/summary" className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium">
+                    <Link
+                      href="/summary"
+                      className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
+                    >
                       Summary
                     </Link>
                   </BreadcrumbLink>
@@ -110,8 +136,15 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   <BreadcrumbLink asChild>
-                    <Link href={selectedDesa ? `/summary?desa=${encodeURIComponent(selectedDesaLabel)}` : "/summary"} className="hover:text-indigo-600 transition-colors font-medium">
-                       {selectedDesaLabel || "Desa Overview"}
+                    <Link
+                      href={
+                        selectedDesa
+                          ? `/summary?desa=${encodeURIComponent(selectedDesaLabel)}`
+                          : "/summary"
+                      }
+                      className="hover:text-indigo-600 transition-colors font-medium"
+                    >
+                      {selectedDesaLabel || "Desa Overview"}
                     </Link>
                   </BreadcrumbLink>
                 </BreadcrumbItem>
@@ -128,7 +161,9 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
               </BreadcrumbList>
             </Breadcrumb>
           </div>
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">Analytics Node / Active</span>
+          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
+            Analytics Node / Active
+          </span>
         </div>
 
         {error && (
@@ -150,16 +185,21 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
             {showKelompokView ? (
               <div className="space-y-6 relative">
                 <div className="flex justify-start">
-                   <Button asChild variant="ghost" size="sm" className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors">
-                      <Link href="/summary">
-                         <ArrowLeft className="h-4 w-4 mr-2" />
-                         Kembali Pilih Desa
-                      </Link>
-                   </Button>
+                  <Button
+                    asChild
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors"
+                  >
+                    <Link href="/summary">
+                      <ArrowLeft className="h-4 w-4 mr-2" />
+                      Kembali Pilih Desa
+                    </Link>
+                  </Button>
                 </div>
                 <SummaryList
                   title="Distribution [Kelompok]"
-                  description={`Audit data clusters for region: ${selectedDesaLabel}. Click a group to filter analytics.`}
+                  description={`Audit klaster data di desa: ${selectedDesaLabel}. Klik grup untuk menampilkan analitik yang terfilter.`}
                   items={kelompokList}
                   selectedKey={selectedKelompok.toLowerCase()}
                   isClickable={true}
@@ -168,7 +208,10 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                 />
               </div>
             ) : (
-              <SummaryDesaList items={desaList} selectedKey={selectedDesa.toLowerCase()} />
+              <SummaryDesaList
+                items={desaList}
+                selectedKey={selectedDesa.toLowerCase()}
+              />
             )}
           </div>
         )}
