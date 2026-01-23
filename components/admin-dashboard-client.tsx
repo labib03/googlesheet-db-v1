@@ -10,7 +10,7 @@ import { DashboardCards } from "./dashboard/dashboard-cards";
 import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { Button } from "@/components/ui/button";
-import { TableSkeleton } from "@/components/skeletons";
+import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
 import { ShieldCheck, AlertCircle, History } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -180,7 +180,12 @@ export function AdminDashboardClient({
                   exit="exit"
                   className="p-8"
                 >
-                  <TableSkeleton />
+                  <div className="hidden md:block">
+                    <TableSkeleton />
+                  </div>
+                  <div className="md:hidden">
+                    <CardSkeleton />
+                  </div>
                 </motion.div>
               ) : data.filteredData.length === 0 ? (
                 <motion.div 

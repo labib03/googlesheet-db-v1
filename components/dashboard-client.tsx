@@ -5,7 +5,7 @@ import { SheetRow } from "@/lib/google-sheets";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExportButton } from "./dashboard/export-button";
-import { TableSkeleton } from "@/components/skeletons";
+import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
 import { DashboardFilters } from "./dashboard/dashboard-filters";
 import { DashboardTable } from "./dashboard/dashboard-table";
 import { DashboardCards } from "./dashboard/dashboard-cards";
@@ -155,7 +155,12 @@ export function DashboardClient({
                   exit="exit"
                   className="p-8"
                 >
-                  <TableSkeleton />
+                  <div className="hidden md:block">
+                    <TableSkeleton />
+                  </div>
+                  <div className="md:hidden">
+                    <CardSkeleton />
+                  </div>
                 </motion.div>
               ) : data.filteredData.length === 0 ? (
                 <motion.div 
