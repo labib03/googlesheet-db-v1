@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "@/components/skeletons";
 import { ShieldCheck, AlertCircle, History } from "lucide-react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface AdminDashboardClientProps {
   initialData: SheetRow[];
@@ -35,6 +35,12 @@ const staggerContainer = {
 const itemVariants = {
   hidden: { opacity: 0, y: 10 },
   show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
+
+const fadeVariants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.3 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } }
 };
 
 export function AdminDashboardClient({
@@ -164,48 +170,71 @@ export function AdminDashboardClient({
       <motion.div variants={itemVariants}>
         <Card className="border-none shadow-none bg-transparent">
           <CardContent className="p-0 relative">
-            {status.isVisualPending ? (
-              <div className="p-8">
-                <TableSkeleton />
-              </div>
-            ) : data.filteredData.length === 0 ? (
-              <div className="p-20 text-center bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800 shadow-sm mx-1">
-                 <p className="text-slate-500 font-medium">No records found matching your selection.</p>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                <DashboardTable
-                  data={data.paginatedData}
-                  headers={headers}
-                  currentPage={pagination.currentPage}
-                  pageSize={pagination.pageSize}
-                  isEnableEdit={isEnableEdit}
-                  isEnableDelete={isEnableDelete}
-                />
+            <AnimatePresence mode="wait">
+              {status.isVisualPending ? (
+                <motion.div 
+                  key="skeleton-view"
+                  variants={fadeVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="p-8"
+                >
+                  <TableSkeleton />
+                </motion.div>
+              ) : data.filteredData.length === 0 ? (
+                <motion.div 
+                  key="empty-view"
+                  variants={fadeVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="p-20 text-center bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800 shadow-sm mx-1"
+                >
+                   <p className="text-slate-500 font-medium">No records found matching your selection.</p>
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="data-view"
+                  variants={fadeVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="space-y-6"
+                >
+                  <DashboardTable
+                    data={data.paginatedData}
+                    headers={headers}
+                    currentPage={pagination.currentPage}
+                    pageSize={pagination.pageSize}
+                    isEnableEdit={isEnableEdit}
+                    isEnableDelete={isEnableDelete}
+                  />
 
-                <DashboardCards
-                  data={data.paginatedData}
-                  headers={headers}
-                  currentPage={pagination.currentPage}
-                  pageSize={pagination.pageSize}
-                  isEnableEdit={isEnableEdit}
-                  isEnableDelete={isEnableDelete}
-                />
+                  <DashboardCards
+                    data={data.paginatedData}
+                    headers={headers}
+                    currentPage={pagination.currentPage}
+                    pageSize={pagination.pageSize}
+                    isEnableEdit={isEnableEdit}
+                    isEnableDelete={isEnableDelete}
+                  />
 
-                <div className="pt-2">
-                    <DashboardPagination
-                      currentPage={pagination.currentPage}
-                      totalPages={pagination.totalPages}
-                      pageSize={pagination.pageSize}
-                      onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
-                      onPageSizeChange={(s) => actions.handleStartTransition(() => {
-                        pagination.setPageSize(s);
-                        pagination.setCurrentPage(1);
-                      })}
-                    />
-                </div>
-              </div>
-            )}
+                  <div className="pt-2">
+                      <DashboardPagination
+                        currentPage={pagination.currentPage}
+                        totalPages={pagination.totalPages}
+                        pageSize={pagination.pageSize}
+                        onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
+                        onPageSizeChange={(s) => actions.handleStartTransition(() => {
+                          pagination.setPageSize(s);
+                          pagination.setCurrentPage(1);
+                        })}
+                      />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </CardContent>
         </Card>
       </motion.div>

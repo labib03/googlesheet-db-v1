@@ -14,11 +14,33 @@ import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useDashboard } from "@/context/dashboard-context";
 import Link from "next/link";
 import { ArrowUp, BarChart3 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface DashboardClientProps {
   initialData: SheetRow[];
   headers: string[];
 }
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+};
+
+const fadeVariants = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.3 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } }
+};
 
 export function DashboardClient({
   initialData,
@@ -72,10 +94,15 @@ export function DashboardClient({
   };
 
   return (
-    <div className="space-y-8 relative">
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+    <motion.div 
+      initial="hidden"
+      animate="show"
+      variants={staggerContainer}
+      className="space-y-8 relative font-outfit"
+    >
+      <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight font-syne">
             Data Generus
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -99,107 +126,143 @@ export function DashboardClient({
           </Button>
           <ExportButton data={data.filteredData} headers={headers} />
         </div>
-      </div>
+      </motion.div>
 
-      <DashboardFilters
-        filters={filters}
-        options={options}
-        status={status}
-        pagination={pagination}
-        totalCount={initialData.length}
-        filteredCount={data.filteredData.length}
-        actions={{
-          ...actions,
-          setCurrentPage: pagination.setCurrentPage,
-        }}
-      />
+      <motion.div variants={itemVariants}>
+        <DashboardFilters
+          filters={filters}
+          options={options}
+          status={status}
+          pagination={pagination}
+          totalCount={initialData.length}
+          filteredCount={data.filteredData.length}
+          actions={{
+            ...actions,
+            setCurrentPage: pagination.setCurrentPage,
+          }}
+        />
+      </motion.div>
 
       <div ref={dataTopRef} className="scroll-mt-16" />
 
-      <Card className="border-none shadow-none bg-transparent">
-        <CardContent className="p-0 relative">
-          {status.isVisualPending ? (
-            <div className="p-8 animate-in fade-in duration-500">
-              <TableSkeleton />
-            </div>
-          ) : data.filteredData.length === 0 ? (
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm p-8 text-center space-y-3">
-              <div className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                Tidak ada data
-              </div>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                {status.isFiltered
-                  ? "Tidak ada data yang sesuai filter. Coba ubah atau reset filter."
-                  : "Belum ada data yang tersedia."}
-              </p>
-              {status.isFiltered && (
-                <div className="flex justify-center">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={actions.resetFilters}
-                  >
-                    Reset Filter
-                  </Button>
-                </div>
-              )}
-            </div>
-          ) : (
-            <>
-              <DashboardTable
-                data={data.paginatedData}
-                headers={headers}
-                currentPage={pagination.currentPage}
-                pageSize={pagination.pageSize}
-                isEnableEdit={false}
-                isEnableDelete={false}
-              />
+      <motion.div variants={itemVariants}>
+        <Card className="border-none shadow-none bg-transparent">
+          <CardContent className="p-0 relative">
+            <AnimatePresence mode="wait">
+              {status.isVisualPending ? (
+                <motion.div 
+                  key="skeleton-dashboard"
+                  variants={fadeVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="p-8"
+                >
+                  <TableSkeleton />
+                </motion.div>
+              ) : data.filteredData.length === 0 ? (
+                <motion.div 
+                  key="empty-dashboard"
+                  variants={fadeVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 shadow-sm p-8 text-center space-y-3"
+                >
+                  <div className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                    Tidak ada data
+                  </div>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    {status.isFiltered
+                      ? "Tidak ada data yang sesuai filter. Coba ubah atau reset filter."
+                      : "Belum ada data yang tersedia."}
+                  </p>
+                  {status.isFiltered && (
+                    <div className="flex justify-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={actions.resetFilters}
+                      >
+                        Reset Filter
+                      </Button>
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div 
+                  key="data-dashboard"
+                  variants={fadeVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  className="space-y-6"
+                >
+                  <DashboardTable
+                    data={data.paginatedData}
+                    headers={headers}
+                    currentPage={pagination.currentPage}
+                    pageSize={pagination.pageSize}
+                    isEnableEdit={false}
+                    isEnableDelete={false}
+                  />
 
-              <DashboardCards
-                data={data.paginatedData}
-                headers={headers}
-                currentPage={pagination.currentPage}
-                pageSize={pagination.pageSize}
-                isEnableEdit={false}
-                isEnableDelete={false}
-              />
+                  <DashboardCards
+                    data={data.paginatedData}
+                    headers={headers}
+                    currentPage={pagination.currentPage}
+                    pageSize={pagination.pageSize}
+                    isEnableEdit={false}
+                    isEnableDelete={false}
+                  />
 
-              {data.filteredData.length > 0 && (
-                <DashboardPagination
-                  currentPage={pagination.currentPage}
-                  totalPages={pagination.totalPages}
-                  pageSize={pagination.pageSize}
-                  onPageChange={(p) =>
-                    actions.handleStartTransition(() => {
-                      pagination.setCurrentPage(p);
-                      scrollToTop();
-                    })
-                  }
-                  onPageSizeChange={(s) =>
-                    actions.handleStartTransition(() => {
-                      pagination.setPageSize(s);
-                      pagination.setCurrentPage(1);
-                      scrollToTop();
-                    })
-                  }
-                />
+                  {data.filteredData.length > 0 && (
+                    <DashboardPagination
+                      currentPage={pagination.currentPage}
+                      totalPages={pagination.totalPages}
+                      pageSize={pagination.pageSize}
+                      onPageChange={(p) =>
+                        actions.handleStartTransition(() => {
+                          pagination.setCurrentPage(p);
+                          scrollToTop();
+                        })
+                      }
+                      onPageSizeChange={(s) =>
+                        actions.handleStartTransition(() => {
+                          pagination.setPageSize(s);
+                          pagination.setCurrentPage(1);
+                          scrollToTop();
+                        })
+                      }
+                    />
+                  )}
+                </motion.div>
               )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </AnimatePresence>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Back to Top */}
-      {showBackToTop && (
-        <Button
-          onClick={scrollToTop}
-          size="icon"
-          className="fixed bottom-8 right-8 h-12 w-12 rounded-full shadow-2xl bg-indigo-600 hover:bg-indigo-700 text-white animate-in slide-in-from-bottom-4 duration-300 z-50"
-          aria-label="Kembali ke atas"
-        >
-          <ArrowUp className="h-5 w-5" />
-        </Button>
-      )}
-    </div>
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.3 }}
+          >
+            <Button
+              onClick={scrollToTop}
+              size="icon"
+              className="fixed bottom-8 right-8 h-12 w-12 rounded-full shadow-2xl bg-indigo-600 hover:bg-indigo-700 text-white z-50"
+              aria-label="Kembali ke atas"
+            >
+              <ArrowUp className="h-5 w-5" />
+            </Button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
