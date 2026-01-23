@@ -42,7 +42,7 @@ export function DataDetailDialog({
       return () => clearTimeout(timer);
     }
   }, [open, checkScroll]);
-  
+
   const nama = getCellValue(row, COLUMNS.NAMA);
   const initials = (nama || "?")
     .split(" ")
@@ -54,11 +54,7 @@ export function DataDetailDialog({
   const kelompok = getCellValue(row, COLUMNS.KELOMPOK);
   const desa = getCellValue(row, COLUMNS.DESA);
 
-  const ignoredKeys = [
-    "_index", 
-    "timestamp", 
-    COLUMNS.NAMA.toLowerCase(),
-  ];
+  const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase()];
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -79,22 +75,22 @@ export function DataDetailDialog({
       <DialogContent className="sm:max-w-[480px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl h-[92vh] max-h-[92vh] flex flex-col font-outfit">
         {/* Header - Fixed */}
         <div className="bg-slate-50 dark:bg-slate-950 p-5 md:p-6 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
-           <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 font-syne">
-              {initials}
-           </div>
-           <div className="min-w-0">
-              <DialogTitle className="text-lg md:text-xl font-bold text-slate-900 dark:text-white leading-tight truncate font-syne">
-                {nama || title}
-              </DialogTitle>
-              <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium truncate">
-                {kelompok || "Kelompok"} • {desa || "Desa"}
-              </p>
-           </div>
+          <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 font-syne">
+            {initials}
+          </div>
+          <div className="min-w-0 pr-5">
+            <DialogTitle className="text-lg md:text-xl font-bold text-slate-900 dark:text-white leading-tight font-syne whitespace-normal wrap-break-word">
+              {nama || title}
+            </DialogTitle>
+            <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 font-medium truncate">
+              {kelompok || "Kelompok"} • {desa || "Desa"}
+            </p>
+          </div>
         </div>
 
         {/* Content - Scrollable */}
         <div className="relative flex-1 min-h-0 bg-white dark:bg-slate-900">
-          <div 
+          <div
             ref={scrollRef}
             onScroll={checkScroll}
             className="h-full overflow-y-auto px-5 md:px-8 py-4 scrollbar-hide"
@@ -119,9 +115,11 @@ export function DataDetailDialog({
           </div>
 
           {/* Scroll Indicator Icon */}
-          <div 
+          <div
             className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-none md:hidden ${
-              showScrollIndicator ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+              showScrollIndicator
+                ? "opacity-100 translate-y-0"
+                : "opacity-0 translate-y-4"
             }`}
           >
             <ChevronDown className="w-5 h-5 animate-bounce" />
@@ -130,7 +128,11 @@ export function DataDetailDialog({
 
         {/* Footer - Fixed */}
         <div className="mt-auto p-5 md:p-6 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 shrink-0">
-          <Button variant="ghost" className="w-full rounded-xl h-11 transition-all font-semibold outline-none" onClick={() => setOpen(false)}>
+          <Button
+            variant="ghost"
+            className="w-full rounded-xl h-11 transition-all font-semibold outline-none"
+            onClick={() => setOpen(false)}
+          >
             Tutup Profil
           </Button>
         </div>
