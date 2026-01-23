@@ -107,6 +107,9 @@ export function AdminDashboardClient({
         filters={filters}
         options={options}
         status={status}
+        pagination={pagination}
+        totalCount={data.filteredData.length}
+        filteredCount={data.filteredData.length}
         actions={{
           ...actions,
           setCurrentPage: pagination.setCurrentPage,
