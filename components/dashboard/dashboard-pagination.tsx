@@ -11,7 +11,9 @@ interface DashboardPaginationProps {
   onPageSizeChange: (size: number) => void;
 }
 
-export function DashboardPagination({
+import { memo } from "react";
+
+export const DashboardPagination = memo(function DashboardPagination({
   currentPage,
   totalPages,
   pageSize,
@@ -85,4 +87,4 @@ export function DashboardPagination({
       </div>
     </div>
   );
-}
+});

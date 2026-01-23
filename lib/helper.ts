@@ -75,7 +75,7 @@ export function getJenjangKelas(age: string) {
  * Safety helper to get cell value from a row case-insensitively.
  * Prevents logic breaking if Google Sheet column names change case.
  */
-export function getCellValue(row: Record<string, any>, columnName: string): string {
+export function getCellValue(row: Record<string, unknown>, columnName: string): string {
   if (!row) return "";
   const keys = Object.keys(row);
   const targetKey = keys.find((k) => k.toLowerCase() === columnName.toLowerCase());

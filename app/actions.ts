@@ -4,8 +4,10 @@ import {
   appendSheetData,
   updateSheetData,
   deleteSheetData,
+  getSheetData,
   SheetRow,
 } from "@/lib/google-sheets";
+import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
 import { revalidatePath } from "next/cache";
 
 export type ActionState = {
@@ -109,5 +111,35 @@ export async function deleteData(rowIndex: number) {
       success: false,
       message: error instanceof Error ? error.message : "Gagal menghapus data",
     };
+  }
+}
+
+export async function getSheetDataAction() {
+  try {
+    const rawData = await getSheetData();
+    const processedData = rawData.map((row, index) => {
+      const tanggalLahirRaw = String(row["TANGGAL LAHIR"] || "");
+      const updatedRow: SheetRow & { _index: number } = {
+        ...row,
+        _index: index,
+      };
+
+      if (tanggalLahirRaw.trim()) {
+        updatedRow["Umur"] = calculateAge(tanggalLahirRaw);
+        updatedRow["TANGGAL LAHIR"] = formatDate(tanggalLahirRaw);
+      }
+
+      if (updatedRow["Umur"] != undefined) {
+        updatedRow["Jenjang Kelas"] = getJenjangKelas(
+          updatedRow["Umur"] as string,
+        );
+      }
+
+      return updatedRow;
+    });
+
+    return { success: true, data: processedData };
+  } catch (error) {
+    return { success: false, message: "Failed to fetch data" };
   }
 }

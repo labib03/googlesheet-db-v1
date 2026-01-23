@@ -13,6 +13,7 @@ import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import Link from "next/link";
 import { ArrowUp, BarChart3 } from "lucide-react";
+import { AddDataDialog } from "./add-data-dialog";
 
 interface DashboardClientProps {
   initialData: SheetRow[];
@@ -28,7 +29,6 @@ export function DashboardClient({
 
   const [showBackToTop, setShowBackToTop] = useState(false);
   const dataTopRef = useRef<HTMLDivElement | null>(null);
-  const isEnableAdd = process.env.NEXT_PUBLIC_ENABLE_ADD === "true";
   const isEnableEdit = process.env.NEXT_PUBLIC_ENABLE_EDIT === "true";
   const isEnableDelete = process.env.NEXT_PUBLIC_ENABLE_DELETE === "true";
 
@@ -52,13 +52,7 @@ export function DashboardClient({
     }
   };
 
-  // Force scroll to absolute top on initial load
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, []);
-
-  // Auto scroll logic removed from useEffect to respect user request:
-  // only scroll on manual pagination or page size change.
+  // Auto scroll logic removed to respect user request.
 
   return (
     <div className="space-y-8 relative">

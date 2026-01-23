@@ -1,6 +1,7 @@
 import { getSheetData, SheetRow } from "@/lib/google-sheets";
 import { Navbar } from "@/components/navbar";
 import { DashboardClient } from "@/components/dashboard-client";
+import { DashboardProvider } from "@/context/dashboard-context";
 import {
   Card,
   CardContent,
@@ -114,7 +115,9 @@ export default async function Home() {
         {/* Dashboard Content */}
         {!error && (
           <Suspense fallback={<div>Loading...</div>}>
-            <DashboardClient initialData={data} headers={headers} />
+            <DashboardProvider initialData={data} initialHeaders={headers}>
+              <DashboardClient initialData={data} headers={headers} />
+            </DashboardProvider>
           </Suspense>
         )}
       </main>

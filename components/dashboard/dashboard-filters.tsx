@@ -49,7 +49,9 @@ interface DashboardFiltersProps {
   filteredCount: number;
 }
 
-export function DashboardFilters({
+import { memo } from "react";
+
+export const DashboardFilters = memo(function DashboardFilters({
   filters,
   options,
   status,
@@ -339,5 +341,5 @@ export function DashboardFilters({
       </TooltipProvider>
     </div>
   );
-}
+});
 

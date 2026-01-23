@@ -17,7 +17,9 @@ interface DashboardCardsProps {
   isEnableDelete: boolean;
 }
 
-export function DashboardCards({
+import { memo } from "react";
+
+export const DashboardCards = memo(function DashboardCards({
   data,
   headers,
   currentPage,
@@ -164,4 +166,4 @@ export function DashboardCards({
       })}
     </div>
   );
-}
+});

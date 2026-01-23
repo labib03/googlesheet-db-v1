@@ -7,11 +7,15 @@ import { useDebounceValue } from "usehooks-ts";
 import { parse, compareDesc } from "date-fns";
 import { getCellValue } from "@/lib/helper";
 
+import { useDashboard } from "@/context/dashboard-context";
+
 interface UseDashboardDataProps {
-  initialData: SheetRow[];
+  initialData?: SheetRow[];
 }
 
-export function useDashboardData({ initialData }: UseDashboardDataProps) {
+export function useDashboardData({ initialData: propsData }: UseDashboardDataProps = {}) {
+  const context = useDashboard();
+  const initialData = propsData || context.data;
   const [filterDesa, setFilterDesa] = useState<string[]>([]);
   const [filterKelompok, setFilterKelompok] = useState<string[]>([]);
   const [filterGender, setFilterGender] = useState("");
@@ -199,6 +203,8 @@ export function useDashboardData({ initialData }: UseDashboardDataProps) {
     actions: {
       handleStartTransition,
       resetFilters,
+      refreshData: context.refreshData,
     },
+    headers: context.headers,
   };
 }
