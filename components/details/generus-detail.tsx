@@ -45,7 +45,7 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
   const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase(), "_rawbirthdate"];
 
   return (
-    <div className="flex flex-col h-auto max-h-[92vh] bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
+    <div className="flex flex-col h-auto max-h-dvh bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
       {/* Header - Fixed */}
       <div className="bg-slate-50 dark:bg-slate-950 p-4 md:p-5 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
         <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 font-syne">

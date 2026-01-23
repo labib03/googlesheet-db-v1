@@ -179,7 +179,7 @@ export function GenerusForm({
   };
 
   return (
-    <div className="flex flex-col h-auto max-h-[92vh] bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
+    <div className="flex flex-col h-auto max-h-dvh bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
       {title && (
         <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-5 md:p-6 text-white relative shrink-0">
           <h2 className="text-xl md:text-2xl font-bold tracking-tight font-syne">{title}</h2>

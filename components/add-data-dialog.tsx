@@ -87,7 +87,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
           onOpenChange(newOpen);
         }}
       >
-        <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl h-auto max-h-[92vh] flex flex-col font-outfit">
+        <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl flex flex-col font-outfit">
           <LoadingOverlay isPending={isPending} />
           
           <div className="min-h-0">
