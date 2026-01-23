@@ -1,0 +1,52 @@
+
+> antigravity@0.1.0 lint
+> eslint
+
+
+C:\Users\Raven\web_development\Next\antigravity\components\add-data-dialog.tsx
+  16:44  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  90:18  warning  'e' is defined but never used             @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard-client.tsx
+  31:9  warning  'isEnableAdd' is assigned a value but never used     @typescript-eslint/no-unused-vars
+  32:9  warning  'isEnableEdit' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  33:9  warning  'isEnableDelete' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard\components\multi-select-custom.tsx
+  7:10  warning  'Button' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard\stats-overview.tsx
+  3:10  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+  9:10  warning  'is' is defined but never used         @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\delete-data-dialog.tsx
+  7:3  warning  'AlertDialogAction' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\edit-data-dialog.tsx
+   66:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Raven\web_development\Next\antigravity\components\edit-data-dialog.tsx:66:7
+  64 |     if (open) {
+  65 |       const initialDesa = getCellValue(row, COLUMNS.DESA).toUpperCase();
+> 66 |       setSelectedDesa(initialDesa);
+     |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  67 |     }
+  68 |   }, [open, row]);
+  69 |   const [showScrollIndicator, setShowScrollIndicator] = useState(false);  react-hooks/set-state-in-effect
+  104:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\hooks\use-dashboard-data.ts
+  5:19  warning  'Gender' is defined but never used  @typescript-eslint/no-unused-vars
+  5:37  warning  'kelas' is defined but never used   @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\lib\helper.ts
+  78:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+Γ£û 14 problems (2 errors, 12 warnings)
+

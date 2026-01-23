@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 interface DashboardPaginationProps {
   currentPage: number;
@@ -41,13 +41,23 @@ export function DashboardPagination({
         </div>
       </div>
 
-      <div className="flex gap-2 w-full sm:w-auto justify-center sm:justify-end">
+      <div className="flex gap-1.5 w-full sm:w-auto justify-center sm:justify-end">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onPageChange(1)}
+          disabled={currentPage === 1}
+          className="h-8 w-8 text-slate-500"
+          title="Halaman Pertama"
+        >
+          <ChevronsLeft className="h-4 w-4" />
+        </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={() => onPageChange(Math.max(1, currentPage - 1))}
           disabled={currentPage === 1}
-          className="flex-1 sm:flex-none"
+          className="flex-1 sm:flex-none h-8 px-3"
         >
           <ChevronLeft className="h-4 w-4 mr-1" />
           Prev
@@ -57,10 +67,20 @@ export function DashboardPagination({
           size="sm"
           onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
           disabled={currentPage === totalPages}
-          className="flex-1 sm:flex-none"
+          className="flex-1 sm:flex-none h-8 px-3"
         >
           Next
           <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={() => onPageChange(totalPages)}
+          disabled={currentPage === totalPages}
+          className="h-8 w-8 text-slate-500"
+          title="Halaman Terakhir"
+        >
+          <ChevronsRight className="h-4 w-4" />
         </Button>
       </div>
     </div>

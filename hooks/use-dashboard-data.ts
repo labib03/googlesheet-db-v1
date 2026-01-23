@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition, useEffect } from "react";
 import { SheetRow } from "@/lib/google-sheets";
-import { COLUMNS, Gender, desaData, kelas } from "@/lib/constants";
+import { COLUMNS, desaData } from "@/lib/constants";
 import { useDebounceValue } from "usehooks-ts";
 import { parse, compareDesc } from "date-fns";
 import { getCellValue } from "@/lib/helper";

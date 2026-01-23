@@ -94,6 +94,9 @@ export function DashboardClient({
         filters={filters}
         options={options}
         status={status}
+        pagination={pagination}
+        totalCount={initialData.length}
+        filteredCount={data.filteredData.length}
         actions={{
           ...actions,
           setCurrentPage: pagination.setCurrentPage,
