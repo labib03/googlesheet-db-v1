@@ -53,6 +53,25 @@ export function CardSkeleton() {
   );
 }
 
+export function ListSkeleton() {
+  return (
+    <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800 animate-pulse">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="p-6 flex items-center gap-5">
+          <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800 shrink-0"></div>
+          <div className="flex-1 space-y-2.5">
+             <div className="h-5 bg-slate-100 dark:bg-slate-800 rounded w-1/3"></div>
+             <div className="flex gap-3">
+               <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-24"></div>
+               <div className="h-3 bg-slate-100 dark:bg-slate-800 rounded w-32"></div>
+             </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function StatsSkeleton() {
   return (
     <div className="space-y-10 animate-pulse">

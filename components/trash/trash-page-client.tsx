@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 import { useTrashPageData } from "@/hooks/use-trash-page-data";
 import { DashboardFilters } from "../dashboard/dashboard-filters";
 import { DashboardPagination } from "../dashboard/dashboard-pagination";
-import { TableSkeleton, CardSkeleton } from "../skeletons";
+import { ListSkeleton } from "../skeletons";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface TrashPageClientProps {
@@ -160,12 +160,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
                   exit="exit"
                   className="p-8"
                 >
-                  <div className="hidden md:block">
-                    <TableSkeleton />
-                  </div>
-                  <div className="md:hidden">
-                    <CardSkeleton />
-                  </div>
+                  <ListSkeleton />
                 </motion.div>
               ) : data.filteredData.length === 0 ? (
                 <motion.div 
