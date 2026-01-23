@@ -1,13 +1,28 @@
 
+C:\Users\Raven\web_development\Next\antigravity\app\actions.ts
+  152:12  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\app\generus\add\page.tsx
+  26:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\app\generus\edit\[index]\page.tsx
+  12:10  warning  'formatDate' is defined but never used  @typescript-eslint/no-unused-vars
+  36:18  warning  'e' is defined but never used           @typescript-eslint/no-unused-vars
+
 C:\Users\Raven\web_development\Next\antigravity\components\add-data-dialog.tsx
-  12:3   warning  'DialogTrigger' is defined but never used  @typescript-eslint/no-unused-vars
-  16:44  warning  'CheckCircle2' is defined but never used   @typescript-eslint/no-unused-vars
-  92:18  warning  'e' is defined but never used              @typescript-eslint/no-unused-vars
+   3:10  warning  'useState' is defined but never used           @typescript-eslint/no-unused-vars
+   3:20  warning  'useRef' is defined but never used             @typescript-eslint/no-unused-vars
+   3:28  warning  'useEffect' is defined but never used          @typescript-eslint/no-unused-vars
+   3:39  warning  'useCallback' is defined but never used        @typescript-eslint/no-unused-vars
+   9:3   warning  'DialogDescription' is defined but never used  @typescript-eslint/no-unused-vars
+  10:3   warning  'DialogHeader' is defined but never used       @typescript-eslint/no-unused-vars
+  11:3   warning  'DialogTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  13:31  warning  'Save' is defined but never used               @typescript-eslint/no-unused-vars
+  53:18  warning  'e' is defined but never used                  @typescript-eslint/no-unused-vars
 
 C:\Users\Raven\web_development\Next\antigravity\components\dashboard-client.tsx
-  31:9  warning  'isEnableAdd' is assigned a value but never used     @typescript-eslint/no-unused-vars
-  32:9  warning  'isEnableEdit' is assigned a value but never used    @typescript-eslint/no-unused-vars
-  33:9  warning  'isEnableDelete' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  55:9  warning  'isEnableEdit' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  56:9  warning  'isEnableDelete' is assigned a value but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\Raven\web_development\Next\antigravity\components\dashboard\components\multi-select-custom.tsx
   7:10  warning  'Button' is defined but never used  @typescript-eslint/no-unused-vars
@@ -17,14 +32,23 @@ C:\Users\Raven\web_development\Next\antigravity\components\dashboard\stats-overv
   9:10  warning  'is' is defined but never used         @typescript-eslint/no-unused-vars
 
 C:\Users\Raven\web_development\Next\antigravity\components\data-detail-dialog.tsx
-  8:3  warning  'DialogTrigger' is defined but never used  @typescript-eslint/no-unused-vars
+  8:15  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\Raven\web_development\Next\antigravity\components\delete-data-dialog.tsx
   7:3  warning  'AlertDialogAction' is defined but never used  @typescript-eslint/no-unused-vars
 
 C:\Users\Raven\web_development\Next\antigravity\components\edit-data-dialog.tsx
-   12:3   warning  'DialogTrigger' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             @typescript-eslint/no-unused-vars
-   68:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+  51:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\forms\generus-form.tsx
+  64:37  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Raven\web_development\Next\antigravity\components\page-transition-wrapper.tsx
+  4:33  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\providers\initial-transition.tsx
+   5:20  warning  'ShieldCheck' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  16:7   error    Error: Calling setState synchronously within an effect can trigger cascading renders
 
 Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
 * Update external systems with the latest state from React.
@@ -32,15 +56,34 @@ Effects are intended to synchronize state between React and external systems suc
 
 Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
 
-C:\Users\Raven\web_development\Next\antigravity\components\edit-data-dialog.tsx:68:7
-  66 |     if (isOpen) {
-  67 |       const initialDesa = getCellValue(row, COLUMNS.DESA).toUpperCase();
-> 68 |       setSelectedDesa(initialDesa);
-     |       ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
-  69 |     }
-  70 |   }, [isOpen, row]);
-  71 |   const [showScrollIndicator, setShowScrollIndicator] = useState(false);  react-hooks/set-state-in-effect
-  106:18  warning  'e' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         @typescript-eslint/no-unused-vars
+C:\Users\Raven\web_development\Next\antigravity\components\providers\initial-transition.tsx:16:7
+  14 |     
+  15 |     if (isPreloaderActive) {
+> 16 |       setIsVisible(true);
+     |       ^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  17 |     }
+  18 |     setIsMounted(true);
+  19 |   }, []);                                                                               react-hooks/set-state-in-effect
+  53:9   error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Raven\web_development\Next\antigravity\components\providers\initial-transition.tsx:53:9
+  51 |       // or if it was already cleared
+  52 |       if (!document.documentElement.hasAttribute('data-preloader')) {
+> 53 |         setShowChildren(true);
+     |         ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  54 |       }
+  55 |     }
+  56 |   }, [isVisible]);  react-hooks/set-state-in-effect
+
+C:\Users\Raven\web_development\Next\antigravity\components\trash\trash-page-client.tsx
+  109:111  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
+  109:117  error  `"` can be escaped with `&quot;`, `&ldquo;`, `&#34;`, `&rdquo;`  react/no-unescaped-entities
 
 C:\Users\Raven\web_development\Next\antigravity\components\ui\loading-bar.tsx
   12:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
@@ -78,11 +121,33 @@ C:\Users\Raven\web_development\Next\antigravity\components\ui\loading-overlay.ts
   18 |     return () => clearTimeout(timer);
   19 |   }, [isPending]);  react-hooks/set-state-in-effect
 
+C:\Users\Raven\web_development\Next\antigravity\components\ui\textarea.tsx
+  5:18  error  An interface declaring no members is equivalent to its supertype  @typescript-eslint/no-empty-object-type
+
+C:\Users\Raven\web_development\Next\antigravity\context\dashboard-context.tsx
+  54:21  warning  'startTransition' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\hooks\use-is-mobile.ts
+  14:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Raven\web_development\Next\antigravity\hooks\use-is-mobile.ts:14:5
+  12 |     
+  13 |     // Set initial value inside effect to be safe with SSR/initial render
+> 14 |     setIsMobile(mql.matches);
+     |     ^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  15 |
+  16 |     const onChange = () => {
+  17 |       setIsMobile(mql.matches);  react-hooks/set-state-in-effect
+
 C:\Users\Raven\web_development\Next\antigravity\hooks\use-modal-state.ts
-  3:40  warning  'parseAsInteger' is defined but never used  @typescript-eslint/no-unused-vars
+  9:31  warning  '_modalKey' is defined but never used  @typescript-eslint/no-unused-vars
+  9:51  warning  '_id' is defined but never used        @typescript-eslint/no-unused-vars
 
-C:\Users\Raven\web_development\Next\antigravity\lib\helper.ts
-  78:50  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
-
-Γ£û 18 problems (4 errors, 14 warnings)
+Γ£û 35 problems (9 errors, 26 warnings)
 

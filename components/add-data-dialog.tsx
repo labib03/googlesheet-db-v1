@@ -1,16 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useTransition } from "react";
+import { useTransition } from "react";
 import { addData } from "@/app/actions";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
 } from "@/components/ui/dialog";
-import { PlusCircle, Loader2, Save } from "lucide-react";
+import { PlusCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { format, parseISO } from "date-fns";
 import { useModalState } from "@/hooks/use-modal-state";
@@ -50,7 +47,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
         try {
           const parsed = parseISO(rawDate);
           formData.set(tanggalLahirKey, format(parsed, "dd/MM/yyyy"));
-        } catch (e) {}
+        } catch {}
       }
 
       const result = await addData(null, formData);

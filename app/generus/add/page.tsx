@@ -23,7 +23,7 @@ export default function AddGenerusPage() {
         try {
           const parsed = parseISO(rawDate);
           formData.set(tanggalLahirKey, format(parsed, "dd/MM/yyyy"));
-        } catch (e) {}
+        } catch {}
       }
 
       const result = await addData(null, formData);

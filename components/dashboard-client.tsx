@@ -33,7 +33,7 @@ const staggerContainer = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 10 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.4 } },
 };
 
 const fadeVariants = {
@@ -52,9 +52,6 @@ export function DashboardClient({
 
   const [showBackToTop, setShowBackToTop] = useState(false);
   const dataTopRef = useRef<HTMLDivElement | null>(null);
-  const isEnableEdit = process.env.NEXT_PUBLIC_ENABLE_EDIT === "true";
-  const isEnableDelete = process.env.NEXT_PUBLIC_ENABLE_DELETE === "true";
-
   // Handle Scroll to Top Button Visibility
   useEffect(() => {
     const handleScroll = () => {

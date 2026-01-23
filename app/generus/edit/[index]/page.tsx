@@ -9,7 +9,6 @@ import { useTransition, useMemo } from "react";
 import { parseISO, format } from "date-fns";
 import { motion } from "framer-motion";
 import { PageTransitionWrapper } from "@/components/page-transition-wrapper";
-import { formatDate } from "@/lib/helper";
 
 export default function EditGenerusPage() {
   const { data, headers, refreshData, isLoading } = useDashboard();
@@ -33,7 +32,7 @@ export default function EditGenerusPage() {
         try {
           const parsed = parseISO(rawDate);
           formData.set(tanggalLahirKey, format(parsed, "dd/MM/yyyy"));
-        } catch (e) {}
+        } catch {}
       }
 
       const result = await updateData(index + 2, null, formData);

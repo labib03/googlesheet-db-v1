@@ -61,7 +61,7 @@ export function GenerusForm({
     const defaultValue = initialData ? String(initialData[header] || "") : "";
 
     let finalDefaultValue = "";
-    const rawDate = (initialData as any)?._rawBirthDate as string || defaultValue;
+    const rawDate = (initialData as Record<string, unknown>)?._rawBirthDate as string || defaultValue;
 
     if (headerLower === COLUMNS.TANGGAL_LAHIR.toLowerCase() && rawDate && rawDate.includes("/")) {
       const parts = rawDate.split("/");

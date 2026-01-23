@@ -31,7 +31,7 @@ const staggerContainer = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } },
+  show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
 
 const fadeVariants = {
@@ -106,7 +106,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
             </h1>
           </div>
           <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl pl-0">
-            Viewing items that have been soft-deleted from the main database. These records are stored in the "Trash" sheet as a safety archive.
+            Viewing items that have been soft-deleted from the main database. These records are stored in the &ldquo;Trash&rdquo; sheet as a safety archive.
           </p>
         </div>
 

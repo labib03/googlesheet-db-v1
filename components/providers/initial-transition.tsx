@@ -1,24 +1,24 @@
 "use client";
 
-import { useEffect, useState, useLayoutEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Database, ShieldCheck } from "lucide-react";
+import { Database } from "lucide-react";
 
 export function InitialTransition({ children }: { children: React.ReactNode }) {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return document.documentElement.getAttribute('data-preloader') === 'active';
+  });
   const [isMounted, setIsMounted] = useState(false);
 
-  useLayoutEffect(() => {
-    // Check the attribute set by the layout script for zero-flash detection
-    const isPreloaderActive = document.documentElement.getAttribute('data-preloader') === 'active';
-    
-    if (isPreloaderActive) {
-      setIsVisible(true);
-    }
-    setIsMounted(true);
+  useEffect(() => {
+    setTimeout(() => setIsMounted(true), 0);
   }, []);
 
-  const [showChildren, setShowChildren] = useState(false);
+  const [showChildren, setShowChildren] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !document.documentElement.hasAttribute('data-preloader');
+  });
 
   useEffect(() => {
     if (isVisible) {
@@ -46,12 +46,6 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
       }, 3200);
       
       return () => clearTimeout(timer);
-    } else {
-      // If we are not showing preloader (e.g. standard navigation where layout is already mounted)
-      // or if it was already cleared
-      if (!document.documentElement.hasAttribute('data-preloader')) {
-        setShowChildren(true);
-      }
     }
   }, [isVisible]);
 
@@ -117,7 +111,7 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
                 transition={{ delay: 1.5 }}
                 className="mt-10 flex flex-col items-center gap-4"
               >
-                <p className="text-white font-outfit font-bold tracking-[0.4em] uppercase text-[10px]">
+                <p className="text-white font-outfit font-bold tracking-[0.4em] uppercase text-[10px] sm:text-[14px]">
                   Initializing Dashboard Generus System
                 </p>
                 <div className="h-[2px] w-40 bg-white/20 rounded-full overflow-hidden">

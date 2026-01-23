@@ -13,7 +13,7 @@ export function LoadingOverlay({ isPending }: { isPending: boolean }) {
       // Small delay before showing full overlay to avoid flickering for super fast loads
       timer = setTimeout(() => setShow(true), 50);
     } else {
-      setShow(false);
+      setTimeout(() => setShow(false), 0);
     }
     return () => clearTimeout(timer);
   }, [isPending]);

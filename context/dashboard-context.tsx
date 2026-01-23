@@ -51,7 +51,7 @@ export function DashboardProvider({
   const [data, setData] = useState<SheetRow[]>(initialData);
   const [headers, setHeaders] = useState<string[]>(initialHeaders);
   const [isLoading, setIsLoading] = useState(initialData.length === 0);
-  const [isPending, startTransition] = useTransition();
+  const [isPending] = useTransition();
 
   // Persisted View States
   const [filterDesa, setFilterDesa] = useState<string[]>([]);

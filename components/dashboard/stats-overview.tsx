@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { SheetRow } from "@/lib/google-sheets";
 import { Users, MapPin, BarChart2, Venus, Mars } from "lucide-react";
 import { getCellValue } from "@/lib/helper";
 import { COLUMNS, kelas } from "@/lib/constants";
 import { AnimatedNumber } from "@/components/animated-number";
-import { is } from "date-fns/locale";
 
 interface StatsOverviewProps {
   data: SheetRow[];

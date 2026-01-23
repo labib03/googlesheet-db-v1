@@ -149,7 +149,7 @@ export async function getSheetDataAction() {
     });
 
     return { success: true, data: processedData };
-  } catch (error) {
+  } catch {
     return { success: false, message: "Failed to fetch data" };
   }
 }

@@ -9,7 +9,7 @@ export function LoadingBar({ isPending }: { isPending: boolean }) {
     let interval: NodeJS.Timeout;
 
     if (isPending) {
-      setProgress(10);
+      setTimeout(() => setProgress(10), 0);
       interval = setInterval(() => {
         setProgress((prev) => {
           if (prev >= 90) return prev;
@@ -17,7 +17,7 @@ export function LoadingBar({ isPending }: { isPending: boolean }) {
         });
       }, 100);
     } else {
-      setProgress(100);
+      setTimeout(() => setProgress(100), 0);
       const timer = setTimeout(() => {
         setProgress(0);
       }, 300);
