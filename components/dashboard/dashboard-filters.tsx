@@ -47,6 +47,7 @@ interface DashboardFiltersProps {
   };
   totalCount: number;
   filteredCount: number;
+  hideDuplicates?: boolean;
 }
 
 import { memo } from "react";
@@ -59,6 +60,7 @@ export const DashboardFilters = memo(function DashboardFilters({
   pagination,
   totalCount,
   filteredCount,
+  hideDuplicates = false,
 }: DashboardFiltersProps) {
   const {
     filterDesa,
@@ -282,36 +284,38 @@ export const DashboardFilters = memo(function DashboardFilters({
               Reset Filters
             </Button>
 
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <div className="inline-block">
-                  <Button
-                    onClick={() => {
-                      actions.handleStartTransition(() => {
-                        setShowDuplicates(!showDuplicates);
-                        actions.setCurrentPage(1);
-                      });
-                    }}
-                    disabled={status.isFiltered}
-                    variant={showDuplicates ? "default" : "outline"}
-                    size="sm"
-                    className={`font-medium text-sm rounded-lg flex items-center gap-2 transition-all duration-200 ${
-                      showDuplicates
-                        ? "bg-indigo-600 hover:bg-indigo-700 text-white border-transparent shadow-md shadow-indigo-200 dark:shadow-none"
-                        : "text-slate-800 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border-slate-200"
-                    } disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed`}
-                  >
-                    <Copy className="w-4 h-4" />
-                    {showDuplicates ? "Showing Duplicates" : "Check Duplicate Data"}
-                  </Button>
-                </div>
-              </TooltipTrigger>
-              {status.isFiltered && (
-                <TooltipContent side="top" className="max-w-[220px] text-xs">
-                  Bisa di klik ketika tidak ada filter yang aktif
-                </TooltipContent>
-              )}
-            </Tooltip>
+            {!hideDuplicates && (
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <div className="inline-block">
+                    <Button
+                      onClick={() => {
+                        actions.handleStartTransition(() => {
+                          setShowDuplicates(!showDuplicates);
+                          actions.setCurrentPage(1);
+                        });
+                      }}
+                      disabled={status.isFiltered}
+                      variant={showDuplicates ? "default" : "outline"}
+                      size="sm"
+                      className={`font-medium text-sm rounded-lg flex items-center gap-2 transition-all duration-200 ${
+                        showDuplicates
+                          ? "bg-indigo-600 hover:bg-indigo-700 text-white border-transparent shadow-md shadow-indigo-200 dark:shadow-none"
+                          : "text-slate-800 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border-slate-200"
+                      } disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed`}
+                    >
+                      <Copy className="w-4 h-4" />
+                      {showDuplicates ? "Showing Duplicates" : "Check Duplicate Data"}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {status.isFiltered && (
+                  <TooltipContent side="top" className="max-w-[220px] text-xs">
+                    Bisa di klik ketika tidak ada filter yang aktif
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            )}
 
             <RefreshButton />
           </div>

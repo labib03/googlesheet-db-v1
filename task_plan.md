@@ -17,7 +17,8 @@ Build a premium, high-performance web dashboard for managing "Generus Bogsel" da
 - [x] Phase 2: CRUD Implementation (Add, Edit, Detail)
 - [x] Phase 3: Advanced UX (State Persistence, Mobile Polish)
 - [x] Phase 4: Data Safety (Soft-Delete/Trash Mechanism)
-- [ ] Phase 5: Additional Features & Scalability (Next Step)
+- [x] Phase 5: Standalone Trash Page with Filters & Pagination
+- [ ] Phase 6: Trash Actions (Restore & Permanent Deletion)
 
 ## 🚩 Current Status
 - Current Phase: Phase 4 Completed.

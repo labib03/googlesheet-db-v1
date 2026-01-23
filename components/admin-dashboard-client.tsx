@@ -9,17 +9,21 @@ import { DashboardTable } from "./dashboard/dashboard-table";
 import { DashboardCards } from "./dashboard/dashboard-cards";
 import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { Button } from "@/components/ui/button";
 import { TableSkeleton } from "@/components/skeletons";
-import { ShieldCheck, AlertCircle } from "lucide-react";
+import { ShieldCheck, AlertCircle, History } from "lucide-react";
+import Link from "next/link";
 
 interface AdminDashboardClientProps {
   initialData: SheetRow[];
+  trashData: SheetRow[];
   headers: string[];
   error: string | null;
 }
 
 export function AdminDashboardClient({
   initialData,
+  trashData,
   headers,
   error,
 }: AdminDashboardClientProps) {
@@ -36,26 +40,21 @@ export function AdminDashboardClient({
   const isFirstMount = useRef(true);
 
   const isEnableAdd = process.env.NEXT_PUBLIC_ENABLE_ADD === "true";
-  // Force delete feature to true on Admin page, but respect ENV for visibility flag
   const isEnableDelete = process.env.NEXT_PUBLIC_ENABLE_DELETE === "true";
-  // On Admin page, we allow Edit as well if needed, but the primary request was to move Delete here.
   const isEnableEdit = process.env.NEXT_PUBLIC_ENABLE_EDIT === "true";
 
   const scrollToTop = () => {
     if (dataTopRef.current) {
-      // Small timeout ensures the DOM has updated its height before scrolling
       setTimeout(() => {
         dataTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
       }, 100);
     }
   };
 
-  // Force scroll to absolute top on initial load
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  // Auto scroll to top when data changes (paging, filtering, or page size)
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
@@ -96,11 +95,26 @@ export function AdminDashboardClient({
           </p>
         </div>
         
-        {isEnableAdd && (
-          <div className="shrink-0">
+        <div className="flex items-center gap-3 shrink-0">
+          <Link href="/admin-restricted/trash">
+            <Button 
+                variant="outline" 
+                className="gap-2 rounded-xl h-10 px-5 border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 hover:border-rose-100 transition-all font-semibold"
+            >
+                <History className="h-4 w-4" />
+                <span>Lihat Trash</span>
+                {trashData.length > 0 && (
+                    <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900">
+                        {trashData.length}
+                    </span>
+                )}
+            </Button>
+          </Link>
+
+          {isEnableAdd && (
             <AddDataDialog headers={headers} />
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <DashboardFilters
@@ -125,8 +139,8 @@ export function AdminDashboardClient({
               <TableSkeleton />
             </div>
           ) : data.filteredData.length === 0 ? (
-            <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-12 text-center">
-               <p className="text-slate-500">No records found matching your selection.</p>
+            <div className="p-20 text-center">
+               <p className="text-slate-500 font-medium">No records found matching your selection.</p>
             </div>
           ) : (
             <>
@@ -136,7 +150,7 @@ export function AdminDashboardClient({
                 currentPage={pagination.currentPage}
                 pageSize={pagination.pageSize}
                 isEnableEdit={isEnableEdit}
-                isEnableDelete={isEnableDelete} // Primary focus
+                isEnableDelete={isEnableDelete}
               />
 
               <DashboardCards
