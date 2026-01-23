@@ -275,3 +275,52 @@ export async function deleteSheetData(
     throw error;
   }
 }
+/**
+ * Gets a specific row data by index
+ * @param rowIndex - The 1-based row index in the sheet
+ * @param sheetName - The name of the sheet/tab
+ */
+export async function getRowData(
+  rowIndex: number,
+  sheetName: string = DEFAULT_SHEET_NAME
+): Promise<SheetRow> {
+  try {
+    const auth = await getAuth();
+    const sheets = google.sheets({ version: 'v4', auth });
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
+    const escapedName = escapeSheetName(sheetName);
+
+    // 1. Get headers first to construct object
+    const headerResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${escapedName}!1:1`,
+    });
+    const headers = headerResponse.data.values?.[0] as string[];
+    
+    if (!headers || headers.length === 0) {
+      throw new Error('Sheet is empty or missing headers');
+    }
+
+    // 2. Get the actual row data
+    const rowResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${escapedName}!${rowIndex}:${rowIndex}`,
+    });
+    const values = rowResponse.data.values?.[0] as string[];
+
+    if (!values || values.length === 0) {
+      throw new Error(`Row ${rowIndex} not found in sheet "${sheetName}"`);
+    }
+
+    // 3. Map values to object based on headers
+    const obj: SheetRow = {};
+    headers.forEach((header, index) => {
+      obj[header] = values[index] || '';
+    });
+
+    return obj;
+  } catch (error) {
+    console.error('Error getting row data:', error);
+    throw error;
+  }
+}

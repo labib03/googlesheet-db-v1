@@ -5,6 +5,7 @@ import {
   updateSheetData,
   deleteSheetData,
   getSheetData,
+  getRowData,
   SheetRow,
 } from "@/lib/google-sheets";
 import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
@@ -101,10 +102,19 @@ export async function updateData(
 
 export async function deleteData(rowIndex: number) {
   try {
+    // 1. Ambil data asli sebelum dihapus
+    const rowToDelete = await getRowData(rowIndex);
+    
+    // 2. Salin data ke sheet "Trash"
+    // Pastikan sheet ini ada di Google Sheet Anda
+    await appendSheetData(rowToDelete, "Trash");
+
+    // 3. Jika berhasil disalin, baru hapus dari sheet utama
     await deleteSheetData(rowIndex);
+
     revalidatePath("/");
     revalidatePath("/admin-restricted");
-    return { success: true, message: "Data berhasil dihapus!" };
+    return { success: true, message: "Data berhasil dipindahkan ke Trash!" };
   } catch (error) {
     console.error("Failed to delete data:", error);
     return {
