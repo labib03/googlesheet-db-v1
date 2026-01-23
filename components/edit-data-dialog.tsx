@@ -19,6 +19,7 @@ import { desaData, Gender, COLUMNS } from "@/lib/constants";
 import { format, parseISO } from "date-fns";
 import { getCellValue } from "@/lib/helper";
 import { toast } from "sonner";
+import { useModalState } from "@/hooks/use-modal-state";
 
 interface EditDataDialogProps {
   row: SheetRow;
@@ -55,17 +56,17 @@ export function EditDataDialog({
   children,
 }: EditDataDialogProps) {
   const formId = "edit-data-form";
-  const [open, setOpen] = useState(false);
+  const { isOpen, onOpenChange, close } = useModalState("edit", rowIndex);
   const [selectedDesa, setSelectedDesa] = useState<string>("");
   const [isPending, startTransition] = useTransition();
 
   // Initialize/Reset state when dialog opens
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       const initialDesa = getCellValue(row, COLUMNS.DESA).toUpperCase();
       setSelectedDesa(initialDesa);
     }
-  }, [open, row]);
+  }, [isOpen, row]);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -78,11 +79,11 @@ export function EditDataDialog({
   }, []);
 
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       const timer = setTimeout(checkScroll, 100);
       return () => clearTimeout(timer);
     }
-  }, [open, checkScroll]);
+  }, [isOpen, checkScroll]);
 
   const sheetRowIndex = rowIndex + 2;
 
@@ -108,7 +109,7 @@ export function EditDataDialog({
 
       const result = await updateData(sheetRowIndex, null, formData);
       if (result.success) {
-        setOpen(false);
+        close();
         toast.success(result.message);
       } else {
         toast.error(`Gagal: ${result.message}`);
@@ -265,10 +266,10 @@ export function EditDataDialog({
 
   return (
     <Dialog 
-      open={open} 
+      open={isOpen} 
       onOpenChange={(newOpen) => {
         if (isPending) return;
-        setOpen(newOpen);
+        onOpenChange(newOpen);
       }}
     >
       <DialogTrigger asChild>
@@ -372,7 +373,7 @@ export function EditDataDialog({
             <Button 
               variant="ghost" 
               className="flex-1 rounded-xl h-11 transition-all font-semibold outline-none" 
-              onClick={() => setOpen(false)}
+              onClick={() => close()}
               disabled={isPending}
             >
               Batal

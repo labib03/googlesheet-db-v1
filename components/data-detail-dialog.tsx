@@ -12,6 +12,7 @@ import { Eye, ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { getCellValue } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
+import { useModalState } from "@/hooks/use-modal-state";
 
 interface DataDetailDialogProps {
   row: SheetRow;
@@ -24,7 +25,7 @@ export function DataDetailDialog({
   title = "Profil Lengkap",
   children,
 }: DataDetailDialogProps) {
-  const [open, setOpen] = useState(false);
+  const { isOpen, onOpenChange, close } = useModalState("detail", row._index as string);
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -37,11 +38,11 @@ export function DataDetailDialog({
   }, []);
 
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       const timer = setTimeout(checkScroll, 100);
       return () => clearTimeout(timer);
     }
-  }, [open, checkScroll]);
+  }, [isOpen, checkScroll]);
 
   const nama = getCellValue(row, COLUMNS.NAMA);
   const initials = (nama || "?")
@@ -57,7 +58,7 @@ export function DataDetailDialog({
   const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase()];
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>
         {children ? (
           children
@@ -131,7 +132,7 @@ export function DataDetailDialog({
           <Button
             variant="ghost"
             className="w-full rounded-xl h-11 transition-all font-semibold outline-none"
-            onClick={() => setOpen(false)}
+            onClick={() => close()}
           >
             Tutup Profil
           </Button>

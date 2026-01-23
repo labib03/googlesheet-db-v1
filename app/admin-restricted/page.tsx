@@ -2,6 +2,7 @@ import { getSheetData, SheetRow } from "@/lib/google-sheets";
 import { Navbar } from "@/components/navbar";
 import { AdminDashboardClient } from "@/components/admin-dashboard-client";
 import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -49,7 +50,9 @@ export default async function AdminPage() {
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 font-outfit selection:bg-indigo-100 selection:text-indigo-900">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <AdminDashboardClient initialData={data} headers={headers} error={error} />
+        <Suspense fallback={<div>Loading...</div>}>
+          <AdminDashboardClient initialData={data} headers={headers} error={error} />
+        </Suspense>
       </main>
     </div>
   );

@@ -80,7 +80,7 @@ export function AdminDashboardClient({
   }
 
   return (
-    <div className="space-y-8 relative pb-20">
+    <div className="space-y-8 relative">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-3">

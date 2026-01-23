@@ -17,6 +17,7 @@ import { PlusCircle, Loader2, ChevronDown, CheckCircle2, Save } from "lucide-rea
 import { toast } from "sonner";
 import { desaData, Gender, COLUMNS } from "@/lib/constants";
 import { format, parseISO } from "date-fns";
+import { useModalState } from "@/hooks/use-modal-state";
 
 interface AddDataDialogProps {
   headers: string[];
@@ -47,7 +48,7 @@ function SubmitButton({ formId, isPending }: { formId: string; isPending: boolea
 
 export function AddDataDialog({ headers }: AddDataDialogProps) {
   const formId = "add-data-form";
-  const [open, setOpen] = useState(false);
+  const { isOpen, onOpenChange, close } = useModalState("add");
   const [selectedDesa, setSelectedDesa] = useState<string>("");
   const [isPending, startTransition] = useTransition();
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
@@ -64,11 +65,11 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
   }, []);
 
   useEffect(() => {
-    if (open) {
+    if (isOpen) {
       const timer = setTimeout(checkScroll, 100);
       return () => clearTimeout(timer);
     }
-  }, [open, checkScroll]);
+  }, [isOpen, checkScroll]);
 
   if (!isEnableAdd) return null;
 
@@ -94,7 +95,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
 
       const result = await addData(null, formData);
       if (result.success) {
-        setOpen(false);
+        close();
         setSelectedDesa("");
         toast.success(result.message);
       } else {
@@ -209,10 +210,10 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
 
   return (
     <Dialog 
-      open={open} 
+      open={isOpen} 
       onOpenChange={(newOpen) => {
         if (isPending) return; // Prevent closing while saving
-        setOpen(newOpen);
+        onOpenChange(newOpen);
         if (newOpen) {
           setSelectedDesa("");
         }
@@ -308,7 +309,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
             <Button 
               variant="ghost" 
               className="flex-1 rounded-xl h-11 transition-all font-semibold" 
-              onClick={() => setOpen(false)}
+              onClick={() => close()}
               disabled={isPending}
             >
               Batal

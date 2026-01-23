@@ -61,7 +61,7 @@ export function DashboardClient({
   // only scroll on manual pagination or page size change.
 
   return (
-    <div className="space-y-8 relative pb-20">
+    <div className="space-y-8 relative">
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
         <div className="space-y-1">
           <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">

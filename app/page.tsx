@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
+import { Suspense } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -111,7 +112,11 @@ export default async function Home() {
         )}
 
         {/* Dashboard Content */}
-        {!error && <DashboardClient initialData={data} headers={headers} />}
+        {!error && (
+          <Suspense fallback={<div>Loading...</div>}>
+            <DashboardClient initialData={data} headers={headers} />
+          </Suspense>
+        )}
       </main>
     </div>
   );
