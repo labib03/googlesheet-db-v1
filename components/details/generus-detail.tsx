@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { motion } from "framer-motion";
 
 interface GenerusDetailProps {
   row: SheetRow;
@@ -45,7 +46,7 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
   const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase(), "_rawbirthdate"];
 
   return (
-    <div className="flex flex-col h-auto max-h-dvh bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
+    <div className="flex flex-col h-auto max-h-dvh md:max-h-[85vh] bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
       {/* Header - Fixed */}
       <div className="bg-slate-50 dark:bg-slate-950 p-4 md:p-5 flex items-center gap-4 border-b border-slate-100 dark:border-slate-800 shrink-0">
         <div className="h-14 w-14 md:h-16 md:w-16 rounded-2xl bg-indigo-600 flex items-center justify-center text-white text-lg md:text-xl font-bold shadow-lg shadow-indigo-200 dark:shadow-none shrink-0 font-syne">
@@ -90,13 +91,30 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
 
       {/* Scroll Indicator Icon */}
       <div
-        className={`absolute bottom-[100px] left-1/2 -translate-x-1/2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-none z-[9999] ${
+        className={`absolute bottom-[100px] left-1/2 -translate-x-1/2 w-8 h-9 bg-indigo-500 text-white rounded-full flex flex-col items-center justify-center shadow-lg transition-all duration-300 pointer-events-none z-[9999] ${
           showScrollIndicator
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4"
         }`}
       >
-        <ChevronDown className="w-5 h-5 animate-bounce" />
+        <div className="relative h-6 w-full flex flex-col items-center">
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: [0, 1, 0], y: [-4, 4, 12] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            className="absolute"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: [0, 1, 0], y: [-4, 4, 12] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: 0.75 }}
+            className="absolute"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </motion.div>
+        </div>
       </div>
 
       {/* Footer - Fixed */}

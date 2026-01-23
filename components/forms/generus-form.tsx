@@ -11,6 +11,7 @@ import { desaData, Gender, COLUMNS } from "@/lib/constants";
 import { getCellValue } from "@/lib/helper";
 import { SheetRow } from "@/lib/google-sheets";
 import { useRef, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 
 interface GenerusFormProps {
   headers: string[];
@@ -179,7 +180,7 @@ export function GenerusForm({
   };
 
   return (
-    <div className="flex flex-col h-auto max-h-dvh bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
+    <div className="flex flex-col h-auto max-h-dvh md:max-h-[85vh] bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
       {title && (
         <div className="bg-gradient-to-br from-indigo-600 to-indigo-700 p-5 md:p-6 text-white relative shrink-0">
           <h2 className="text-xl md:text-2xl font-bold tracking-tight font-syne">{title}</h2>
@@ -220,13 +221,30 @@ export function GenerusForm({
 
       {/* Scroll Indicator Icon */}
       <div
-        className={`absolute bottom-[100px] left-1/2 -translate-x-1/2 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 pointer-events-none z-[9999] ${
+        className={`absolute bottom-[100px] left-1/2 -translate-x-1/2 w-8 h-9 bg-indigo-500 text-white rounded-full flex flex-col items-center justify-center shadow-lg transition-all duration-300 pointer-events-none z-[9999] ${
           showScrollIndicator
             ? "opacity-100 translate-y-0"
             : "opacity-0 translate-y-4"
         }`}
       >
-        <ChevronDown className="w-5 h-5 animate-bounce" />
+        <div className="relative h-6 w-full flex flex-col items-center">
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: [0, 1, 0], y: [-4, 4, 12] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+            className="absolute"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: -4 }}
+            animate={{ opacity: [0, 1, 0], y: [-4, 4, 12] }}
+            transition={{ duration: 1.5, repeat: Infinity, ease: "linear", delay: 0.75 }}
+            className="absolute"
+          >
+            <ChevronDown className="w-4 h-4" />
+          </motion.div>
+        </div>
       </div>
 
       <div className="shrink-0 p-4 md:p-6 border-t border-slate-100 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm z-20">
