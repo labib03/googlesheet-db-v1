@@ -78,6 +78,23 @@
   body {
     @apply bg-background text-foreground selection:bg-indigo-100 dark:selection:bg-indigo-900/40;
   }
+
+  /* Prevent initial flash and scrollbars when preloader is active */
+  html[data-preloader="active"],
+  html[data-preloader="active"] body {
+    overflow: hidden !important;
+    height: 100vh !important;
+    scrollbar-width: none !important; /* Firefox */
+  }
+  
+  html[data-preloader="active"]::-webkit-scrollbar,
+  html[data-preloader="active"] body::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Edge */
+  }
+
+  html[data-preloader="active"] main {
+    opacity: 0;
+  }
 }
 
 @layer utilities {

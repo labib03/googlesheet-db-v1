@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from 'sonner';
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { DashboardProvider } from "@/context/dashboard-context";
+import { InitialTransition } from "@/components/providers/initial-transition";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -27,14 +28,29 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                document.documentElement.setAttribute('data-preloader', 'active');
+              } catch (e) {}
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${outfit.variable} ${syne.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50`}
       >
-        <main className="animate-in fade-in duration-700 slide-in-from-top-1">
-          <NuqsAdapter>
-            <DashboardProvider>{children}</DashboardProvider>
-          </NuqsAdapter>
-        </main>
+        <NuqsAdapter>
+          <DashboardProvider>
+            <InitialTransition>
+              <main className="animate-in fade-in duration-700 slide-in-from-top-1">
+                {children}
+              </main>
+            </InitialTransition>
+          </DashboardProvider>
+        </NuqsAdapter>
         <Toaster />
       </body>
     </html>

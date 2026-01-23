@@ -13,8 +13,6 @@ import { DashboardFilters } from "../dashboard/dashboard-filters";
 import { DashboardPagination } from "../dashboard/dashboard-pagination";
 import { TableSkeleton } from "../skeletons";
 
-import { motion, AnimatePresence } from "framer-motion";
-
 interface TrashPageClientProps {
   initialTrashData: SheetRow[];
   error: string | null;
@@ -31,6 +29,8 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
     actions,
   } = useTrashPageData({ initialTrashData });
 
+  const navigateBack = () => router.push('/admin-restricted');
+
   if (error) {
     return (
       <Card className="mx-auto max-w-2xl border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 font-outfit">
@@ -43,7 +43,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
           <CardDescription>{error}</CardDescription>
         </CardHeader>
         <CardContent>
-             <Button variant="outline" onClick={() => router.back()} className="rounded-xl">
+             <Button variant="outline" onClick={navigateBack} className="rounded-xl">
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Admin
              </Button>
         </CardContent>
@@ -52,12 +52,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="space-y-8 font-outfit"
-    >
+    <div className="space-y-8 font-outfit">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div className="flex flex-col space-y-2">
@@ -65,7 +60,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
              <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={() => router.back()}
+                onClick={navigateBack}
                 className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
              >
                 <ArrowLeft className="w-5 h-5" />
@@ -228,6 +223,6 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 }

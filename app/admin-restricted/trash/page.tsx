@@ -3,10 +3,11 @@ import { Navbar } from "@/components/navbar";
 import { TrashPageClient } from "@/components/trash/trash-page-client";
 import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
 import { Suspense } from "react";
+import Loading from "@/app/loading";
 
 export const dynamic = "force-dynamic";
 
-export default async function TrashPage() {
+async function TrashContent() {
   let trashData: SheetRow[] = [];
   let error: string | null = null;
 
@@ -23,8 +24,6 @@ export default async function TrashPage() {
 
         if (tanggalLahirRaw.trim()) {
           updatedRow["Umur"] = calculateAge(tanggalLahirRaw);
-          // Keep raw for internal use if needed, but display-wise we often format it.
-          // In the main page we format it to dd/MM/yyyy.
           updatedRow["TANGGAL LAHIR"] = formatDate(tanggalLahirRaw);
         }
 
@@ -41,12 +40,16 @@ export default async function TrashPage() {
     error = err instanceof Error ? err.message : "Failed to fetch trash data";
   }
 
+  return <TrashPageClient initialTrashData={trashData} error={error} />;
+}
+
+export default function TrashPage() {
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 font-outfit selection:bg-indigo-100 selection:text-indigo-900">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <Suspense fallback={<div>Loading Trash...</div>}>
-          <TrashPageClient initialTrashData={trashData} error={error} />
+        <Suspense fallback={<Loading />}>
+          <TrashContent />
         </Suspense>
       </main>
     </div>

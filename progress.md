@@ -13,3 +13,4 @@
 - **2026-01-24 04:20:** Refactored Trash Section into a standalone page (`/admin-restricted/trash`) with a shortcut button in the Admin dashboard.
 - **2026-01-24 04:30:** Implemented full filtering and pagination on the Trash page. Reused `DashboardFilters` and `DashboardPagination` components for a consistent UI. Added a way to hide duplicate checks in filters.
 - **2026-01-24 04:40:** Added smooth page entry animation for the Trash page using `framer-motion` (fade-in & slide-up).
+- **2026-01-24 04:45:** Created and integrated a premium `InitialTransition` component that plays a high-quality entrance animation (Logo reveal + Staggered text) only when the user first opens the website in a session.
