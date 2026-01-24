@@ -73,6 +73,8 @@ export const COLUMNS = {
   SKILL: "SKILL / CITA-CITA",
   UMUR: "Umur",
   JENJANG: "Jenjang Kelas",
+  AYAH: "NAMA AYAH",
+  IBU: "NAMA IBU",
 } as const;
 
 export const CONFIG_SHEET_NAME = "Configuration";

@@ -38,16 +38,23 @@ export const DashboardTable = memo(function DashboardTable({
   ignoreViewConfig,
 }: DashboardTableProps) {
   const { config } = useViewConfig();
-  const visibleHeaders = ignoreViewConfig ? headers : headers.filter(h => config.tableColumns.includes(h));
-  const isUmurVisible = ignoreViewConfig || config.tableColumns.includes(COLUMNS.UMUR);
+  const visibleHeaders = ignoreViewConfig
+    ? headers
+    : headers.filter((h) => config.tableColumns.includes(h));
+  const isUmurVisible =
+    ignoreViewConfig || config.tableColumns.includes(COLUMNS.UMUR);
 
   const getValue = (header: string, value: string) => {
-    if (header === COLUMNS.NAMA || header === COLUMNS.DESA) {
-      return capitalizeWords(String(value))
-    };
+    if (
+      header === COLUMNS.NAMA ||
+      header === COLUMNS.AYAH ||
+      header === COLUMNS.IBU
+    ) {
+      return capitalizeWords(String(value));
+    }
 
     if (header === COLUMNS.TANGGAL_LAHIR) {
-      return formatDate(String(value), "dd MMMM yyyy")
+      return formatDate(String(value), "dd MMMM yyyy");
     }
 
     return value;
@@ -67,9 +74,11 @@ export const DashboardTable = memo(function DashboardTable({
               if (hLower.includes("tanggal")) widthClass = "w-42";
               if (hLower.includes("nama")) widthClass = "w-50";
               if (hLower.includes("hobi")) widthClass = "w-64";
-              if (hLower.includes("skill") || hLower.includes("cita")) widthClass = "w-72";
-              if (hLower.includes("gender") || hLower.includes("desa")) widthClass = "w-32";
-              
+              if (hLower.includes("skill") || hLower.includes("cita"))
+                widthClass = "w-72";
+              if (hLower.includes("gender") || hLower.includes("desa"))
+                widthClass = "w-32";
+
               return (
                 <TableHead
                   key={header}
