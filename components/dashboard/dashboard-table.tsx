@@ -37,6 +37,7 @@ export const DashboardTable = memo(function DashboardTable({
 }: DashboardTableProps) {
   const { config } = useViewConfig();
   const visibleHeaders = headers.filter(h => config.tableColumns.includes(h));
+  const isUmurVisible = config.tableColumns.includes(COLUMNS.UMUR);
 
   const getValue = (header: string, value: string) => {
     if (header === COLUMNS.NAMA || header === COLUMNS.DESA) {
@@ -76,9 +77,11 @@ export const DashboardTable = memo(function DashboardTable({
                 </TableHead>
               );
             })}
-            <TableHead className="w-16 font-semibold text-white text-xs tracking-wider whitespace-nowrap text-center px-2">
-              UMUR
-            </TableHead>
+            {isUmurVisible && (
+              <TableHead className="w-16 font-semibold text-white text-xs tracking-wider whitespace-nowrap text-center px-2">
+                UMUR
+              </TableHead>
+            )}
             <TableHead className="w-24 font-semibold text-white text-xs tracking-wider text-center px-2">
               ACTIONS
             </TableHead>
@@ -106,9 +109,11 @@ export const DashboardTable = memo(function DashboardTable({
                     {getValue(header, String(row[header] || ""))}
                   </TableCell>
                 ))}
-                <TableCell className="text-center text-sm font-medium text-slate-600 dark:text-slate-300 px-2">
-                  {rowAge}
-                </TableCell>
+                {isUmurVisible && (
+                  <TableCell className="text-center text-sm font-medium text-slate-600 dark:text-slate-300 px-2">
+                    {rowAge}
+                  </TableCell>
+                )}
                 <TableCell className="py-2 px-2">
                   <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DataDetailDialog

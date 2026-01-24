@@ -11,7 +11,7 @@ import { useState, useEffect, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveGlobalConfig } from "@/app/actions";
-import { CONFIG_KEYS } from "@/lib/constants";
+import { CONFIG_KEYS, COLUMNS } from "@/lib/constants";
 
 export function ViewSettings() {
   const { headers } = useDashboard();
@@ -62,10 +62,12 @@ export function ViewSettings() {
     });
   };
 
+  const allHeaders = [...headers, COLUMNS.UMUR];
+
   const renderToggleList = (sectionKey: keyof ViewConfig) => (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in duration-500">
-        {headers.map((header) => (
+        {allHeaders.map((header) => (
           <div
             key={header}
             className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-colors shadow-sm"

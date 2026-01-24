@@ -121,9 +121,11 @@ export function DashboardCards({
                           {rowJenjang}
                         </p>
                       )}
-                      <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">
-                        {rowUmur} Tahun
-                      </p>
+                      {config.cardFields.includes(COLUMNS.UMUR) && (
+                        <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">
+                          {rowUmur} Tahun
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
