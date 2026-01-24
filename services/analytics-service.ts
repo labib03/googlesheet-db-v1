@@ -27,10 +27,11 @@ export class AnalyticsService {
   }
 
   /**
-   * Gets a list of Desa with their counts.
+   * Gets a list of Desa with their counts, optionally filtered by Jenjang.
    */
-  static getDesaSummary(rows: SheetRow[]): SummaryItem[] {
+  static getDesaSummary(rows: SheetRow[], jenjang?: string): SummaryItem[] {
     const desaCountMap = new Map<string, { label: string; count: number }>();
+    const jenjangLower = jenjang?.toLowerCase();
     
     // Seed from constants to ensure all Desa are shown
     Object.keys(desaData).forEach((desa) => {
@@ -41,6 +42,12 @@ export class AnalyticsService {
       const desaRaw = getCellValue(row, COLUMNS.DESA);
       const desaKey = desaRaw.toLowerCase();
       const desaLabel = desaRaw || "Tidak terisi";
+      const rowJenjang = getCellValue(row, COLUMNS.JENJANG).toLowerCase();
+
+      // Apply Jenjang Filter
+      if (jenjangLower && rowJenjang !== jenjangLower) {
+        continue;
+      }
 
       if (!desaCountMap.has(desaKey)) {
         desaCountMap.set(desaKey, { label: desaLabel, count: 0 });
@@ -54,11 +61,12 @@ export class AnalyticsService {
   }
 
   /**
-   * Gets a list of Kelompok for a specific Desa with their counts.
+   * Gets a list of Kelompok for a specific Desa with their counts, optionally filtered by Jenjang.
    */
-  static getKelompokSummary(rows: SheetRow[], selectedDesa: string): SummaryItem[] {
+  static getKelompokSummary(rows: SheetRow[], selectedDesa: string, jenjang?: string): SummaryItem[] {
     const kelompokCountMap = new Map<string, { label: string; count: number }>();
     const selectedDesaLower = selectedDesa.toLowerCase();
+    const jenjangLower = jenjang?.toLowerCase();
 
     // Seed from constants for the selected Desa
     const desaMatch = Object.keys(desaData).find(d => d.toLowerCase() === selectedDesaLower);
@@ -71,6 +79,12 @@ export class AnalyticsService {
     for (const row of rows) {
       const rowDesaNormalized = getCellValue(row, COLUMNS.DESA).toLowerCase();
       if (rowDesaNormalized !== selectedDesaLower) continue;
+
+      const rowJenjang = getCellValue(row, COLUMNS.JENJANG).toLowerCase();
+      // Apply Jenjang Filter
+      if (jenjangLower && rowJenjang !== jenjangLower) {
+        continue;
+      }
 
       const kelompokRaw = getCellValue(row, COLUMNS.KELOMPOK);
       const kelompokKey = kelompokRaw.toLowerCase();
@@ -88,17 +102,36 @@ export class AnalyticsService {
   }
 
   /**
-   * Filters rows based on Desa and/or Kelompok.
+   * Gets the distribution of Jenjang for the current set of rows.
    */
-  static filterRows(rows: SheetRow[], desa?: string, kelompok?: string): SheetRow[] {
+  static getJenjangDistribution(rows: SheetRow[]): { name: string; value: number }[] {
+    const distribution = new Map<string, number>();
+
+    for (const row of rows) {
+      const jenjang = getCellValue(row, COLUMNS.JENJANG) || "Tidak terisi";
+      const count = distribution.get(jenjang) || 0;
+      distribution.set(jenjang, count + 1);
+    }
+
+    return Array.from(distribution.entries())
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value); // Sort by count desc
+  }
+
+  /**
+   * Filters rows based on Desa, Kelompok, and Jenjang.
+   */
+  static filterRows(rows: SheetRow[], desa?: string, kelompok?: string, jenjang?: string): SheetRow[] {
     return rows.filter((row) => {
       const rowDesa = getCellValue(row, COLUMNS.DESA).toLowerCase();
       const rowKelompok = getCellValue(row, COLUMNS.KELOMPOK).toLowerCase();
+      const rowJenjang = getCellValue(row, COLUMNS.JENJANG).toLowerCase();
 
       const matchDesa = desa ? rowDesa === desa.toLowerCase() : true;
       const matchKelompok = kelompok ? rowKelompok === kelompok.toLowerCase() : true;
+      const matchJenjang = jenjang ? rowJenjang === jenjang.toLowerCase() : true;
 
-      return matchDesa && matchKelompok;
+      return matchDesa && matchKelompok && matchJenjang;
     });
   }
 }

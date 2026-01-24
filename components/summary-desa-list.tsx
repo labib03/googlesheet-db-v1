@@ -11,9 +11,10 @@ type SummaryItem = {
 interface SummaryDesaListProps {
   items: SummaryItem[];
   selectedKey?: string;
+  baseParams?: Record<string, string>;
 }
 
-export function SummaryDesaList({ items, selectedKey }: SummaryDesaListProps) {
+export function SummaryDesaList({ items, selectedKey, baseParams }: SummaryDesaListProps) {
   return (
     <div className="relative">
       <SummaryList
@@ -22,6 +23,7 @@ export function SummaryDesaList({ items, selectedKey }: SummaryDesaListProps) {
         items={items}
         selectedKey={selectedKey}
         isClickable={true}
+        baseParams={baseParams}
       />
     </div>
   );

@@ -1,14 +1,18 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useTransition } from "react";
 import { SheetRow } from "@/lib/google-sheets";
-import { Users, MapPin, BarChart2, Venus, Mars } from "lucide-react";
+import { Users, MapPin, BarChart2, Venus, Mars, Check } from "lucide-react";
 import { getCellValue } from "@/lib/helper";
 import { COLUMNS, kelas } from "@/lib/constants";
 import { AnimatedNumber } from "@/components/animated-number";
+import { cn } from "@/lib/utils";
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface StatsOverviewProps {
-  data: SheetRow[];
+  data: SheetRow[];                  // Fully filtered data (for KPIs)
+  distributionData?: SheetRow[];     // Data filtered only by location (for Jenjang cards)
+  selectedJenjang?: string;          // Currently selected filter
 }
 
 function getStatsInfo(stats: {
@@ -43,13 +47,17 @@ function getStatsInfo(stats: {
   return { label, value, description };
 }
 
-export function StatsOverview({ data }: StatsOverviewProps) {
+export function StatsOverview({ data, distributionData, selectedJenjang }: StatsOverviewProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [isPending, startTransition] = useTransition();
+
+  // 1. Calculate KPI Stats (based on FULLY filtered data)
   const stats = useMemo(() => {
     const total = data.length;
 
     let lakiLaki = 0;
     let perempuan = 0;
-    const jenjangCounts: Record<string, number> = {};
     const desaSet = new Set<string>();
     const kelompokSet = new Set<string>();
 
@@ -58,10 +66,6 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       const gender = getCellValue(row, COLUMNS.GENDER).toLowerCase();
       if (gender === "laki-laki") lakiLaki++;
       else if (gender === "perempuan") perempuan++;
-
-      // Jenjang
-      const jenjang = getCellValue(row, COLUMNS.JENJANG) || "Lainnya";
-      jenjangCounts[jenjang] = (jenjangCounts[jenjang] || 0) + 1;
 
       // Desa
       const desa = getCellValue(row, COLUMNS.DESA);
@@ -72,20 +76,44 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       if (kelompok) kelompokSet.add(kelompok.toLowerCase());
     });
 
-    const topJenjangEntry = Object.entries(jenjangCounts).sort(
-      (a, b) => b[1] - a[1],
-    )[0];
-
     return {
       total,
       lakiLaki,
       perempuan,
-      topJenjang: topJenjangEntry ? topJenjangEntry[0] : "-",
       activeDesa: desaSet.size,
       activeKelompok: kelompokSet.size,
-      jenjangCounts,
     };
   }, [data]);
+
+  // 2. Calculate Distribution Stats (based on LOCATION filtered data only)
+  // This ensures the other cards don't go to "0" when one is selected.
+  const distributionStats = useMemo(() => {
+    const targetData = distributionData || data;
+    const jenjangCounts: Record<string, number> = {};
+
+    targetData.forEach((row) => {
+      const jenjang = getCellValue(row, COLUMNS.JENJANG) || "Lainnya";
+      jenjangCounts[jenjang] = (jenjangCounts[jenjang] || 0) + 1;
+    });
+
+    return jenjangCounts;
+  }, [data, distributionData]);
+
+
+  const handleJenjangClick = (jenjang: string) => {
+    startTransition(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      
+      // Toggle logic
+      if (selectedJenjang?.toLowerCase() === jenjang.toLowerCase()) {
+        params.delete("jenjang");
+      } else {
+        params.set("jenjang", jenjang);
+      }
+      
+      router.push(`/summary?${params.toString()}`);
+    });
+  };
 
   const mainCards = [
     {
@@ -116,7 +144,7 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       isShow: true,
     },
     {
-      ...getStatsInfo(stats),
+      ...getStatsInfo({ ...stats, topJenjang: "-", jenjangCounts: {} }), // Partial mock since we separated logic
       icon: MapPin,
       color: "bg-emerald-300",
       textColor: "text-emerald-900",
@@ -129,72 +157,105 @@ export function StatsOverview({ data }: StatsOverviewProps) {
       {/* Main KPI Section */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {mainCards.map((card) => (
-          <>
-            {card.isShow && (
-              <div
-                key={card.label}
-                className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div
-                    className={`${card.color} p-2 rounded-xl transition-colors`}
-                  >
-                    <card.icon className={`w-5 h-5 ${card.textColor}`} />
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                    Live Sync
+          card.isShow && (
+            <div
+              key={card.label}
+              className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-all hover:-translate-y-1 group"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div
+                  className={`${card.color} p-2 rounded-xl transition-colors`}
+                >
+                  <card.icon className={`w-5 h-5 ${card.textColor}`} />
+                </div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  Live Sync
+                </span>
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  {card.label}
+                </h3>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                    {typeof card.value === "number" ? (
+                      <AnimatedNumber value={card.value} />
+                    ) : (
+                      card.value
+                    )}
                   </span>
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                    {card.label}
-                  </h3>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
-                      {typeof card.value === "number" ? (
-                        <AnimatedNumber value={card.value} />
-                      ) : (
-                        card.value
-                      )}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500">
-                    {card.description}
-                  </p>
-                </div>
+                <p className="text-[11px] text-slate-400 dark:text-slate-500">
+                  {card.description}
+                </p>
               </div>
-            )}
-          </>
+            </div>
+          )
         ))}
       </div>
 
       {/* Jenjang Kelas Distribution */}
       <div className="space-y-6">
-        <div className="flex items-center gap-3">
-          <div className="bg-indigo-300 rounded-lg p-1.5 shadow-lg shadow-indigo-200 dark:shadow-none">
-            <BarChart2 className="w-4 h-4 text-indigo-900" />
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-indigo-300 rounded-lg p-1.5 shadow-lg shadow-indigo-200 dark:shadow-none">
+              <BarChart2 className="w-4 h-4 text-indigo-900" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                Distribusi Jenjang Kelas
+              </h2>
+              <p className="text-sm text-slate-500">
+                Klik kartu untuk memfilter data berdasarkan jenjang.
+              </p>
+            </div>
           </div>
-          <h2 className="text-xl font-bold text-slate-800 dark:text-white">
-            Distribusi Jenjang Kelas
-          </h2>
+          
+          {selectedJenjang && (
+             <button 
+               onClick={() => handleJenjangClick(selectedJenjang)}
+               className="text-xs font-semibold text-red-500 hover:text-red-600 transition-colors px-3 py-1 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900/50"
+             >
+               Reset Filter
+             </button>
+          )}
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {kelas.map((j) => {
-            const count = stats.jenjangCounts[j] || 0;
+            const count = distributionStats[j] || 0;
+            const isSelected = selectedJenjang?.toLowerCase() === j.toLowerCase();
 
             return (
-              <div
+              <button
                 key={j}
-                className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-100 dark:border-slate-800 shadow-sm flex flex-col items-center justify-center text-center space-y-1 hover:border-indigo-300 dark:hover:border-indigo-800 transition-all hover:scale-105"
+                disabled={isPending}
+                onClick={() => handleJenjangClick(j)}
+                className={cn(
+                  "relative p-4 rounded-xl border shadow-sm flex flex-col items-center justify-center text-center space-y-1 transition-all",
+                  "hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none",
+                  isSelected 
+                    ? "bg-indigo-600 border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900 shadow-indigo-200 dark:shadow-indigo-900/50" 
+                    : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-800"
+                )}
               >
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <div className="absolute top-2 right-2">
+                  {isSelected ? (
+                    <div className="bg-white/20 p-0.5 rounded-full ring-1 ring-white/40">
+                      <Check className="w-2.5 h-2.5 text-white" />
+                    </div>
+                  ) : (
+                    <div className="w-2 h-2 rounded-full bg-slate-200 dark:bg-slate-800" />
+                  )}
+                </div>
+
+                <span className={cn("text-[10px] font-bold uppercase tracking-wider transition-colors", isSelected ? "text-indigo-100" : "text-slate-400")}>
                   {j}
                 </span>
-                <span className="text-2xl font-bold text-slate-900 dark:text-white">
+                <span className={cn("text-2xl font-bold transition-colors", isSelected ? "text-white" : "text-slate-900 dark:text-white")}>
                   <AnimatedNumber value={count} />
                 </span>
-              </div>
+              </button>
             );
           })}
         </div>

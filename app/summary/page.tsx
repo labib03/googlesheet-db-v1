@@ -22,11 +22,12 @@ import { BarChart, ArrowLeft } from "lucide-react";
 import { StatsOverview } from "@/components/dashboard/stats-overview";
 import { AnalyticsService } from "@/services/analytics-service";
 import { SummaryLayout, SummarySection } from "@/components/summary-layout";
+import { cn } from "@/lib/utils";
 
 export const dynamic = "force-dynamic";
 
 interface SummaryPageProps {
-  searchParams?: Promise<{ desa?: string; kelompok?: string }>;
+  searchParams?: Promise<{ desa?: string; kelompok?: string; jenjang?: string }>;
 }
 
 export default async function SummaryPage({ searchParams }: SummaryPageProps) {
@@ -37,6 +38,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   const resolvedParams = searchParams ? await searchParams : {};
   const selectedDesa = resolvedParams.desa || "";
   const selectedKelompok = resolvedParams.kelompok || "";
+  const selectedJenjang = resolvedParams.jenjang || "";
 
   try {
     const rawData = await getSheetData();
@@ -46,7 +48,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   }
 
   // Get Desa Summary
-  const desaList = AnalyticsService.getDesaSummary(rows);
+  const desaList = AnalyticsService.getDesaSummary(rows, selectedJenjang);
   const selectedDesaNode = desaList.find(
     (d) => d.key === selectedDesa.toLowerCase(),
   );
@@ -56,7 +58,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
   // Get Kelompok Summary (only if desa is selected)
   const kelompokList = selectedDesa
-    ? AnalyticsService.getKelompokSummary(rows, selectedDesa)
+    ? AnalyticsService.getKelompokSummary(rows, selectedDesa, selectedJenjang)
     : [];
   const selectedKelompokNode = kelompokList.find(
     (k) => k.key === selectedKelompok.toLowerCase(),
@@ -65,15 +67,37 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
     ? selectedKelompokNode.label
     : selectedKelompok;
 
-  // Filter for Stats
+  // Filter for Stats (KPIs) - Includes Jenjang
   const filteredRowsForStats = AnalyticsService.filterRows(
     rows,
     selectedDesa,
     selectedKelompok,
+    selectedJenjang
+  );
+
+  // Filter for Distribution Cards - Excludes Jenjang (so users see all options)
+  const filteredRowsForDistribution = AnalyticsService.filterRows(
+    rows,
+    selectedDesa,
+    selectedKelompok,
+    // Jenjang is intentionally omitted here
   );
 
   const totalRows = rows.length;
   const showKelompokView = !!selectedDesa;
+
+  // Base Params for filtering
+  const baseParamsForDesa: Record<string, string> = {};
+  if (selectedJenjang) {
+    baseParamsForDesa.jenjang = selectedJenjang;
+  }
+
+  const baseParamsForKelompok: Record<string, string> = { 
+    desa: selectedDesaLabel 
+  };
+  if (selectedJenjang) {
+    baseParamsForKelompok.jenjang = selectedJenjang;
+  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
@@ -88,15 +112,15 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                   Summary Analytics
                 </h1>
                 <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Distribution and distribution metrics for{" "}
+                  Detailed breakdown of{" "}
                   <span className="text-indigo-600 dark:text-indigo-400 font-semibold">
                     {totalRows.toLocaleString("id-ID")}
                   </span>{" "}
-                  records.
+                  records across the organization.
                 </p>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 items-center">
                 <Button
                   asChild
                   variant="ghost"
@@ -108,13 +132,6 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                   </Link>
                 </Button>
               </div>
-            </div>
-          </SummarySection>
-
-          {/* Global Statistics Overview */}
-          <SummarySection>
-            <div key={`${selectedDesa}-${selectedKelompok}`}>
-              <StatsOverview data={filteredRowsForStats} />
             </div>
           </SummarySection>
 
@@ -130,7 +147,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                     <BreadcrumbItem>
                       <BreadcrumbLink asChild>
                         <Link
-                          href="/summary"
+                          href={selectedJenjang ? `/summary?jenjang=${selectedJenjang}` : "/summary"}
                           className="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors font-medium"
                         >
                           Summary
@@ -143,10 +160,13 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                         <Link
                           href={
                             selectedDesa
-                              ? `/summary?desa=${encodeURIComponent(selectedDesaLabel)}`
-                              : "/summary"
+                              ? `/summary?desa=${encodeURIComponent(selectedDesaLabel)}${selectedJenjang ? `&jenjang=${selectedJenjang}` : ''}`
+                              : "#"
                           }
-                          className="hover:text-indigo-600 transition-colors font-medium"
+                          className={cn(
+                            "transition-colors font-medium",
+                             selectedDesa ? "hover:text-indigo-600" : "text-slate-900 dark:text-white font-semibold"
+                          )}
                         >
                           {selectedDesaLabel || "Desa Overview"}
                         </Link>
@@ -165,9 +185,28 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                   </BreadcrumbList>
                 </Breadcrumb>
               </div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
-                Analytics Node / Active
-              </span>
+              
+              <div className="flex items-center gap-2">
+                 {selectedJenjang && (
+                    <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-full uppercase tracking-widest hidden sm:inline border border-indigo-100 dark:border-indigo-900">
+                      FILTER: {selectedJenjang}
+                    </span>
+                 )}
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
+                   Active Node
+                </span>
+              </div>
+            </div>
+          </SummarySection>
+
+          {/* Global Statistics Overview */}
+          <SummarySection>
+            <div key={`${selectedDesa}-${selectedKelompok}-${selectedJenjang}`}>
+              <StatsOverview 
+                data={filteredRowsForStats} 
+                distributionData={filteredRowsForDistribution}
+                selectedJenjang={selectedJenjang} 
+              />
             </div>
           </SummarySection>
 
@@ -199,26 +238,27 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                         size="sm"
                         className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors"
                       >
-                        <Link href="/summary">
+                        <Link href={selectedJenjang ? `/summary?jenjang=${selectedJenjang}` : "/summary"}>
                           <ArrowLeft className="h-4 w-4 mr-2" />
                           Kembali Pilih Desa
                         </Link>
                       </Button>
                     </div>
                     <SummaryList
-                      title="Distribution [Kelompok]"
-                      description={`Audit klaster data di desa: ${selectedDesaLabel}. Klik grup untuk menampilkan analitik yang terfilter.`}
+                      title={`Distribution [Kelompok] ${selectedJenjang ? `— ${selectedJenjang}` : ''}`}
+                      description={`Audit klaster data di desa: ${selectedDesaLabel}. Explore the groupings below.`}
                       items={kelompokList}
                       selectedKey={selectedKelompok.toLowerCase()}
                       isClickable={true}
                       selectionType="kelompok"
-                      baseParams={{ desa: selectedDesaLabel }}
+                      baseParams={baseParamsForKelompok}
                     />
                   </div>
                 ) : (
                   <SummaryDesaList
                     items={desaList}
                     selectedKey={selectedDesa.toLowerCase()}
+                    baseParams={baseParamsForDesa}
                   />
                 )}
               </div>
@@ -229,3 +269,5 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
     </div>
   );
 }
+
+

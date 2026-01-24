@@ -37,21 +37,25 @@ export function SummaryList({
     startTransition(() => {
       const params = new URLSearchParams();
       
-      // Keep base params
+      // Populate with base params
       Object.entries(baseParams).forEach(([k, v]) => {
-        params.set(k, v);
+        if (v) params.set(k, v);
       });
 
       if (selectionType === "desa") {
         if (item.key && item.key === selectedKey) {
-          router.push("/summary");
+           // Deselecting Desa: Just push base params
+           params.delete("desa"); // Safety check
+           router.push(`/summary?${params.toString()}`);
         } else {
-          router.push(`/summary?desa=${encodeURIComponent(item.label)}`);
+           // Selecting Desa
+           params.set("desa", item.label);
+           router.push(`/summary?${params.toString()}`);
         }
       } else {
         // selectionType === "kelompok"
         if (item.key && item.key === selectedKey) {
-          // Deselect kelompok, but keep desa
+          // Deselect kelompok
           params.delete("kelompok");
         } else {
           params.set("kelompok", item.label);

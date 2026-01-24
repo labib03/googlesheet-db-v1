@@ -90,6 +90,55 @@ When `/brainstorm` is triggered:
 **Option [X]** because [reasoning].
 
 What direction would you like to explore?
+
+---
+
+### Option A: [Name]
+[Description]
+
+✅ **Pros:**
+- [benefit 1]
+- [benefit 2]
+
+❌ **Cons:**
+- [drawback 1]
+
+📊 **Effort:** Low | Medium | High
+
+---
+
+### Option B: [Name]
+[Description]
+
+✅ **Pros:**
+- [benefit 1]
+
+❌ **Cons:**
+- [drawback 1]
+- [drawback 2]
+
+📊 **Effort:** Low | Medium | High
+
+---
+
+### Option C: [Name]
+[Description]
+
+✅ **Pros:**
+- [benefit 1]
+
+❌ **Cons:**
+- [drawback 1]
+
+📊 **Effort:** Low | Medium | High
+
+---
+
+## 💡 Recommendation
+
+**Option [X]** because [reasoning].
+
+What direction would you like to explore?
 ```
 
 ---
