@@ -74,7 +74,7 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
         <div className="px-5 md:px-8 py-6">
           <div className="grid gap-1">
             {Object.entries(row)
-              .filter(([key]) => !ignoredKeys.includes(key.toLowerCase()) && (config.detailFields.length === 0 || config.detailFields.includes(key)))
+              .filter(([key]) => !ignoredKeys.includes(key.toLowerCase()) && config.detailFields.includes(key))
               .map(([key, value]) => (
                 <div
                   key={key}

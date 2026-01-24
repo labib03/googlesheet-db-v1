@@ -130,7 +130,7 @@ export function DashboardCards({
                 {/* Body */}
                 <div className="grid grid-cols-2 gap-y-6 gap-x-4">
                   {headers
-                    .filter(h => config.cardFields.length === 0 || config.cardFields.includes(h))
+                    .filter(h => config.cardFields.includes(h))
                     .map((header) => {
                     if (header === COLUMNS.NAMA) return null;
                     if (header === COLUMNS.TANGGAL_LAHIR) return null;

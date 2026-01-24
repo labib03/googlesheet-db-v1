@@ -36,7 +36,7 @@ export const DashboardTable = memo(function DashboardTable({
   isEnableDelete,
 }: DashboardTableProps) {
   const { config } = useViewConfig();
-  const visibleHeaders = headers.filter(h => config.tableColumns.length === 0 || config.tableColumns.includes(h));
+  const visibleHeaders = headers.filter(h => config.tableColumns.includes(h));
 
   const getValue = (header: string, value: string) => {
     if (header === COLUMNS.NAMA || header === COLUMNS.DESA) {

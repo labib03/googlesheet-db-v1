@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
-import { getGlobalConfig, saveGlobalConfig } from "@/app/actions";
+import { getGlobalConfig } from "@/app/actions";
 import { CONFIG_KEYS } from "@/lib/constants";
 
 export interface ViewConfig {
@@ -43,9 +43,10 @@ export function ViewConfigProvider({ children }: { children: React.ReactNode }) 
       if (result.success && result.data) {
         setConfig((prev) => {
           const next = { ...prev };
-          if (result.data[CONFIG_KEYS.VIEW_TABLE_COLS]) next.tableColumns = result.data[CONFIG_KEYS.VIEW_TABLE_COLS];
-          if (result.data[CONFIG_KEYS.VIEW_CARD_FIELDS]) next.cardFields = result.data[CONFIG_KEYS.VIEW_CARD_FIELDS];
-          if (result.data[CONFIG_KEYS.VIEW_DETAIL_FIELDS]) next.detailFields = result.data[CONFIG_KEYS.VIEW_DETAIL_FIELDS];
+          // Strict sync: if key missing in server, default to []
+          next.tableColumns = result.data[CONFIG_KEYS.VIEW_TABLE_COLS] || [];
+          next.cardFields = result.data[CONFIG_KEYS.VIEW_CARD_FIELDS] || [];
+          next.detailFields = result.data[CONFIG_KEYS.VIEW_DETAIL_FIELDS] || [];
           
           localStorage.setItem("view-config", JSON.stringify(next));
           return next;
@@ -58,19 +59,6 @@ export function ViewConfigProvider({ children }: { children: React.ReactNode }) 
     setConfig((prev) => {
       const next = { ...prev, [key]: fields };
       localStorage.setItem("view-config", JSON.stringify(next));
-      
-      // Map to DB Keys
-      const dbKeyMap: Record<keyof ViewConfig, string> = {
-        tableColumns: CONFIG_KEYS.VIEW_TABLE_COLS,
-        cardFields: CONFIG_KEYS.VIEW_CARD_FIELDS,
-        detailFields: CONFIG_KEYS.VIEW_DETAIL_FIELDS,
-      };
-      
-      const dbKey = dbKeyMap[key];
-      if (dbKey) {
-        saveGlobalConfig(dbKey, fields);
-      }
-
       return next;
     });
   };
