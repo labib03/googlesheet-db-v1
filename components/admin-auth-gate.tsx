@@ -18,11 +18,19 @@ export function AdminAuthGate({ children, correctPassword }: AdminAuthGateProps)
   const [inputPassword, setInputPassword] = useState("");
   const router = useRouter();
 
-  // Session Persistance (Simple)
+  // Session Duration: 1 Hour (in milliseconds)
+  const SESSION_DURATION = 60 * 60 * 1000;
+
+  // Session Persistence with Timeout
   useEffect(() => {
-    const isVerified = sessionStorage.getItem("admin_verified");
-    if (isVerified === "true") {
+    const expiry = sessionStorage.getItem("admin_session_expiry");
+    
+    if (expiry && parseInt(expiry) > Date.now()) {
       setIsAuthenticated(true);
+    } else {
+      // Session expired or invalid
+      sessionStorage.removeItem("admin_session_expiry");
+      setIsAuthenticated(false);
     }
   }, []);
 
@@ -31,8 +39,10 @@ export function AdminAuthGate({ children, correctPassword }: AdminAuthGateProps)
     const target = correctPassword || "admin123"; // Fallback default
     
     if (inputPassword === target) {
+      const expiryTime = Date.now() + SESSION_DURATION;
+      sessionStorage.setItem("admin_session_expiry", expiryTime.toString());
+      
       setIsAuthenticated(true);
-      sessionStorage.setItem("admin_verified", "true");
       toast.success("Access Granted");
     } else {
       toast.error("Incorrect Password");
