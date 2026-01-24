@@ -11,7 +11,7 @@ import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
-import { ShieldCheck, AlertCircle, History } from "lucide-react";
+import { ShieldCheck, AlertCircle, History, Settings } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -129,6 +129,17 @@ export function AdminDashboardClient({
         </div>
         
         <div className="flex items-center gap-3 shrink-0">
+          <Button
+            asChild
+            variant="outline"
+            className="gap-2 rounded-xl h-10 w-10 p-0 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm"
+            title="Settings"
+          >
+            <Link href="/admin-restricted/settings">
+              <Settings className="h-4 w-4 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors" />
+            </Link>
+          </Button>
+
           <Link href="/admin-restricted/trash">
             <Button 
                 variant="outline" 

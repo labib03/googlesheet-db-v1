@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { DashboardProvider } from "@/context/dashboard-context";
 import { InitialTransition } from "@/components/providers/initial-transition";
+import { ViewConfigProvider } from "@/context/view-config-context";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -44,11 +45,13 @@ export default function RootLayout({
       >
         <NuqsAdapter>
           <DashboardProvider>
-            <InitialTransition>
-              <main className="animate-in fade-in duration-700 slide-in-from-top-1">
-                {children}
-              </main>
-            </InitialTransition>
+            <ViewConfigProvider>
+              <InitialTransition>
+                <main className="animate-in fade-in duration-700 slide-in-from-top-1">
+                  {children}
+                </main>
+              </InitialTransition>
+            </ViewConfigProvider>
           </DashboardProvider>
         </NuqsAdapter>
         <Toaster />

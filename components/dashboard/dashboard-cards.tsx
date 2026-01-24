@@ -8,6 +8,7 @@ import { getCellValue, capitalizeWords } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
 import { Pencil, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useViewConfig } from "@/context/view-config-context";
 
 interface DashboardCardsProps {
   data: SheetRow[];
@@ -37,6 +38,7 @@ export function DashboardCards({
   isEnableEdit,
   isEnableDelete,
 }: DashboardCardsProps) {
+  const { config } = useViewConfig();
   const isAnyActionEnabled = isEnableEdit || isEnableDelete;
 
   const getKeyLabel = (label: string) => {
@@ -127,7 +129,9 @@ export function DashboardCards({
                 </div>
                 {/* Body */}
                 <div className="grid grid-cols-2 gap-y-6 gap-x-4">
-                  {headers.slice(0, 7).map((header) => {
+                  {headers
+                    .filter(h => config.cardFields.length === 0 || config.cardFields.includes(h))
+                    .map((header) => {
                     if (header === COLUMNS.NAMA) return null;
                     if (header === COLUMNS.TANGGAL_LAHIR) return null;
 

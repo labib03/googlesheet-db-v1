@@ -14,6 +14,7 @@ import { EditDataDialog } from "@/components/edit-data-dialog";
 import { DeleteDataDialog } from "@/components/delete-data-dialog";
 import { getCellValue, capitalizeWords, formatDate } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
+import { useViewConfig } from "@/context/view-config-context";
 
 interface DashboardTableProps {
   data: SheetRow[];
@@ -34,6 +35,9 @@ export const DashboardTable = memo(function DashboardTable({
   isEnableEdit,
   isEnableDelete,
 }: DashboardTableProps) {
+  const { config } = useViewConfig();
+  const visibleHeaders = headers.filter(h => config.tableColumns.length === 0 || config.tableColumns.includes(h));
+
   const getValue = (header: string, value: string) => {
     if (header === COLUMNS.NAMA || header === COLUMNS.DESA) {
       return capitalizeWords(String(value))
@@ -54,7 +58,7 @@ export const DashboardTable = memo(function DashboardTable({
             <TableHead className="w-12 h-14 text-center font-semibold text-white text-xs tracking-wider px-2">
               ID
             </TableHead>
-            {headers.map((header) => {
+            {visibleHeaders.map((header) => {
               const hLower = header.toLowerCase();
               let widthClass = "w-32"; // Default
               if (hLower.includes("tanggal")) widthClass = "w-42";
@@ -94,7 +98,7 @@ export const DashboardTable = memo(function DashboardTable({
                 <TableCell className="text-center font-medium text-xs text-slate-400 px-2">
                   {(currentPage - 1) * pageSize + index + 1}
                 </TableCell>
-                {headers.map((header) => (
+                {visibleHeaders.map((header) => (
                   <TableCell
                     key={`${originalIndex}-${header}`}
                     className="text-sm text-slate-600 dark:text-slate-300 py-3 px-4 whitespace-normal break-words leading-relaxed"

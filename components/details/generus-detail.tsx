@@ -8,6 +8,7 @@ import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { motion } from "framer-motion";
+import { useViewConfig } from "@/context/view-config-context";
 
 interface GenerusDetailProps {
   row: SheetRow;
@@ -35,6 +36,8 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
   const rowNama = getCellValue(row, COLUMNS.NAMA);
   const rowDesa = getCellValue(row, COLUMNS.DESA);
   const rowKelompok = getCellValue(row, COLUMNS.KELOMPOK);
+  
+  const { config } = useViewConfig();
 
   const initials = (rowNama || "?")
     .split(" ")
@@ -71,7 +74,7 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
         <div className="px-5 md:px-8 py-6">
           <div className="grid gap-1">
             {Object.entries(row)
-              .filter(([key]) => !ignoredKeys.includes(key.toLowerCase()))
+              .filter(([key]) => !ignoredKeys.includes(key.toLowerCase()) && (config.detailFields.length === 0 || config.detailFields.includes(key)))
               .map(([key, value]) => (
                 <div
                   key={key}

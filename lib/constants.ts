@@ -74,3 +74,11 @@ export const COLUMNS = {
   UMUR: "Umur",
   JENJANG: "Jenjang Kelas",
 } as const;
+
+export const CONFIG_SHEET_NAME = "Configuration";
+
+export const CONFIG_KEYS = {
+  VIEW_TABLE_COLS: "VIEW_TABLE_COLS",
+  VIEW_CARD_FIELDS: "VIEW_CARD_FIELDS",
+  VIEW_DETAIL_FIELDS: "VIEW_DETAIL_FIELDS",
+} as const;
