@@ -19,6 +19,8 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
   const [filterJenjangKelas, setFilterJenjangKelas] = useState<string[]>([]);
   const [filterNama, setFilterNama] = useState("");
   const [showDuplicates, setShowDuplicates] = useState(false); // Not used for trash but needed for component props
+  const [filterOutOfCategory, setFilterOutOfCategory] = useState(false);
+  const [filterNoDob, setFilterNoDob] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -76,7 +78,36 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
           ? filterJenjangKelas.some(j => j.toLowerCase() === rowJenjang.toLowerCase())
           : true;
 
-        return matchDesa && matchKelompok && matchGender && matchNama && matchJenjangKelas;
+        // Audit Filters
+        let matchAudit = true;
+        
+        if (filterOutOfCategory || filterNoDob) {
+          const dob = getCellValue(row, COLUMNS.TANGGAL_LAHIR);
+          const age = getCellValue(row, COLUMNS.UMUR);
+          
+          let isNoDob = false;
+          if (!dob) {
+            isNoDob = true;
+          } else {
+            // Check for invalid date
+            const parsed = parse(dob, "dd/MM/yyyy", new Date());
+            if (isNaN(parsed.getTime())) {
+              isNoDob = true;
+            }
+          }
+
+          const isOutOfCategory = rowJenjang === "-" || (!!age && Number(age) < 5);
+
+          if (filterOutOfCategory && filterNoDob) {
+            matchAudit = isOutOfCategory || isNoDob;
+          } else if (filterOutOfCategory) {
+            matchAudit = isOutOfCategory;
+          } else if (filterNoDob) {
+            matchAudit = isNoDob;
+          }
+        }
+
+        return matchDesa && matchKelompok && matchGender && matchNama && matchJenjangKelas && matchAudit;
       })
       .sort((a, b) => {
         const tsA = getCellValue(a, COLUMNS.TIMESTAMP);
@@ -85,7 +116,7 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
         const dateB = tsB ? parse(tsB, formatString, new Date()) : new Date(0);
         return compareDesc(dateA, dateB);
       });
-  }, [initialTrashData, filterDesa, filterKelompok, filterGender, debouncedValue, filterJenjangKelas]);
+  }, [initialTrashData, filterDesa, filterKelompok, filterGender, debouncedValue, filterJenjangKelas, filterOutOfCategory, filterNoDob]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
 
@@ -96,7 +127,7 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
     );
   }, [filteredData, currentPage, pageSize]);
 
-  const isFiltered = filterDesa.length > 0 || filterKelompok.length > 0 || filterGender !== "" || debouncedValue !== "" || filterJenjangKelas.length > 0;
+  const isFiltered = filterDesa.length > 0 || filterKelompok.length > 0 || filterGender !== "" || debouncedValue !== "" || filterJenjangKelas.length > 0 || filterOutOfCategory || filterNoDob;
 
   const resetFilters = () => {
     handleStartTransition(() => {
@@ -105,6 +136,8 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
       setFilterGender("");
       setFilterJenjangKelas([]);
       setFilterNama("");
+      setFilterOutOfCategory(false);
+      setFilterNoDob(false);
       setCurrentPage(1);
     });
   };
@@ -117,6 +150,8 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
       filterJenjangKelas, setFilterJenjangKelas,
       filterNama, setFilterNama,
       showDuplicates, setShowDuplicates,
+      filterOutOfCategory, setFilterOutOfCategory,
+      filterNoDob, setFilterNoDob,
     },
     pagination: {
       currentPage, setCurrentPage,
