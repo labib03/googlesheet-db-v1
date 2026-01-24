@@ -25,6 +25,10 @@ interface DashboardContextType {
   setFilterNama: React.Dispatch<React.SetStateAction<string>>;
   showDuplicates: boolean;
   setShowDuplicates: React.Dispatch<React.SetStateAction<boolean>>;
+  filterOutOfCategory: boolean;
+  setFilterOutOfCategory: React.Dispatch<React.SetStateAction<boolean>>;
+  filterNoDob: boolean;
+  setFilterNoDob: React.Dispatch<React.SetStateAction<boolean>>;
 
   // Pagination State
   pageSize: number;
@@ -60,6 +64,8 @@ export function DashboardProvider({
   const [filterJenjangKelas, setFilterJenjangKelas] = useState<string[]>([]);
   const [filterNama, setFilterNama] = useState("");
   const [showDuplicates, setShowDuplicates] = useState(false);
+  const [filterOutOfCategory, setFilterOutOfCategory] = useState(false);
+  const [filterNoDob, setFilterNoDob] = useState(false);
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [scrollPosition, setScrollPosition] = useState(0);
@@ -117,6 +123,10 @@ export function DashboardProvider({
     setFilterNama,
     showDuplicates,
     setShowDuplicates,
+    filterOutOfCategory,
+    setFilterOutOfCategory,
+    filterNoDob,
+    setFilterNoDob,
     pageSize,
     setPageSize,
     currentPage,

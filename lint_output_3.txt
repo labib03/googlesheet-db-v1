@@ -1,0 +1,70 @@
+
+C:\Users\Raven\web_development\Next\antigravity\app\actions.ts
+   13:29  warning  'CONFIG_KEYS' is defined but never used   @typescript-eslint/no-unused-vars
+  175:34  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  206:60  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+C:\Users\Raven\web_development\Next\antigravity\components\admin-auth-gate.tsx
+  29:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Raven\web_development\Next\antigravity\components\admin-auth-gate.tsx:29:7
+  27 |     
+  28 |     if (expiry && parseInt(expiry) > Date.now()) {
+> 29 |       setIsAuthenticated(true);
+     |       ^^^^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  30 |     } else {
+  31 |       // Session expired or invalid
+  32 |       sessionStorage.removeItem("admin_session_expiry");  react-hooks/set-state-in-effect
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard-client.tsx
+  15:30  warning  'Download' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard\components\multi-select-custom.tsx
+  7:10  warning  'Button' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard\dashboard-filters.tsx
+  82:5  warning  'filterOutOfCategory' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  83:5  warning  'filterNoDob' is assigned a value but never used          @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\dashboard\export-button.tsx
+  6:10  warning  'COLUMNS' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\data-detail-dialog.tsx
+  8:15  warning  'Loader2' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\delete-data-dialog.tsx
+  7:3  warning  'AlertDialogAction' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\components\edit-data-dialog.tsx
+  51:18  warning  'e' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\Raven\web_development\Next\antigravity\context\view-config-context.tsx
+  34:9  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\Raven\web_development\Next\antigravity\context\view-config-context.tsx:34:9
+  32 |     if (saved) {
+  33 |       try {
+> 34 |         setConfig(JSON.parse(saved));
+     |         ^^^^^^^^^ Avoid calling setState() directly within an effect
+  35 |       } catch (e) {
+  36 |         console.error("Failed to parse view config", e);
+  37 |       }  react-hooks/set-state-in-effect
+
+C:\Users\Raven\web_development\Next\antigravity\hooks\use-modal-state.ts
+  9:31  warning  '_modalKey' is defined but never used  @typescript-eslint/no-unused-vars
+  9:51  warning  '_id' is defined but never used        @typescript-eslint/no-unused-vars
+
+Γ£û 15 problems (4 errors, 11 warnings)
+

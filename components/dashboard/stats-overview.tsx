@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useTransition } from "react";
+import { parse } from "date-fns";
 import { SheetRow } from "@/lib/google-sheets";
 import { Users, MapPin, BarChart2, Venus, Mars, Check, AlertCircle, Info } from "lucide-react";
 import { getCellValue } from "@/lib/helper";
@@ -102,10 +103,22 @@ export function StatsOverview({ data, distributionData, selectedJenjang }: Stats
       const jenjang = getCellValue(row, COLUMNS.JENJANG);
       const dob = getCellValue(row, COLUMNS.TANGGAL_LAHIR);
       const age = getCellValue(row, COLUMNS.UMUR);
-
+      
+      let isNoDob = false;
       if (!dob) {
+        isNoDob = true;
+      } else {
+        const parsed = parse(dob, "dd/MM/yyyy", new Date());
+        if (isNaN(parsed.getTime())) {
+          isNoDob = true;
+        }
+      }
+
+      const isOutOfCategory = jenjang === "-" || (!!age && Number(age) < 5);
+
+      if (isNoDob) {
         noDobCount++;
-      } else if (jenjang === "-" || (age && Number(age) < 5)) {
+      } else if (isOutOfCategory) {
         underAgeCount++;
       }
 

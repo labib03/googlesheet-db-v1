@@ -24,6 +24,8 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     filterJenjangKelas, setFilterJenjangKelas,
     filterNama, setFilterNama,
     showDuplicates, setShowDuplicates,
+    filterOutOfCategory, setFilterOutOfCategory,
+    filterNoDob, setFilterNoDob,
     pageSize, setPageSize,
     currentPage, setCurrentPage,
   } = context;
@@ -114,12 +116,42 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
           ? filterJenjangKelas.some(j => j.toLowerCase() === rowJenjang.toLowerCase())
           : true;
 
+        // Audit Filters
+        let matchAudit = true;
+        
+        if (filterOutOfCategory || filterNoDob) {
+          const dob = getCellValue(row, COLUMNS.TANGGAL_LAHIR);
+          const age = getCellValue(row, COLUMNS.UMUR);
+          
+          let isNoDob = false;
+          if (!dob) {
+            isNoDob = true;
+          } else {
+            // Check for invalid date (system can't parse it)
+            const parsed = parse(dob, "dd/MM/yyyy", new Date());
+            if (isNaN(parsed.getTime())) {
+              isNoDob = true;
+            }
+          }
+
+          const isOutOfCategory = rowJenjang === "-" || (!!age && Number(age) < 5);
+
+          if (filterOutOfCategory && filterNoDob) {
+            matchAudit = isOutOfCategory || isNoDob;
+          } else if (filterOutOfCategory) {
+            matchAudit = isOutOfCategory;
+          } else if (filterNoDob) {
+            matchAudit = isNoDob;
+          }
+        }
+
         return (
           matchDesa &&
           matchKelompok &&
           matchGender &&
           matchNama &&
-          matchJenjangKelas
+          matchJenjangKelas &&
+          matchAudit
         );
       })
       .sort((a, b) => {
@@ -138,6 +170,8 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     debouncedValue,
     filterJenjangKelas,
     showDuplicates,
+    filterOutOfCategory,
+    filterNoDob,
   ]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -154,7 +188,9 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     filterKelompok.length > 0 ||
     filterGender !== "" ||
     debouncedValue !== "" ||
-    filterJenjangKelas.length > 0;
+    filterJenjangKelas.length > 0 ||
+    filterOutOfCategory ||
+    filterNoDob;
 
   const resetFilters = () => {
     handleStartTransition(() => {
@@ -164,6 +200,8 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
       setFilterJenjangKelas([]);
       setFilterNama("");
       setShowDuplicates(false);
+      setFilterOutOfCategory(false);
+      setFilterNoDob(false);
       setCurrentPage(1);
     });
   };
@@ -176,12 +214,16 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
       filterJenjangKelas,
       filterNama,
       showDuplicates,
+      filterOutOfCategory,
+      filterNoDob,
       setFilterDesa,
       setFilterKelompok,
       setFilterGender,
       setFilterJenjangKelas,
       setFilterNama,
       setShowDuplicates,
+      setFilterOutOfCategory,
+      setFilterNoDob,
     },
     pagination: {
       currentPage,

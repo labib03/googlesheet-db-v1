@@ -21,12 +21,16 @@ interface DashboardFiltersProps {
     filterJenjangKelas: string[];
     filterNama: string;
     showDuplicates: boolean;
+    filterOutOfCategory: boolean;
+    filterNoDob: boolean;
     setFilterDesa: (v: string[]) => void;
     setFilterKelompok: (v: string[]) => void;
     setFilterGender: (v: string) => void;
     setFilterJenjangKelas: (v: string[]) => void;
     setFilterNama: (v: string) => void;
     setShowDuplicates: (v: boolean) => void;
+    setFilterOutOfCategory: (v: boolean) => void;
+    setFilterNoDob: (v: boolean) => void;
   };
   options: {
     desaOptions: string[];
@@ -75,6 +79,10 @@ export const DashboardFilters = memo(function DashboardFilters({
     setFilterJenjangKelas,
     setFilterNama,
     setShowDuplicates,
+    filterOutOfCategory,
+    filterNoDob,
+    setFilterOutOfCategory,
+    setFilterNoDob,
   } = filters;
 
   const startRange = (pagination.currentPage - 1) * pagination.pageSize + 1;
@@ -272,19 +280,90 @@ export const DashboardFilters = memo(function DashboardFilters({
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-          <div className="flex flex-wrap gap-2">
-            <Button
-              onClick={actions.resetFilters}
-              variant="outline"
-              size="sm"
-              className="text-slate-800 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 font-medium text-sm rounded-lg border-slate-200 flex items-center gap-2"
-            >
-              <Eraser className="w-4 h-4" />
-              Reset Filters
-            </Button>
+        {/* Action Sections */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100 dark:border-slate-800">
+          
+          {/* Section 1: System Controls */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System Kontrol</span>
+              <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={actions.resetFilters}
+                variant="outline"
+                size="sm"
+                className="text-slate-700 dark:text-slate-300 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 font-semibold text-xs rounded-xl h-9 border-slate-200 dark:border-slate-800 flex items-center gap-2 transition-all"
+              >
+                <Eraser className="w-4 h-4" />
+                Reset Filters
+              </Button>
+              <RefreshButton />
+            </div>
+          </div>
 
-            {!hideDuplicates && (
+          {/* Section 2: Audit Data */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 px-1">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Audit Data</span>
+              <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                onClick={() => {
+                  actions.handleStartTransition(() => {
+                    setFilterOutOfCategory(!filterOutOfCategory);
+                    actions.setCurrentPage(1);
+                  });
+                }}
+                variant={filterOutOfCategory ? "default" : "outline"}
+                size="sm"
+                className={`font-semibold text-xs rounded-xl h-9 flex items-center gap-2 transition-all duration-300 ${
+                  filterOutOfCategory
+                    ? "bg-indigo-600 hover:bg-indigo-700 text-white border-transparent shadow-lg shadow-indigo-200 dark:shadow-none translate-y+[-1px]"
+                    : "text-slate-700 dark:text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border-slate-200 dark:border-slate-800"
+                }`}
+              >
+                <div className={`w-1.5 h-1.5 rounded-full ${filterOutOfCategory ? "bg-white animate-pulse" : "bg-slate-300"}`} />
+                Di Luar Kategori
+              </Button>
+
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <Button
+                    onClick={() => {
+                      actions.handleStartTransition(() => {
+                        setFilterNoDob(!filterNoDob);
+                        actions.setCurrentPage(1);
+                      });
+                    }}
+                    variant={filterNoDob ? "default" : "outline"}
+                    size="sm"
+                    className={`font-semibold text-xs rounded-xl h-9 flex items-center gap-2 transition-all duration-300 ${
+                      filterNoDob
+                        ? "bg-amber-600 hover:bg-amber-700 text-white border-transparent shadow-lg shadow-amber-200 dark:shadow-none translate-y+[-1px]"
+                        : "text-slate-700 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 border-slate-200 dark:border-slate-800"
+                    }`}
+                  >
+                    <div className={`w-1.5 h-1.5 rounded-full ${filterNoDob ? "bg-white animate-pulse" : "bg-slate-300"}`} />
+                    Tgl Lahir Kosong / Invalid
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top" className="max-w-[200px] text-xs">
+                  Filter data yang tidak ada tanggal lahirnya atau format penulisannya salah (invalid)
+                </TooltipContent>
+              </Tooltip>
+            </div>
+          </div>
+
+          {/* Section 3: Cek Duplikasi */}
+          {!hideDuplicates && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 px-1">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Cek Duplikasi</span>
+                <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
+              </div>
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
                   <div className="inline-block">
@@ -298,48 +377,49 @@ export const DashboardFilters = memo(function DashboardFilters({
                       disabled={status.isFiltered}
                       variant={showDuplicates ? "default" : "outline"}
                       size="sm"
-                      className={`font-medium text-sm rounded-lg flex items-center gap-2 transition-all duration-200 ${
+                      className={`font-semibold text-xs rounded-xl h-9 flex items-center gap-2 transition-all duration-300 ${
                         showDuplicates
-                          ? "bg-indigo-600 hover:bg-indigo-700 text-white border-transparent shadow-md shadow-indigo-200 dark:shadow-none"
-                          : "text-slate-800 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border-slate-200"
+                          ? "bg-rose-600 hover:bg-rose-700 text-white border-transparent shadow-lg shadow-rose-200 dark:shadow-none translate-y+[-1px]"
+                          : "text-slate-700 dark:text-slate-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-slate-200 dark:border-slate-800"
                       } disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed`}
                     >
                       <Copy className="w-4 h-4" />
-                      {showDuplicates ? "Showing Duplicates" : "Check Duplicate Data"}
+                      {showDuplicates ? "Mode Duplikasi Aktif" : "Cek Data Duplikat"}
                     </Button>
                   </div>
                 </TooltipTrigger>
                 {status.isFiltered && (
                   <TooltipContent side="top" className="max-w-[220px] text-xs">
-                    Bisa di klik ketika tidak ada filter yang aktif
+                    Nonaktifkan filter lainnya untuk mengecek duplikat
                   </TooltipContent>
                 )}
               </Tooltip>
-            )}
-
-            <RefreshButton />
-          </div>
-          {(status.isFiltered || showDuplicates) && (
-            <span className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-2 py-0.5 rounded-full inline-flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
-              {showDuplicates ? "Duplicate View" : "Filtered View"}
-            </span>
+            </div>
           )}
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-4 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-slate-100 dark:border-slate-800/50 text-[11px] sm:text-xs text-slate-500 font-medium">
-          <div className="flex items-center gap-2">
-            <span className="bg-white dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm">
-              Total: <span className="font-bold text-indigo-600 dark:text-indigo-400">{filteredCount.toLocaleString("id-ID")}</span> dari <span className="font-semibold">{totalCount.toLocaleString("id-ID")}</span> data
+        {/* Info Area */}
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800/50 text-[11px] sm:text-xs text-slate-500 font-medium mt-4">
+          <div className="flex items-center gap-3">
+            <span className="bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+              Total: <span className="font-bold text-slate-900 dark:text-white">{filteredCount.toLocaleString("id-ID")}</span> / {totalCount.toLocaleString("id-ID")}
             </span>
-            <span className="hidden sm:inline text-slate-300 dark:text-slate-700">|</span>
-            <span className="bg-white dark:bg-slate-800 px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm">
-              Menampilkan data <span className="font-bold">{startRange}-{endRange}</span>
+            <span className="bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm flex items-center gap-2">
+              Data <span className="font-bold text-slate-900 dark:text-white">{startRange}-{endRange}</span>
             </span>
           </div>
           
-          <div className="bg-indigo-50 dark:bg-indigo-950/20 px-2 py-1 rounded-md border border-indigo-100/50 dark:border-indigo-800/50 text-indigo-700 dark:text-indigo-300 shadow-sm">
-            Halaman <span className="font-bold">{pagination.currentPage}</span> dari <span className="font-bold">{pagination.totalPages}</span>
+          <div className="flex items-center gap-3">
+            {(status.isFiltered || showDuplicates) && (
+              <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1.5 rounded-lg border border-indigo-100/50 dark:border-indigo-800/50 inline-flex items-center gap-2 animate-in fade-in zoom-in duration-300">
+                <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full animate-pulse" />
+                {showDuplicates ? "DUPLICATE VIEW" : "FILTERED VIEW"}
+              </span>
+            )}
+            <div className="bg-white dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 shadow-sm">
+              Hal <span className="font-bold text-indigo-600 dark:text-indigo-400">{pagination.currentPage}</span> dari {pagination.totalPages}
+            </div>
           </div>
         </div>
       </TooltipProvider>
