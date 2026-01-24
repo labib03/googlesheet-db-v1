@@ -176,6 +176,60 @@ export async function appendSheetData(
 }
 
 /**
+ * Appends multiple rows of data to the sheet efficiently
+ * @param rowsData - Array of objects containing the data to append.
+ * @param sheetName - The name of the sheet/tab
+ */
+export async function appendSheetDataBulk(
+  rowsData: SheetRow[],
+  sheetName: string = DEFAULT_SHEET_NAME
+): Promise<void> {
+  if (rowsData.length === 0) return;
+  
+  try {
+    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
+    const escapedName = escapeSheetName(sheetName);
+
+    // 1. Get current headers
+    const headerResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${escapedName}!1:1`,
+    });
+
+    const headers = headerResponse.data.values?.[0] as string[];
+    if (!headers || headers.length === 0) {
+      throw new Error('Sheet is empty or missing headers');
+    }
+
+    // 2. Map each row to array based on headers
+    const allValues = rowsData.map((rowData) => {
+      return headers.map((header) => {
+        const targetKey = Object.keys(rowData).find(
+          (key) => key.toLowerCase() === header.toLowerCase()
+        );
+        return targetKey ? rowData[targetKey] : '';
+      });
+    });
+
+    // 3. Append data
+    await sheets.spreadsheets.values.append({
+      spreadsheetId: sheetId,
+      range: `${escapedName}!A1`,
+      valueInputOption: 'RAW',
+      insertDataOption: 'INSERT_ROWS',
+      requestBody: {
+        values: allValues,
+      },
+    });
+
+  } catch (error) {
+    console.error('Error appending bulk data:', error);
+    throw error;
+  }
+}
+
+/**
  * Updates a specific row in the sheet
  * @param rowIndex - The 1-based row index in the sheet
  * @param rowData - The new data for the row
@@ -272,6 +326,61 @@ export async function deleteSheetData(
     });
   } catch (error) {
     console.error('Error deleting data:', error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes multiple specific rows from the sheet in a single batch update.
+ * @param rowIndices - Array of 1-based row indices to delete.
+ * @param sheetName - The sheet name
+ */
+export async function deleteSheetRowsBulk(
+  rowIndices: number[],
+  sheetName: string = DEFAULT_SHEET_NAME
+): Promise<void> {
+  if (rowIndices.length === 0) return;
+
+  try {
+    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
+
+    const spreadsheet = await sheets.spreadsheets.get({
+      spreadsheetId: sheetId,
+    });
+    
+    const sheet = spreadsheet.data.sheets?.find(
+      (s) => s.properties?.title === sheetName
+    );
+
+    if (!sheet || typeof sheet.properties?.sheetId !== 'number') {
+      throw new Error(`Sheet "${sheetName}" not found or invalid`);
+    }
+
+    const gridId = sheet.properties.sheetId;
+
+    // IMPORTANT: Sort indices in DESCENDING order to avoid index shift issues during batch update
+    const sortedIndices = [...rowIndices].sort((a, b) => b - a);
+
+    const requests = sortedIndices.map((rowIndex) => ({
+      deleteDimension: {
+        range: {
+          sheetId: gridId,
+          dimension: 'ROWS' as const,
+          startIndex: rowIndex - 1,
+          endIndex: rowIndex,
+        },
+      },
+    }));
+
+    await sheets.spreadsheets.batchUpdate({
+      spreadsheetId: sheetId,
+      requestBody: {
+        requests,
+      },
+    });
+  } catch (error) {
+    console.error('Error deleting bulk data:', error);
     throw error;
   }
 }

@@ -15,6 +15,7 @@ import { DeleteDataDialog } from "@/components/delete-data-dialog";
 import { getCellValue, capitalizeWords, formatDate } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
 import { useViewConfig } from "@/context/view-config-context";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DashboardTableProps {
   data: SheetRow[];
@@ -24,6 +25,8 @@ interface DashboardTableProps {
   isEnableEdit: boolean;
   isEnableDelete: boolean;
   ignoreViewConfig?: boolean;
+  selectedIndices?: number[];
+  onToggleSelection?: (sheetIndex: number) => void;
 }
 
 import { memo } from "react";
@@ -36,6 +39,8 @@ export const DashboardTable = memo(function DashboardTable({
   isEnableEdit,
   isEnableDelete,
   ignoreViewConfig,
+  selectedIndices = [],
+  onToggleSelection,
 }: DashboardTableProps) {
   const { config } = useViewConfig();
   const visibleHeaders = ignoreViewConfig
@@ -65,8 +70,11 @@ export const DashboardTable = memo(function DashboardTable({
       <Table className="w-full table-fixed">
         <TableHeader className="bg-slate-50 dark:bg-slate-950/50">
           <TableRow className="border-slate-200 dark:border-slate-800 min-h-9 bg-indigo-500">
-            <TableHead className="w-12 h-14 text-center font-semibold text-white text-xs tracking-wider px-2">
-              ID
+            <TableHead className="w-10 h-14 text-center px-2">
+              {/* Select All could go here, but user asked for one-by-one */}
+            </TableHead>
+            <TableHead className="w-10 h-14 text-center font-semibold text-white text-xs tracking-wider px-1">
+              #
             </TableHead>
             {visibleHeaders.map((header) => {
               const hLower = header.toLowerCase();
@@ -107,9 +115,16 @@ export const DashboardTable = memo(function DashboardTable({
             return (
               <TableRow
                 key={originalIndex}
-                className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-slate-100 dark:border-slate-800/50"
+                className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-slate-100 dark:border-slate-800/50 ${selectedIndices.includes(originalIndex + 2) ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""}`}
               >
-                <TableCell className="text-center font-medium text-xs text-slate-400 px-2">
+                <TableCell className="text-center px-2">
+                  <Checkbox 
+                    checked={selectedIndices.includes(originalIndex + 2)}
+                    onCheckedChange={() => onToggleSelection?.(originalIndex + 2)}
+                    className={selectedIndices.includes(originalIndex + 2) ? "border-indigo-500" : ""}
+                  />
+                </TableCell>
+                <TableCell className="text-center font-medium text-[10px] text-slate-400 px-1">
                   {(currentPage - 1) * pageSize + index + 1}
                 </TableCell>
                 {visibleHeaders.map((header) => (

@@ -6,9 +6,10 @@ import { EditDataDialog } from "@/components/edit-data-dialog";
 import { DeleteDataDialog } from "@/components/delete-data-dialog";
 import { getCellValue, capitalizeWords } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useViewConfig } from "@/context/view-config-context";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface DashboardCardsProps {
   data: SheetRow[];
@@ -17,6 +18,8 @@ interface DashboardCardsProps {
   pageSize: number;
   isEnableEdit: boolean;
   isEnableDelete: boolean;
+  selectedIndices?: number[];
+  onToggleSelection?: (sheetIndex: number) => void;
 }
 
 const cardVariants = {
@@ -37,6 +40,8 @@ export function DashboardCards({
   pageSize,
   isEnableEdit,
   isEnableDelete,
+  selectedIndices = [],
+  onToggleSelection,
 }: DashboardCardsProps) {
   const { config } = useViewConfig();
   const isAnyActionEnabled = isEnableEdit || isEnableDelete;
@@ -101,7 +106,7 @@ export function DashboardCards({
               row={row}
               title={`Detail ${capitalizeWords(rowNamaRaw) || "Data"}`}
             >
-              <div className="p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors grow">
+              <div className={`p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors grow ${selectedIndices.includes(originalIndex + 2) ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""}`}>
                 {/* Header */}
                 <div className="flex items-start gap-4 mb-5 border-b border-slate-100 dark:border-slate-800 pb-5">
                   <div className="flex items-center justify-center w-12 h-12 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl text-indigo-600 font-bold text-lg shrink-0">
@@ -151,35 +156,54 @@ export function DashboardCards({
                 </div>
               </div>
             </DataDetailDialog>
-            {/* Actions */}
-            {isAnyActionEnabled && (
-              <div
-                className={`grid ${isEnableEdit && isEnableDelete ? "grid-cols-2" : "grid-cols-1"} border-t border-slate-100 dark:border-slate-800`}
+            {/* Actions Grid */}
+            <div
+              className={`grid ${isEnableEdit && isEnableDelete ? "grid-cols-3" : (isEnableEdit || isEnableDelete ? "grid-cols-2" : "grid-cols-1")} border-t border-slate-100 dark:border-slate-800`}
+            >
+              {/* Select Action */}
+              <button
+                onClick={() => onToggleSelection?.(originalIndex + 2)}
+                className={`flex items-center justify-center gap-2 py-3.5 transition-all active:scale-95 border-r border-slate-100 dark:border-slate-800 ${
+                  selectedIndices.includes(originalIndex + 2)
+                    ? "bg-indigo-600 text-white"
+                    : "bg-slate-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 font-bold"
+                }`}
               >
-                {isEnableEdit && (
-                  <EditDataDialog row={row} rowIndex={originalIndex}>
-                    <button
-                      className={`w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-50/50 dark:bg-indigo-950/10 text-indigo-600 dark:text-indigo-400 font-bold text-xs transition-colors hover:bg-indigo-100 dark:hover:bg-indigo-950/20 ${isEnableDelete ? "border-r border-slate-100 dark:border-slate-800" : ""}`}
-                    >
-                      <Pencil className="w-3.5 h-3.5" />
-                      Edit Data
-                    </button>
-                  </EditDataDialog>
-                )}
+                <div className={`flex items-center justify-center w-4 h-4 rounded-md border-2 transition-colors ${
+                  selectedIndices.includes(originalIndex + 2)
+                    ? "bg-white border-white text-indigo-600"
+                    : "border-indigo-200 dark:border-indigo-800"
+                }`}>
+                  {selectedIndices.includes(originalIndex + 2) && <Check className="w-3 h-3 stroke-[4]" />}
+                </div>
+                <span className="text-[10px] uppercase tracking-wider font-black">
+                  {selectedIndices.includes(originalIndex + 2) ? "Terpilih" : "Pilih"}
+                </span>
+              </button>
 
-                {isEnableDelete && (
-                  <DeleteDataDialog
-                    rowIndex={originalIndex + 2}
-                    dataName={capitalizeWords(rowNamaRaw || "Data")}
+              {isEnableEdit && (
+                <EditDataDialog row={row} rowIndex={originalIndex}>
+                  <button
+                    className={`w-full flex items-center justify-center gap-2 py-3.5 bg-indigo-50/50 dark:bg-indigo-950/10 text-indigo-600 dark:text-indigo-400 font-bold text-[10px] uppercase tracking-wider transition-colors hover:bg-indigo-100 dark:hover:bg-indigo-950/20 ${isEnableDelete ? "border-r border-slate-100 dark:border-slate-800" : ""}`}
                   >
-                    <button className="w-full flex items-center justify-center gap-2 py-3.5 bg-rose-50/50 dark:bg-rose-950/10 text-rose-600 dark:text-rose-400 font-bold text-xs transition-colors hover:bg-rose-100 dark:hover:bg-rose-950/20">
-                      <Trash2 className="w-3.5 h-3.5" />
-                      Hapus
-                    </button>
-                  </DeleteDataDialog>
-                )}
-              </div>
-            )}
+                    <Pencil className="w-3.5 h-3.5" />
+                    Edit
+                  </button>
+                </EditDataDialog>
+              )}
+
+              {isEnableDelete && (
+                <DeleteDataDialog
+                  rowIndex={originalIndex + 2}
+                  dataName={capitalizeWords(rowNamaRaw || "Data")}
+                >
+                  <button className="w-full flex items-center justify-center gap-2 py-3.5 bg-rose-50/50 dark:bg-rose-950/10 text-rose-600 dark:text-rose-400 font-bold text-[10px] uppercase tracking-wider transition-colors hover:bg-rose-100 dark:hover:bg-rose-950/20">
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Hapus
+                  </button>
+                </DeleteDataDialog>
+              )}
+            </div>
           </motion.div>
         );
       })}

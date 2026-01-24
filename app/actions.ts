@@ -4,6 +4,8 @@ import {
   appendSheetData,
   updateSheetData,
   deleteSheetData,
+  appendSheetDataBulk,
+  deleteSheetRowsBulk,
   getSheetData,
   getRowData,
   SheetRow,
@@ -135,6 +137,53 @@ export async function deleteData(rowIndex: number) {
     return {
       success: false,
       message: error instanceof Error ? error.message : "Gagal menghapus data",
+    };
+  }
+}
+
+export async function bulkDeleteData(rowIndices: number[]) {
+  try {
+    const timestamp = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(new Date()).replace(",", "");
+
+    const allData = await getSheetData();
+    const rowsToDelete: SheetRow[] = [];
+
+    rowIndices.forEach((idx) => {
+      // Row 2 is allData[0]
+      const dataIdx = idx - 2;
+      if (allData[dataIdx]) {
+        const row = { ...allData[dataIdx] };
+        row["Timestamp"] = timestamp;
+        rowsToDelete.push(row);
+      }
+    });
+
+    if (rowsToDelete.length > 0) {
+      await appendSheetDataBulk(rowsToDelete, "Trash");
+      await deleteSheetRowsBulk(rowIndices);
+    }
+
+    revalidatePath("/");
+    revalidatePath("/admin-restricted");
+    return {
+      success: true,
+      message: `${rowsToDelete.length} data berhasil dipindahkan ke Trash!`,
+    };
+  } catch (error) {
+    console.error("Failed to bulk delete data:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Gagal menghapus data massal",
     };
   }
 }
