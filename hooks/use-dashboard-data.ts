@@ -24,7 +24,6 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     filterJenjangKelas, setFilterJenjangKelas,
     filterNama, setFilterNama,
     showDuplicates, setShowDuplicates,
-    filterOutOfCategory, setFilterOutOfCategory,
     filterNoDob, setFilterNoDob,
     pageSize, setPageSize,
     currentPage, setCurrentPage,
@@ -119,9 +118,8 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
         // Audit Filters
         let matchAudit = true;
         
-        if (filterOutOfCategory || filterNoDob) {
+        if (filterNoDob) {
           const dob = getCellValue(row, COLUMNS.TANGGAL_LAHIR);
-          const age = getCellValue(row, COLUMNS.UMUR);
           
           let isNoDob = false;
           if (!dob) {
@@ -134,15 +132,7 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
             }
           }
 
-          const isOutOfCategory = rowJenjang === "-" || (!!age && Number(age) < 5);
-
-          if (filterOutOfCategory && filterNoDob) {
-            matchAudit = isOutOfCategory || isNoDob;
-          } else if (filterOutOfCategory) {
-            matchAudit = isOutOfCategory;
-          } else if (filterNoDob) {
-            matchAudit = isNoDob;
-          }
+          matchAudit = isNoDob;
         }
 
         return (
@@ -170,7 +160,6 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     debouncedValue,
     filterJenjangKelas,
     showDuplicates,
-    filterOutOfCategory,
     filterNoDob,
   ]);
 
@@ -189,7 +178,6 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     filterGender !== "" ||
     debouncedValue !== "" ||
     filterJenjangKelas.length > 0 ||
-    filterOutOfCategory ||
     filterNoDob;
 
   const resetFilters = () => {
@@ -200,7 +188,6 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
       setFilterJenjangKelas([]);
       setFilterNama("");
       setShowDuplicates(false);
-      setFilterOutOfCategory(false);
       setFilterNoDob(false);
       setCurrentPage(1);
     });
@@ -214,7 +201,6 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
       filterJenjangKelas,
       filterNama,
       showDuplicates,
-      filterOutOfCategory,
       filterNoDob,
       setFilterDesa,
       setFilterKelompok,
@@ -222,7 +208,6 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
       setFilterJenjangKelas,
       setFilterNama,
       setShowDuplicates,
-      setFilterOutOfCategory,
       setFilterNoDob,
     },
     pagination: {

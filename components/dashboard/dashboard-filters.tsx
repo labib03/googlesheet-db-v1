@@ -21,7 +21,6 @@ interface DashboardFiltersProps {
     filterJenjangKelas: string[];
     filterNama: string;
     showDuplicates: boolean;
-    filterOutOfCategory: boolean;
     filterNoDob: boolean;
     setFilterDesa: (v: string[]) => void;
     setFilterKelompok: (v: string[]) => void;
@@ -29,7 +28,6 @@ interface DashboardFiltersProps {
     setFilterJenjangKelas: (v: string[]) => void;
     setFilterNama: (v: string) => void;
     setShowDuplicates: (v: boolean) => void;
-    setFilterOutOfCategory: (v: boolean) => void;
     setFilterNoDob: (v: boolean) => void;
   };
   options: {
@@ -79,9 +77,7 @@ export const DashboardFilters = memo(function DashboardFilters({
     setFilterJenjangKelas,
     setFilterNama,
     setShowDuplicates,
-    filterOutOfCategory,
     filterNoDob,
-    setFilterOutOfCategory,
     setFilterNoDob,
   } = filters;
 
@@ -310,25 +306,6 @@ export const DashboardFilters = memo(function DashboardFilters({
               <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800" />
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => {
-                  actions.handleStartTransition(() => {
-                    setFilterOutOfCategory(!filterOutOfCategory);
-                    actions.setCurrentPage(1);
-                  });
-                }}
-                variant={filterOutOfCategory ? "default" : "outline"}
-                size="sm"
-                className={`font-semibold text-xs rounded-xl h-9 flex items-center gap-2 transition-all duration-300 ${
-                  filterOutOfCategory
-                    ? "bg-indigo-600 hover:bg-indigo-700 text-white border-transparent shadow-lg shadow-indigo-200 dark:shadow-none translate-y+[-1px]"
-                    : "text-slate-700 dark:text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 border-slate-200 dark:border-slate-800"
-                }`}
-              >
-                <div className={`w-1.5 h-1.5 rounded-full ${filterOutOfCategory ? "bg-white animate-pulse" : "bg-slate-300"}`} />
-                Di Luar Kategori
-              </Button>
-
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
                   <Button

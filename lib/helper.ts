@@ -52,23 +52,25 @@ export function capitalizeWords(input: string): string {
 }
 
 export function getJenjangKelas(age: string) {
-  if (Number(age) >= jenjangClassMap["pra nikah"]) {
+  const ageNum = Number(age);
+  if (isNaN(ageNum)) return "-";
+
+  if (ageNum >= jenjangClassMap["pra nikah"]) {
     return "Pra Nikah";
-  } else if (Number(age) >= jenjangClassMap["remaja"]) {
+  } else if (ageNum >= jenjangClassMap["remaja"]) {
     return "Remaja";
-  } else if (Number(age) >= jenjangClassMap["pra remaja"]) {
+  } else if (ageNum >= jenjangClassMap["pra remaja"]) {
     return "Pra Remaja";
-  } else if (Number(age) >= jenjangClassMap["caberawit c"]) {
+  } else if (ageNum >= jenjangClassMap["caberawit c"]) {
     return "Caberawit C";
-  } else if (Number(age) >= jenjangClassMap["caberawit b"]) {
+  } else if (ageNum >= jenjangClassMap["caberawit b"]) {
     return "Caberawit B";
-  } else if (Number(age) >= jenjangClassMap["caberawit a"]) {
+  } else if (ageNum >= jenjangClassMap["caberawit a"]) {
     return "Caberawit A";
-  } else if (Number(age) >= jenjangClassMap["paud"]) {
-    return "PAUD";
   }
 
-  return "-";
+  // Age valid but < caberawit a minimum age (including < 5)
+  return "PAUD";
 }
 
 /**
