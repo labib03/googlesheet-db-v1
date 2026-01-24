@@ -12,8 +12,9 @@ import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useDashboard } from "@/context/dashboard-context";
 import Link from "next/link";
-import { ArrowUp, BarChart3 } from "lucide-react";
+import { ArrowUp, BarChart3, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { DashboardExportButton } from "./dashboard/dashboard-export-button";
 
 interface DashboardClientProps {
   initialData: SheetRow[];
@@ -110,6 +111,7 @@ export function DashboardClient({
           </p>
         </div>
         <div className="w-full lg:w-auto flex flex-wrap gap-3">
+          <DashboardExportButton data={data.filteredData} headers={headers} />
           <Button
             asChild
             variant="outline"
