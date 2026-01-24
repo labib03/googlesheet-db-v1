@@ -2,7 +2,7 @@
 
 import { useMemo, useTransition } from "react";
 import { SheetRow } from "@/lib/google-sheets";
-import { Users, MapPin, BarChart2, Venus, Mars, Check } from "lucide-react";
+import { Users, MapPin, BarChart2, Venus, Mars, Check, AlertCircle, Info } from "lucide-react";
 import { getCellValue } from "@/lib/helper";
 import { COLUMNS, kelas } from "@/lib/constants";
 import { AnimatedNumber } from "@/components/animated-number";
@@ -86,17 +86,34 @@ export function StatsOverview({ data, distributionData, selectedJenjang }: Stats
   }, [data]);
 
   // 2. Calculate Distribution Stats (based on LOCATION filtered data only)
-  // This ensures the other cards don't go to "0" when one is selected.
-  const distributionStats = useMemo(() => {
+  const distributionStats = useMemo<{
+    jenjangCounts: Record<string, number>;
+    underAgeCount: number;
+    noDobCount: number;
+  }>(() => {
     const targetData = distributionData || data;
     const jenjangCounts: Record<string, number> = {};
+    
+    // Additional counts for Out of Category Info
+    let underAgeCount = 0;
+    let noDobCount = 0;
 
     targetData.forEach((row) => {
-      const jenjang = getCellValue(row, COLUMNS.JENJANG) || "Lainnya";
-      jenjangCounts[jenjang] = (jenjangCounts[jenjang] || 0) + 1;
+      const jenjang = getCellValue(row, COLUMNS.JENJANG);
+      const dob = getCellValue(row, COLUMNS.TANGGAL_LAHIR);
+      const age = getCellValue(row, COLUMNS.UMUR);
+
+      if (!dob) {
+        noDobCount++;
+      } else if (jenjang === "-" || (age && Number(age) < 5)) {
+        underAgeCount++;
+      }
+
+      const key = jenjang || "Lainnya";
+      jenjangCounts[key] = (jenjangCounts[key] || 0) + 1;
     });
 
-    return jenjangCounts;
+    return { jenjangCounts, underAgeCount, noDobCount };
   }, [data, distributionData]);
 
 
@@ -220,10 +237,57 @@ export function StatsOverview({ data, distributionData, selectedJenjang }: Stats
              </button>
           )}
         </div>
+        
+        {/* Out of Category Info Banner (Option B Style) */}
+        {(distributionStats.underAgeCount > 0 || distributionStats.noDobCount > 0) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+            {distributionStats.underAgeCount > 0 && (
+              <div className="flex items-start gap-4 p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/50 group transition-all hover:bg-indigo-50 dark:hover:bg-indigo-950/30">
+                <div className="bg-indigo-100 dark:bg-indigo-900/50 p-2 rounded-xl text-indigo-600 dark:text-indigo-400">
+                  <Info className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-indigo-900 dark:text-indigo-100">
+                      Di Luar Kategori
+                    </h4>
+                    <span className="bg-indigo-200/50 dark:bg-indigo-800/50 text-indigo-700 dark:text-indigo-300 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                      {distributionStats.underAgeCount} Data
+                    </span>
+                  </div>
+                  <p className="text-xs text-indigo-600/80 dark:text-indigo-400/80 leading-relaxed">
+                    Data ini belum masuk kategori PAUD (di bawah 5 tahun).
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {distributionStats.noDobCount > 0 && (
+              <div className="flex items-start gap-4 p-4 rounded-2xl bg-amber-50/50 dark:bg-amber-950/20 border border-amber-100 dark:border-amber-900/50 group transition-all hover:bg-amber-50 dark:hover:bg-amber-950/30">
+                <div className="bg-amber-100 dark:bg-amber-900/50 p-2 rounded-xl text-amber-600 dark:text-amber-400">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <h4 className="text-sm font-bold text-amber-900 dark:text-amber-100">
+                      Butuh Perhatian
+                    </h4>
+                    <span className="bg-amber-200/50 dark:bg-amber-800/50 text-amber-700 dark:text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-bold">
+                      {distributionStats.noDobCount} Data
+                    </span>
+                  </div>
+                  <p className="text-xs text-amber-600/80 dark:text-amber-400/80 leading-relaxed">
+                    Data ini tidak menginput tanggal lahir sehingga jenjang tidak dapat ditentukan.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
           {kelas.map((j) => {
-            const count = distributionStats[j] || 0;
+            const count = distributionStats.jenjangCounts[j] || 0;
             const isSelected = selectedJenjang?.toLowerCase() === j.toLowerCase();
 
             return (
