@@ -106,7 +106,9 @@ export function DashboardCards({
               row={row}
               title={`Detail ${capitalizeWords(rowNamaRaw) || "Data"}`}
             >
-              <div className={`p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors grow ${selectedIndices.includes(originalIndex + 2) ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""}`}>
+              <div className={`p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors grow ${
+                onToggleSelection && selectedIndices.includes(originalIndex + 2) ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""
+              }`}>
                 {/* Header */}
                 <div className="flex items-start gap-4 mb-5 border-b border-slate-100 dark:border-slate-800 pb-5">
                   <div className="flex items-center justify-center w-12 h-12 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl text-indigo-600 font-bold text-lg shrink-0">
@@ -158,28 +160,34 @@ export function DashboardCards({
             </DataDetailDialog>
             {/* Actions Grid */}
             <div
-              className={`grid ${isEnableEdit && isEnableDelete ? "grid-cols-3" : (isEnableEdit || isEnableDelete ? "grid-cols-2" : "grid-cols-1")} border-t border-slate-100 dark:border-slate-800`}
+              className={`grid ${
+                onToggleSelection 
+                  ? (isEnableEdit && isEnableDelete ? "grid-cols-3" : (isEnableEdit || isEnableDelete ? "grid-cols-2" : "grid-cols-1"))
+                  : (isEnableEdit && isEnableDelete ? "grid-cols-2" : (isEnableEdit || isEnableDelete ? "grid-cols-1" : "hidden"))
+              } border-t border-slate-100 dark:border-slate-800`}
             >
               {/* Select Action */}
-              <button
-                onClick={() => onToggleSelection?.(originalIndex + 2)}
-                className={`flex items-center justify-center gap-2 py-3.5 transition-all active:scale-95 border-r border-slate-100 dark:border-slate-800 ${
-                  selectedIndices.includes(originalIndex + 2)
-                    ? "bg-indigo-600 text-white"
-                    : "bg-slate-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 font-bold"
-                }`}
-              >
-                <div className={`flex items-center justify-center w-4 h-4 rounded-md border-2 transition-colors ${
-                  selectedIndices.includes(originalIndex + 2)
-                    ? "bg-white border-white text-indigo-600"
-                    : "border-indigo-200 dark:border-indigo-800"
-                }`}>
-                  {selectedIndices.includes(originalIndex + 2) && <Check className="w-3 h-3 stroke-[4]" />}
-                </div>
-                <span className="text-[10px] uppercase tracking-wider font-black">
-                  {selectedIndices.includes(originalIndex + 2) ? "Terpilih" : "Pilih"}
-                </span>
-              </button>
+              {onToggleSelection && (
+                <button
+                  onClick={() => onToggleSelection?.(originalIndex + 2)}
+                  className={`flex items-center justify-center gap-2 py-3.5 transition-all active:scale-95 border-r border-slate-100 dark:border-slate-800 ${
+                    selectedIndices.includes(originalIndex + 2)
+                      ? "bg-indigo-600 text-white"
+                      : "bg-slate-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 font-bold"
+                  }`}
+                >
+                  <div className={`flex items-center justify-center w-4 h-4 rounded-md border-2 transition-colors ${
+                    selectedIndices.includes(originalIndex + 2)
+                      ? "bg-white border-white text-indigo-600"
+                      : "border-indigo-200 dark:border-indigo-800"
+                  }`}>
+                    {selectedIndices.includes(originalIndex + 2) && <Check className="w-3 h-3 stroke-[4]" />}
+                  </div>
+                  <span className="text-[10px] uppercase tracking-wider font-black">
+                    {selectedIndices.includes(originalIndex + 2) ? "Terpilih" : "Pilih"}
+                  </span>
+                </button>
+              )}
 
               {isEnableEdit && (
                 <EditDataDialog row={row} rowIndex={originalIndex}>
