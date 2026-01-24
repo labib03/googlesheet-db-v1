@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { SheetRow } from "@/lib/google-sheets";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExportButton } from "./dashboard/export-button";
 import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
 import { DashboardFilters } from "./dashboard/dashboard-filters";
 import { DashboardTable } from "./dashboard/dashboard-table";
@@ -121,7 +120,6 @@ export function DashboardClient({
               Summary
             </Link>
           </Button>
-          <ExportButton data={data.filteredData} headers={headers} />
         </div>
       </motion.div>
 

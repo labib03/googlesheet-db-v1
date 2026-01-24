@@ -14,6 +14,7 @@ import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
 import { ShieldCheck, AlertCircle, History, Settings } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { ExportButton } from "./dashboard/export-button";
 
 interface AdminDashboardClientProps {
   initialData: SheetRow[];
@@ -140,6 +141,8 @@ export function AdminDashboardClient({
             </Link>
           </Button>
 
+          <ExportButton data={data.filteredData} headers={headers} />
+
           <Link href="/admin-restricted/trash">
             <Button 
                 variant="outline" 
@@ -225,6 +228,7 @@ export function AdminDashboardClient({
                     pageSize={pagination.pageSize}
                     isEnableEdit={isEnableEdit}
                     isEnableDelete={isEnableDelete}
+                    ignoreViewConfig={true}
                   />
 
                   <DashboardCards

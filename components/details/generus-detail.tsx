@@ -14,9 +14,11 @@ interface GenerusDetailProps {
   row: SheetRow;
   onBack: () => void;
   showBackButton?: boolean;
+  ignoreViewConfig?: boolean;
 }
 
-export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
+
+export function GenerusDetail({ row, onBack, ignoreViewConfig }: GenerusDetailProps) {
   const [showScrollIndicator, setShowScrollIndicator] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -74,7 +76,7 @@ export function GenerusDetail({ row, onBack }: GenerusDetailProps) {
         <div className="px-5 md:px-8 py-6">
           <div className="grid gap-1">
             {Object.entries(row)
-              .filter(([key]) => !ignoredKeys.includes(key.toLowerCase()) && config.detailFields.includes(key))
+              .filter(([key]) => !ignoredKeys.includes(key.toLowerCase()) && (ignoreViewConfig || config.detailFields.includes(key)))
               .map(([key, value]) => (
                 <div
                   key={key}

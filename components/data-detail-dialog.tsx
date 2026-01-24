@@ -17,9 +17,10 @@ interface DataDetailDialogProps {
   row: SheetRow;
   title?: string;
   children?: React.ReactNode;
+  ignoreViewConfig?: boolean;
 }
 
-export function DataDetailDialog({ row, children }: DataDetailDialogProps) {
+export function DataDetailDialog({ row, children, ignoreViewConfig }: DataDetailDialogProps) {
   const { isOpen, open, close, onOpenChange } = useModalState();
   const isMobile = useIsMobile();
   const router = useRouter();
@@ -57,6 +58,7 @@ export function DataDetailDialog({ row, children }: DataDetailDialogProps) {
             <GenerusDetail 
               row={row}
               onBack={close}
+              ignoreViewConfig={ignoreViewConfig}
             />
           </div>
         </DialogContent>

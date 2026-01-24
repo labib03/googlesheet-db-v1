@@ -23,6 +23,7 @@ interface DashboardTableProps {
   pageSize: number;
   isEnableEdit: boolean;
   isEnableDelete: boolean;
+  ignoreViewConfig?: boolean;
 }
 
 import { memo } from "react";
@@ -34,10 +35,11 @@ export const DashboardTable = memo(function DashboardTable({
   pageSize,
   isEnableEdit,
   isEnableDelete,
+  ignoreViewConfig,
 }: DashboardTableProps) {
   const { config } = useViewConfig();
-  const visibleHeaders = headers.filter(h => config.tableColumns.includes(h));
-  const isUmurVisible = config.tableColumns.includes(COLUMNS.UMUR);
+  const visibleHeaders = ignoreViewConfig ? headers : headers.filter(h => config.tableColumns.includes(h));
+  const isUmurVisible = ignoreViewConfig || config.tableColumns.includes(COLUMNS.UMUR);
 
   const getValue = (header: string, value: string) => {
     if (header === COLUMNS.NAMA || header === COLUMNS.DESA) {
@@ -119,6 +121,7 @@ export const DashboardTable = memo(function DashboardTable({
                     <DataDetailDialog
                       row={row}
                       title={`Detail ${rowNama || "Data"}`}
+                      ignoreViewConfig={ignoreViewConfig}
                     />
                     {isEnableEdit && (
                       <EditDataDialog row={row} rowIndex={originalIndex} />
