@@ -107,6 +107,20 @@ export async function deleteData(rowIndex: number) {
     const rowToDelete = await getRowData(rowIndex);
     
     // 2. Salin data ke sheet "Trash"
+    // Update timestamp to deletion time
+    const timestamp = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Jakarta",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    }).format(new Date()).replace(",", "");
+    
+    rowToDelete["Timestamp"] = timestamp;
+
     // Pastikan sheet ini ada di Google Sheet Anda
     await appendSheetData(rowToDelete, "Trash");
 
