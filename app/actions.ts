@@ -11,7 +11,7 @@ import {
   SheetRow,
 } from "@/lib/google-sheets";
 import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { CONFIG_SHEET_NAME, CONFIG_KEYS } from "@/lib/constants";
 
 export type ActionState = {
@@ -46,6 +46,7 @@ export async function addData(prevState: ActionState, formData: FormData) {
     rawData["Timestamp"] = timestamp;
 
     await appendSheetData(rawData);
+    revalidateTag("google-sheets", "default");
     revalidatePath("/");
     revalidatePath("/admin-restricted");
 
@@ -89,6 +90,7 @@ export async function updateData(
     rawData["Timestamp"] = timestamp;
 
     await updateSheetData(rowIndex, rawData);
+    revalidateTag("google-sheets", "default");
     revalidatePath("/");
     revalidatePath("/admin-restricted");
 
@@ -129,6 +131,7 @@ export async function deleteData(rowIndex: number) {
     // 3. Jika berhasil disalin, baru hapus dari sheet utama
     await deleteSheetData(rowIndex);
 
+    revalidateTag("google-sheets", "default");
     revalidatePath("/");
     revalidatePath("/admin-restricted");
     return { success: true, message: "Data berhasil dipindahkan ke Trash!" };
@@ -172,6 +175,7 @@ export async function bulkDeleteData(rowIndices: number[]) {
       await deleteSheetRowsBulk(rowIndices);
     }
 
+    revalidateTag("google-sheets", "default");
     revalidatePath("/");
     revalidatePath("/admin-restricted");
     return {
@@ -221,7 +225,7 @@ export async function getSheetDataAction() {
 export async function getGlobalConfig() {
   try {
     const rawData = await getSheetData(CONFIG_SHEET_NAME);
-    const config: Record<string, any> = {};
+    const config: Record<string, unknown> = {};
 
     rawData.forEach(row => {
       const key = String(row["KEY"] || "");
@@ -252,7 +256,7 @@ export async function getGlobalConfig() {
   }
 }
 
-export async function saveGlobalConfig(key: string, value: any) {
+export async function saveGlobalConfig(key: string, value: unknown) {
   try {
     const rawData = await getSheetData(CONFIG_SHEET_NAME);
     const rowIndex = rawData.findIndex(row => row["KEY"] === key);
@@ -260,7 +264,7 @@ export async function saveGlobalConfig(key: string, value: any) {
     let stringValue = String(value);
     let type = "string";
 
-    if (Array.isArray(value) || typeof value === 'object') {
+    if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
       stringValue = JSON.stringify(value);
       type = "json";
     } else if (typeof value === 'boolean') {
@@ -287,6 +291,7 @@ export async function saveGlobalConfig(key: string, value: any) {
       await appendSheetData(rowData, CONFIG_SHEET_NAME);
     }
     
+    revalidateTag("google-sheets", "default");
     revalidatePath("/admin-restricted/settings");
     return { success: true, message: "Configuration saved" };
   } catch (error) {

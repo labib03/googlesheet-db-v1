@@ -6,7 +6,7 @@ import { useState, useCallback } from "react";
  * useModalState - Simple local state management for modals.
  * Following user request to stop using URL parameters for modal state.
  */
-export function useModalState(_modalKey?: string, _id?: string | number) {
+export function useModalState() {
   const [isOpen, setIsOpen] = useState(false);
   const [isPending, setIsPending] = useState(false); // Can be manually set if needed during actions
 

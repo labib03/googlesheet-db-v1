@@ -31,6 +31,7 @@ export function ViewConfigProvider({ children }: { children: React.ReactNode }) 
     const saved = localStorage.getItem("view-config");
     if (saved) {
       try {
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         setConfig(JSON.parse(saved));
       } catch (e) {
         console.error("Failed to parse view config", e);
@@ -44,9 +45,9 @@ export function ViewConfigProvider({ children }: { children: React.ReactNode }) 
         setConfig((prev) => {
           const next = { ...prev };
           // Strict sync: if key missing in server, default to []
-          next.tableColumns = result.data[CONFIG_KEYS.VIEW_TABLE_COLS] || [];
-          next.cardFields = result.data[CONFIG_KEYS.VIEW_CARD_FIELDS] || [];
-          next.detailFields = result.data[CONFIG_KEYS.VIEW_DETAIL_FIELDS] || [];
+          next.tableColumns = (result.data[CONFIG_KEYS.VIEW_TABLE_COLS] as string[]) || [];
+          next.cardFields = (result.data[CONFIG_KEYS.VIEW_CARD_FIELDS] as string[]) || [];
+          next.detailFields = (result.data[CONFIG_KEYS.VIEW_DETAIL_FIELDS] as string[]) || [];
           
           localStorage.setItem("view-config", JSON.stringify(next));
           return next;

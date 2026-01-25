@@ -39,3 +39,21 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# System Files
+Thumbs.db
+Desktop.ini
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs and Reports
+*.log
+lint_output.txt
+final_lint_report.txt
+old_detail.txt
+
+# Temporary
+tmp/
+temp/

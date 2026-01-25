@@ -1,4 +1,5 @@
 import { google } from 'googleapis';
+import { unstable_cache } from 'next/cache';
 
 export interface SheetRow {
   [key: string]: string | number | boolean;
@@ -10,6 +11,32 @@ const DEFAULT_SHEET_NAME =
 
 // Helper to escape sheet names for A1 notation
 const escapeSheetName = (name: string) => `'${name.replace(/'/g, "''")}'`;
+
+/**
+ * Helper to implement Exponential Backoff
+ */
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delay = 1000,
+  backoff = 2
+): Promise<T> {
+  try {
+    return await fn();
+  } catch (error: unknown) {
+    const err = error as { code?: number | string };
+    if (retries === 0 || err.code === 404) throw error; // Don't retry 404
+
+    // Retry on quota errors (429) or server errors (500, 503)
+    if (err.code === 429 || err.code === 500 || err.code === 503) {
+      console.warn(`API quota/error hit. Retrying in ${delay}ms... (Attempts left: ${retries})`);
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return withRetry(fn, retries - 1, delay * backoff, backoff);
+    }
+
+    throw error;
+  }
+}
 
 /**
  * Helper to get auth client to avoid repeating code
@@ -34,16 +61,10 @@ async function getAuth() {
 }
 
 /**
- * Fetches data from a Google Sheet
- * @param sheetName - The name of the sheet/tab to read from (e.g., "Sheet1")
- * @param range - Optional range in A1 notation (e.g., "A1:D10"). If not provided, reads all data.
- * @returns Array of objects where keys are column headers
+ * Internal fetcher to get raw data, separated for caching
  */
-export async function getSheetData(
-  sheetName: string = DEFAULT_SHEET_NAME,
-  range?: string
-): Promise<SheetRow[]> {
-  try {
+const fetchSheetDataInternal = async (sheetName: string, range?: string) => {
+  return withRetry(async () => {
     const auth = await getAuth();
     const sheetId = process.env.GOOGLE_SHEET_ID!;
     const sheets = google.sheets({ version: 'v4', auth });
@@ -66,7 +87,7 @@ export async function getSheetData(
 
     // First row is headers
     const headers = rows[0] as string[];
-    
+
     // Convert remaining rows to objects
     const data: SheetRow[] = rows.slice(1).map((row) => {
       const obj: SheetRow = {};
@@ -77,29 +98,45 @@ export async function getSheetData(
     });
 
     return data;
+  });
+};
+
+/**
+ * Fetches data from a Google Sheet (Cached)
+ * @param sheetName - The name of the sheet/tab to read from (e.g., "Sheet1")
+ * @param range - Optional range in A1 notation (e.g., "A1:D10"). If not provided, reads all data.
+ * @returns Array of objects where keys are column headers
+ */
+export const getSheetData = async (
+  sheetName: string = DEFAULT_SHEET_NAME,
+  range?: string
+) => {
+  try {
+    const getData = unstable_cache(
+      async () => fetchSheetDataInternal(sheetName, range),
+      [`sheet-data-${sheetName}-${range || 'all'}`],
+      { tags: ['google-sheets'], revalidate: 30 } // Cache for 30s to prevent spamming
+    );
+    return await getData();
   } catch (error) {
     console.error('Error fetching Google Sheets data:', error);
     throw error;
   }
-}
+};
 
 /**
- * Gets all sheet names from the spreadsheet
- * @returns Array of sheet names
+ * Internal fetcher for sheet names
  */
-export async function getSheetNames(): Promise<string[]> {
-  try {
+const fetchSheetNamesInternal = async () => {
+  return withRetry(async () => {
     const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    // Same robust handling for getSheetNames
     const privateKey = process.env.GOOGLE_PRIVATE_KEY
       ?.replace(/\\n/g, '\n')
       .replace(/^"|"$/g, '');
     const sheetId = process.env.GOOGLE_SHEET_ID;
 
     if (!serviceAccountEmail || !privateKey || !sheetId) {
-      throw new Error(
-        'Missing required environment variables'
-      );
+      throw new Error('Missing required environment variables');
     }
 
     const auth = new google.auth.GoogleAuth({
@@ -117,11 +154,26 @@ export async function getSheetNames(): Promise<string[]> {
     });
 
     return response.data.sheets?.map((sheet) => sheet.properties?.title || '') || [];
+  });
+};
+
+/**
+ * Gets all sheet names from the spreadsheet (Cached)
+ * @returns Array of sheet names
+ */
+export const getSheetNames = async () => {
+  try {
+    const getNames = unstable_cache(
+      async () => fetchSheetNamesInternal(),
+      ['sheet-names'],
+      { tags: ['google-sheets'], revalidate: 60 } // Cache for 1 minute
+    );
+    return await getNames();
   } catch (error) {
     console.error('Error fetching sheet names:', error);
     throw error;
   }
-}
+};
 
 /**
  * Appends a new row of data to the sheet
@@ -159,14 +211,16 @@ export async function appendSheetData(
     // 3. Append data at the end of the table
     // Using INSERT_ROWS ensures we always add new rows and don't overwrite if there's data.
     // Starting search at A1 is most reliable.
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: `${escapedName}!A1`,
-      valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: {
-        values: [values],
-      },
+    await withRetry(async () => {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: sheetId,
+        range: `${escapedName}!A1`,
+        valueInputOption: 'RAW',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: {
+          values: [values],
+        },
+      });
     });
 
   } catch (error) {
@@ -213,14 +267,16 @@ export async function appendSheetDataBulk(
     });
 
     // 3. Append data
-    await sheets.spreadsheets.values.append({
-      spreadsheetId: sheetId,
-      range: `${escapedName}!A1`,
-      valueInputOption: 'RAW',
-      insertDataOption: 'INSERT_ROWS',
-      requestBody: {
-        values: allValues,
-      },
+    await withRetry(async () => {
+      await sheets.spreadsheets.values.append({
+        spreadsheetId: sheetId,
+        range: `${escapedName}!A1`,
+        valueInputOption: 'RAW',
+        insertDataOption: 'INSERT_ROWS',
+        requestBody: {
+          values: allValues,
+        },
+      });
     });
 
   } catch (error) {
@@ -265,13 +321,15 @@ export async function updateSheetData(
     });
 
     // 3. Update
-    await sheets.spreadsheets.values.update({
-      spreadsheetId: sheetId,
-      range: `${escapedName}!A${rowIndex}`,
-      valueInputOption: 'RAW',
-      requestBody: {
-        values: [values],
-      },
+    await withRetry(async () => {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: sheetId,
+        range: `${escapedName}!A${rowIndex}`,
+        valueInputOption: 'RAW',
+        requestBody: {
+          values: [values],
+        },
+      });
     });
   } catch (error) {
     console.error('Error updating data:', error);
@@ -307,22 +365,24 @@ export async function deleteSheetData(
     const gridId = sheet.properties.sheetId;
 
     // 2. Perform delete operation
-    await sheets.spreadsheets.batchUpdate({
-      spreadsheetId: sheetId,
-      requestBody: {
-        requests: [
-          {
-            deleteDimension: {
-              range: {
-                sheetId: gridId,
-                dimension: 'ROWS',
-                startIndex: rowIndex - 1,
-                endIndex: rowIndex,
+    await withRetry(async () => {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: sheetId,
+        requestBody: {
+          requests: [
+            {
+              deleteDimension: {
+                range: {
+                  sheetId: gridId,
+                  dimension: 'ROWS',
+                  startIndex: rowIndex - 1,
+                  endIndex: rowIndex,
+                },
               },
             },
-          },
-        ],
-      },
+          ],
+        },
+      });
     });
   } catch (error) {
     console.error('Error deleting data:', error);
@@ -373,11 +433,13 @@ export async function deleteSheetRowsBulk(
       },
     }));
 
-    await sheets.spreadsheets.batchUpdate({
-      spreadsheetId: sheetId,
-      requestBody: {
-        requests,
-      },
+    await withRetry(async () => {
+      await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: sheetId,
+        requestBody: {
+          requests,
+        },
+      });
     });
   } catch (error) {
     console.error('Error deleting bulk data:', error);
@@ -411,10 +473,10 @@ export async function getRowData(
     }
 
     // 2. Get the actual row data
-    const rowResponse = await sheets.spreadsheets.values.get({
+    const rowResponse = await withRetry(async () => sheets.spreadsheets.values.get({
       spreadsheetId: sheetId,
       range: `${escapedName}!${rowIndex}:${rowIndex}`,
-    });
+    }));
     const values = rowResponse.data.values?.[0] as string[];
 
     if (!values || values.length === 0) {

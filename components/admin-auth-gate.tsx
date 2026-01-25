@@ -26,6 +26,7 @@ export function AdminAuthGate({ children, correctPassword }: AdminAuthGateProps)
     const expiry = sessionStorage.getItem("admin_session_expiry");
     
     if (expiry && parseInt(expiry) > Date.now()) {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       setIsAuthenticated(true);
     } else {
       // Session expired or invalid

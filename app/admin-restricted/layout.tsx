@@ -8,7 +8,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   let password = "";
 
   if (result.success && result.data) {
-    password = result.data[CONFIG_KEYS.ADMIN_PASSWORD];
+    password = String(result.data[CONFIG_KEYS.ADMIN_PASSWORD] || "");
   }
 
   if (!password) {
