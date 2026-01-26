@@ -5,7 +5,7 @@ import { SheetRow } from "@/lib/google-sheets";
 import { COLUMNS, desaData } from "@/lib/constants";
 import { useDebounceValue } from "usehooks-ts";
 import { parse, compareDesc } from "date-fns";
-import { getCellValue } from "@/lib/helper";
+import { getCellValue, calculateAge } from "@/lib/helper";
 
 interface UseTrashPageDataProps {
   initialTrashData: SheetRow[];
@@ -20,6 +20,7 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
   const [filterNama, setFilterNama] = useState("");
   const [showDuplicates, setShowDuplicates] = useState(false); // Not used for trash but needed for component props
   const [filterNoDob, setFilterNoDob] = useState(false);
+  const [filterAgeRange, setFilterAgeRange] = useState({ min: 0, max: 100 });
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -77,6 +78,19 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
           ? filterJenjangKelas.some(j => j.toLowerCase() === rowJenjang.toLowerCase())
           : true;
 
+        // Age Filter
+        let matchAge = true;
+        // Only apply filter if range is not default (0-100)
+        if (filterAgeRange.min > 0 || filterAgeRange.max < 100) {
+          const ageStr = calculateAge(getCellValue(row, COLUMNS.TANGGAL_LAHIR));
+          const ageNum = parseInt(ageStr);
+          if (isNaN(ageNum)) {
+            matchAge = false;
+          } else {
+            matchAge = ageNum >= filterAgeRange.min && ageNum <= filterAgeRange.max;
+          }
+        }
+
         // Audit Filters
         let matchAudit = true;
         
@@ -97,7 +111,7 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
           matchAudit = isNoDob;
         }
 
-        return matchDesa && matchKelompok && matchGender && matchNama && matchJenjangKelas && matchAudit;
+        return matchDesa && matchKelompok && matchGender && matchNama && matchJenjangKelas && matchAudit && matchAge;
       })
       .sort((a, b) => {
         const tsA = getCellValue(a, COLUMNS.TIMESTAMP);
@@ -106,7 +120,7 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
         const dateB = tsB ? parse(tsB, formatString, new Date()) : new Date(0);
         return compareDesc(dateA, dateB);
       });
-  }, [initialTrashData, filterDesa, filterKelompok, filterGender, debouncedValue, filterJenjangKelas, filterNoDob]);
+  }, [initialTrashData, filterDesa, filterKelompok, filterGender, debouncedValue, filterJenjangKelas, filterNoDob, filterAgeRange]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
 
@@ -117,7 +131,7 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
     );
   }, [filteredData, currentPage, pageSize]);
 
-  const isFiltered = filterDesa.length > 0 || filterKelompok.length > 0 || filterGender !== "" || debouncedValue !== "" || filterJenjangKelas.length > 0 || filterNoDob;
+  const isFiltered = filterDesa.length > 0 || filterKelompok.length > 0 || filterGender !== "" || debouncedValue !== "" || filterJenjangKelas.length > 0 || filterNoDob || (filterAgeRange.min > 0 || filterAgeRange.max < 100);
 
   const resetFilters = () => {
     handleStartTransition(() => {
@@ -127,6 +141,7 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
       setFilterJenjangKelas([]);
       setFilterNama("");
       setFilterNoDob(false);
+      setFilterAgeRange({ min: 0, max: 100 });
       setCurrentPage(1);
     });
   };
@@ -140,6 +155,7 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
       filterNama, setFilterNama,
       showDuplicates, setShowDuplicates,
       filterNoDob, setFilterNoDob,
+      filterAgeRange, setFilterAgeRange,
     },
     pagination: {
       currentPage, setCurrentPage,
