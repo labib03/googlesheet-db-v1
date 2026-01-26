@@ -37,6 +37,10 @@ interface DashboardContextType {
   // Scroll Position
   scrollPosition: number;
   setScrollPosition: (pos: number) => void;
+
+  // Age Filter
+  filterAgeRange: { min: number; max: number };
+  setFilterAgeRange: React.Dispatch<React.SetStateAction<{ min: number; max: number }>>;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -66,6 +70,7 @@ export function DashboardProvider({
   const [pageSize, setPageSize] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [filterAgeRange, setFilterAgeRange] = useState<{ min: number; max: number }>({ min: 0, max: 100 });
 
   const refreshData = useCallback(async (silent: boolean = false) => {
     if (!silent) setIsLoading(true);
@@ -128,6 +133,8 @@ export function DashboardProvider({
     setCurrentPage,
     scrollPosition,
     setScrollPosition,
+    filterAgeRange,
+    setFilterAgeRange,
   };
 
   return (

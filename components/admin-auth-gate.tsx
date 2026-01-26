@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Lock, ArrowLeft } from "lucide-react";
+import { Lock, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface AdminAuthGateProps {
@@ -16,6 +16,7 @@ interface AdminAuthGateProps {
 export function AdminAuthGate({ children, correctPassword }: AdminAuthGateProps) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [inputPassword, setInputPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   // Session Duration: 1 Hour (in milliseconds)
@@ -69,14 +70,27 @@ export function AdminAuthGate({ children, correctPassword }: AdminAuthGateProps)
         </CardHeader>
         <form onSubmit={handleLogin}>
           <CardContent className="space-y-4 mb-4">
-            <Input
-              type="password"
-              placeholder="Enter password..."
-              value={inputPassword}
-              onChange={(e) => setInputPassword(e.target.value)}
-              className="text-center tracking-widest font-bold"
-              autoFocus
-            />
+            <div className="relative">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter password..."
+                value={inputPassword}
+                onChange={(e) => setInputPassword(e.target.value)}
+                className="text-center tracking-widest font-bold pr-10"
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
           </CardContent>
           <CardFooter className="flex flex-col gap-2">
             <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl h-10">

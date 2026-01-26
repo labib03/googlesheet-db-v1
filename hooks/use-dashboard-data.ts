@@ -5,7 +5,7 @@ import { SheetRow } from "@/lib/google-sheets";
 import { COLUMNS, desaData } from "@/lib/constants";
 import { useDebounceValue } from "usehooks-ts";
 import { parse, compareDesc } from "date-fns";
-import { getCellValue } from "@/lib/helper";
+import { getCellValue, calculateAge } from "@/lib/helper";
 
 import { useDashboard } from "@/context/dashboard-context";
 
@@ -27,6 +27,7 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     filterNoDob, setFilterNoDob,
     pageSize, setPageSize,
     currentPage, setCurrentPage,
+    filterAgeRange, setFilterAgeRange,
   } = context;
 
   const [debouncedValue] = useDebounceValue(filterNama, 1000);
@@ -115,6 +116,19 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
           ? filterJenjangKelas.some(j => j.toLowerCase() === rowJenjang.toLowerCase())
           : true;
 
+        // Age Filter
+        let matchAge = true;
+        // Only apply filter if range is not default (0-100)
+        if (filterAgeRange.min > 0 || filterAgeRange.max < 100) {
+          const ageStr = calculateAge(getCellValue(row, COLUMNS.TANGGAL_LAHIR));
+          const ageNum = parseInt(ageStr);
+          if (isNaN(ageNum)) {
+            matchAge = false;
+          } else {
+            matchAge = ageNum >= filterAgeRange.min && ageNum <= filterAgeRange.max;
+          }
+        }
+
         // Audit Filters
         let matchAudit = true;
         
@@ -141,6 +155,7 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
           matchGender &&
           matchNama &&
           matchJenjangKelas &&
+          matchAge &&
           matchAudit
         );
       })
@@ -161,6 +176,7 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     filterJenjangKelas,
     showDuplicates,
     filterNoDob,
+    filterAgeRange,
   ]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
@@ -178,7 +194,8 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     filterGender !== "" ||
     debouncedValue !== "" ||
     filterJenjangKelas.length > 0 ||
-    filterNoDob;
+    filterNoDob ||
+    (filterAgeRange.min > 0 || filterAgeRange.max < 100);
 
   const resetFilters = () => {
     handleStartTransition(() => {
@@ -189,6 +206,7 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
       setFilterNama("");
       setShowDuplicates(false);
       setFilterNoDob(false);
+      setFilterAgeRange({ min: 0, max: 100 });
       setCurrentPage(1);
     });
   };
@@ -209,6 +227,8 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
       setFilterNama,
       setShowDuplicates,
       setFilterNoDob,
+      filterAgeRange,
+      setFilterAgeRange,
     },
     pagination: {
       currentPage,

@@ -1,8 +1,9 @@
 "use client";
 
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RefreshButton } from "@/components/refresh-button";
-import { Eraser, X, Copy } from "lucide-react";
+import { Eraser, X, Copy, Info } from "lucide-react";
 import { Gender, kelas } from "@/lib/constants";
 import { MultiSelectCustom } from "./components/multi-select-custom";
 import {
@@ -11,7 +12,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
 
 interface DashboardFiltersProps {
   filters: {
@@ -22,6 +22,7 @@ interface DashboardFiltersProps {
     filterNama: string;
     showDuplicates: boolean;
     filterNoDob: boolean;
+    filterAgeRange: { min: number; max: number };
     setFilterDesa: (v: string[]) => void;
     setFilterKelompok: (v: string[]) => void;
     setFilterGender: (v: string) => void;
@@ -29,6 +30,7 @@ interface DashboardFiltersProps {
     setFilterNama: (v: string) => void;
     setShowDuplicates: (v: boolean) => void;
     setFilterNoDob: (v: boolean) => void;
+    setFilterAgeRange: (v: { min: number; max: number }) => void;
   };
   options: {
     desaOptions: string[];
@@ -79,6 +81,8 @@ export const DashboardFilters = memo(function DashboardFilters({
     setShowDuplicates,
     filterNoDob,
     setFilterNoDob,
+    filterAgeRange,
+    setFilterAgeRange,
   } = filters;
 
   const startRange = (pagination.currentPage - 1) * pagination.pageSize + 1;
@@ -97,7 +101,7 @@ export const DashboardFilters = memo(function DashboardFilters({
       </div>
 
       <TooltipProvider>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Desa */}
           <div className="space-y-1.5 flex flex-col">
             <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-1 inline-flex items-center gap-1">
@@ -222,6 +226,86 @@ export const DashboardFilters = memo(function DashboardFilters({
                         actions.setCurrentPage(1);
                       });
                     }}
+                  />
+                </div>
+              </TooltipTrigger>
+              {showDuplicates && (
+                <TooltipContent side="bottom" className="max-w-[200px] text-xs">
+                  Field bisa diklik ketika tombol show duplicate tidak aktif
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </div>
+
+           {/* Umur Range */}
+           <div className="space-y-1.5 flex flex-col">
+            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-1 inline-flex items-center gap-1">
+              Rentang Umur: {filterAgeRange.min} - {filterAgeRange.max} th
+              {showDuplicates && <Info className="w-3 h-3 text-indigo-400" />}
+            </label>
+            <Tooltip delayDuration={300}>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    disabled={showDuplicates}
+                    value={filterAgeRange.min}
+                    onChange={(e) => {
+                      const valStr = e.target.value;
+                      if (valStr === "") {
+                        actions.handleStartTransition(() => {
+                          setFilterAgeRange({ ...filterAgeRange, min: 0 });
+                          actions.setCurrentPage(1);
+                        });
+                        return;
+                      }
+                      const val = parseInt(valStr);
+                      if (!isNaN(val)) {
+                        actions.handleStartTransition(() => {
+                          setFilterAgeRange({ ...filterAgeRange, min: val });
+                          actions.setCurrentPage(1);
+                        });
+                      }
+                    }}
+                    className={`h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                      filterAgeRange.min > 0
+                        ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold"
+                        : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                    }`}
+                    placeholder="Min"
+                  />
+                  <span className="text-slate-400 font-medium">-</span>
+                  <Input
+                    type="number"
+                    min={0}
+                    max={100}
+                    disabled={showDuplicates}
+                    value={filterAgeRange.max}
+                    onChange={(e) => {
+                      const valStr = e.target.value;
+                      if (valStr === "") {
+                        actions.handleStartTransition(() => {
+                          setFilterAgeRange({ ...filterAgeRange, max: 0 });
+                          actions.setCurrentPage(1);
+                        });
+                        return;
+                      }
+                      const val = parseInt(valStr);
+                      if (!isNaN(val)) {
+                        actions.handleStartTransition(() => {
+                          setFilterAgeRange({ ...filterAgeRange, max: val });
+                          actions.setCurrentPage(1);
+                        });
+                      }
+                    }}
+                    className={`h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
+                      filterAgeRange.max < 100
+                        ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold"
+                        : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
+                    }`}
+                    placeholder="Max"
                   />
                 </div>
               </TooltipTrigger>
