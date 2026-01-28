@@ -105,7 +105,10 @@ export async function updateData(
   }
 }
 
-export async function deleteData(rowIndex: number) {
+export async function deleteData(
+  rowIndex: number, 
+  metadata?: { isMarried?: boolean; isPindahSambung?: boolean; keterangan?: string }
+) {
   try {
     // 1. Ambil data asli sebelum dihapus
     const rowToDelete = await getRowData(rowIndex);
@@ -124,6 +127,11 @@ export async function deleteData(rowIndex: number) {
     }).format(new Date()).replace(",", "");
     
     rowToDelete["Timestamp"] = timestamp;
+
+    // Add metadata for Trash
+    rowToDelete["IsMarried"] = metadata?.isMarried ? 1 : 0;
+    rowToDelete["IsPindahSambung"] = metadata?.isPindahSambung ? 1 : 0;
+    rowToDelete["Keterangan"] = metadata?.keterangan || "";
 
     // Pastikan sheet ini ada di Google Sheet Anda
     await appendSheetData(rowToDelete, "Trash");
@@ -144,7 +152,7 @@ export async function deleteData(rowIndex: number) {
   }
 }
 
-export async function bulkDeleteData(rowIndices: number[]) {
+export async function bulkDeleteData(rowIndices: number[], keterangan?: string) {
   try {
     const timestamp = new Intl.DateTimeFormat("en-GB", {
       timeZone: "Asia/Jakarta",
@@ -166,6 +174,12 @@ export async function bulkDeleteData(rowIndices: number[]) {
       if (allData[dataIdx]) {
         const row = { ...allData[dataIdx] };
         row["Timestamp"] = timestamp;
+        
+        // Add default/provided metadata for Trash in bulk
+        row["IsMarried"] = 0;
+        row["IsPindahSambung"] = 0;
+        row["Keterangan"] = keterangan || "";
+
         rowsToDelete.push(row);
       }
     });
