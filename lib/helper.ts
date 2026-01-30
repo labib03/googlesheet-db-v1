@@ -1,6 +1,6 @@
 import { differenceInYears, parse, format } from "date-fns";
 import { id } from "date-fns/locale";
-import { jenjangClassMap } from "./constants";
+import { jenjangClassMap, desaData } from "./constants";
 
 export function calculateAge(dateString: string): string {
   if (!dateString) return "-";
@@ -90,4 +90,17 @@ export function getCellValue(row: Record<string, unknown>, columnName: string): 
 export function findColumnKey(headers: string[], columnName: string): string {
   if (!headers) return columnName;
   return headers.find((h) => h.toLowerCase() === columnName.toLowerCase()) || columnName;
+}
+
+/**
+ * Validates if the given Kelompok belongs to the given Desa.
+ */
+export function isMappingCorrect(desa: string, kelompok: string): boolean {
+  if (!desa || !kelompok) return true;
+  const validKelompoks = desaData[desa.toUpperCase()];
+  if (!validKelompoks) return false;
+  
+  // Normalize strings for comparison (trim and lowercase)
+  const normalizedKelompok = kelompok.trim().toLowerCase();
+  return validKelompoks.some(k => k.trim().toLowerCase() === normalizedKelompok);
 }

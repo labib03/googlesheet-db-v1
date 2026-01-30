@@ -13,13 +13,13 @@ import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
-import { ShieldCheck, AlertCircle, History, Settings } from "lucide-react";
+import { ShieldCheck, AlertCircle, History, Settings, Check, Trash, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExportButton } from "./dashboard/export-button";
 import { COLUMNS } from "@/lib/constants";
 import { BulkDeleteDialog } from "./bulk-delete-dialog";
-import { Check, Trash } from "lucide-react";
+import { isMappingCorrect } from "@/lib/helper";
 
 interface AdminDashboardClientProps {
   initialData: SheetRow[];
@@ -82,6 +82,14 @@ export function AdminDashboardClient({
 
   const dataTopRef = useRef<HTMLDivElement | null>(null);
   const isFirstMount = useRef(true);
+
+  const mismatchCount = useMemo(() => {
+    return initialData.filter(row => {
+      const desa = String(row[COLUMNS.DESA] || "");
+      const kelompok = String(row[COLUMNS.KELOMPOK] || "");
+      return !isMappingCorrect(desa, kelompok);
+    }).length;
+  }, [initialData]);
 
   const isEnableAdd = process.env.NEXT_PUBLIC_ENABLE_ADD === "true";
   const isEnableDelete = process.env.NEXT_PUBLIC_ENABLE_DELETE === "true";
@@ -176,6 +184,21 @@ export function AdminDashboardClient({
                 {trashData.length > 0 && (
                     <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse">
                         {trashData.length}
+                    </span>
+                )}
+            </Button>
+          </Link>
+
+          <Link href="/admin-restricted/data-mismatch" className="shrink-0">
+            <Button 
+                variant="outline" 
+                className="gap-2 rounded-xl h-10 px-3 sm:px-5 border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:text-amber-600 hover:border-amber-100 transition-all font-semibold shadow-sm w-full sm:w-auto"
+            >
+                <AlertTriangle className="h-4 w-4" />
+                <span className="text-xs sm:text-sm">Mismatch</span>
+                {mismatchCount > 0 && (
+                    <span className="ml-1 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse">
+                        {mismatchCount}
                     </span>
                 )}
             </Button>
