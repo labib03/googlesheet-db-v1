@@ -2,7 +2,8 @@
 
 import { SheetRow } from "@/lib/google-sheets";
 import { DataDetailDialog } from "@/components/data-detail-dialog";
-import { capitalizeWords, getCellValue, isMappingCorrect } from "@/lib/helper";
+import { EditDataDialog } from "@/components/edit-data-dialog";
+import { capitalizeWords, getCellValue } from "@/lib/helper";
 import { COLUMNS } from "@/lib/constants";
 import { ArrowLeft, UserX, MapPin, AlertTriangle, ShieldCheck, AlertCircle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -226,7 +227,7 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
                               <div className="flex flex-wrap gap-x-5 gap-y-1.5">
                                 <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-500 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded-md border border-rose-100 dark:border-rose-900/50">
                                   <MapPin className="w-3.5 h-3.5" />
-                                  {kelompok} • {desa}
+                                  Kelompok: {kelompok} • Desa: {desa}
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
@@ -242,9 +243,11 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
                             </div>
 
                             <div className="hidden sm:flex flex-col items-end gap-2 pr-2">
-                               <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-full border border-indigo-100 dark:border-indigo-900/50 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 shadow-sm active:scale-95">
-                                 EDIT & FIX
-                               </span>
+                               <EditDataDialog row={row} rowIndex={Number(row._index)}>
+                                  <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-full border border-indigo-100 dark:border-indigo-900/50 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 shadow-sm active:scale-95">
+                                    EDIT & FIX
+                                  </span>
+                               </EditDataDialog>
                             </div>
                           </div>
                         </DataDetailDialog>

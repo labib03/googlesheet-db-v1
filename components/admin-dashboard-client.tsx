@@ -2,8 +2,6 @@
 
 import { useRef, useEffect, useState, useMemo } from "react";
 import { AddDataDialog } from "@/components/add-data-dialog";
-import { useViewConfig } from "@/context/view-config-context";
-import { Checkbox } from "@/components/ui/checkbox";
 import { SheetRow } from "@/lib/google-sheets";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DashboardFilters } from "./dashboard/dashboard-filters";
