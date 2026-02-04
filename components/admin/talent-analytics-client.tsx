@@ -88,19 +88,34 @@ export function TalentAnalyticsClient({
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                        <Button variant="ghost" size="icon" asChild className="rounded-xl hover:bg-slate-200/50 dark:hover:bg-slate-800/50">
-                            <Link href={mode === "dashboard-only" ? "/" : "/admin-restricted"}>
-                                <ArrowLeft className="w-5 h-5" />
+                <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-6 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
+                    <div className="space-y-2">
+
+                        <div className="flex items-center gap-3 px-1">
+                            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
+                                {mode === "config-only" ? <Settings2 className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
+                            </div>
+                            <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight font-syne">
+                                {mode === "config-only" ? "Talent Configuration" : "Talent Analytics"}
+                            </h1>
+                        </div>
+
+                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                            Detail Analisis Terkait Hobi dan Skill Generus
+                        </p>
+                    </div>
+
+                    <div className="flex gap-3 items-center">
+                        <Button
+                            asChild
+                            variant="ghost"
+                            className="rounded-xl px-4 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
+                        >
+                            <Link href="/">
+                                <ArrowLeft className="h-4 w-4 mr-2" />
+                                Kembali ke Dashboard
                             </Link>
                         </Button>
-                        <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
-                            {mode === "config-only" ? <Settings2 className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
-                        </div>
-                        <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white tracking-tight font-syne">
-                            {mode === "config-only" ? "Talent Configuration" : "Talent Analytics"}
-                        </h1>
                     </div>
                 </div>
 

@@ -92,8 +92,8 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
     baseParamsForDesa.jenjang = selectedJenjang;
   }
 
-  const baseParamsForKelompok: Record<string, string> = { 
-    desa: selectedDesaLabel 
+  const baseParamsForKelompok: Record<string, string> = {
+    desa: selectedDesaLabel
   };
   if (selectedJenjang) {
     baseParamsForKelompok.jenjang = selectedJenjang;
@@ -128,7 +128,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                 >
                   <Link href="/">
                     <ArrowLeft className="h-4 w-4 mr-2" />
-                    Back to Dashboard
+                    Kembali ke Dashboard
                   </Link>
                 </Button>
               </div>
@@ -165,7 +165,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                           }
                           className={cn(
                             "transition-colors font-medium",
-                             selectedDesa ? "hover:text-indigo-600" : "text-slate-900 dark:text-white font-semibold"
+                            selectedDesa ? "hover:text-indigo-600" : "text-slate-900 dark:text-white font-semibold"
                           )}
                         >
                           {selectedDesaLabel || "Desa Overview"}
@@ -185,15 +185,15 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                   </BreadcrumbList>
                 </Breadcrumb>
               </div>
-              
+
               <div className="flex items-center gap-2">
-                 {selectedJenjang && (
-                    <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-full uppercase tracking-widest hidden sm:inline border border-indigo-100 dark:border-indigo-900">
-                      FILTER: {selectedJenjang}
-                    </span>
-                 )}
+                {selectedJenjang && (
+                  <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-950/50 px-2 py-0.5 rounded-full uppercase tracking-widest hidden sm:inline border border-indigo-100 dark:border-indigo-900">
+                    FILTER: {selectedJenjang}
+                  </span>
+                )}
                 <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest hidden sm:inline">
-                   Active Node
+                  Active Node
                 </span>
               </div>
             </div>
@@ -202,10 +202,10 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
           {/* Global Statistics Overview */}
           <SummarySection>
             <div key={`${selectedDesa}-${selectedKelompok}-${selectedJenjang}`}>
-              <StatsOverview 
-                data={filteredRowsForStats} 
+              <StatsOverview
+                data={filteredRowsForStats}
                 distributionData={filteredRowsForDistribution}
-                selectedJenjang={selectedJenjang} 
+                selectedJenjang={selectedJenjang}
               />
             </div>
           </SummarySection>
