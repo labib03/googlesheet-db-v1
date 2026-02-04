@@ -81,7 +81,7 @@ export function TalentAnalyticsClient({
     const topDiscoveryTerms = useMemo(() => {
         const otherData = categorizedData["Lainnya"] || [];
         const texts = otherData.map(row => String(row[contentType === "hobi" ? COLUMNS.HOBI : COLUMNS.SKILL] || ""));
-        return getTopTerms(texts, 15);
+        return getTopTerms(texts, 30);
     }, [categorizedData, contentType]);
 
     const handleQuickAdd = (term: string, category: string) => {
