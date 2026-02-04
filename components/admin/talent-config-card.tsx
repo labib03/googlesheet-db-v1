@@ -20,6 +20,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { cn } from "@/lib/utils";
 
 interface TalentConfigCardProps {
     hobiMapping: Record<string, string[]>;
@@ -266,7 +267,12 @@ export function TalentConfigCard({
                             value={newCategory}
                             onChange={(e) => setNewCategory(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && addCategory()}
-                            className="rounded-2xl border-slate-200 dark:border-slate-800 h-12 bg-white dark:bg-slate-900 px-6 focus:ring-2 focus:ring-slate-200 w-full"
+                            className={cn(
+                                "rounded-2xl border-slate-200 dark:border-slate-800 h-12 bg-white dark:bg-slate-900 px-6 focus:ring-1 focus-visible:ring-1 w-full placeholder:tracking-wider focus:tracking-wider",
+                                configTab === "hobi"
+                                    ? "focus:ring-indigo-600 focus-visible:ring-indigo-600"
+                                    : "focus:ring-emerald-600 focus-visible:ring-emerald-600"
+                            )}
                         />
                         <Button
                             onClick={addCategory}
@@ -377,10 +383,12 @@ function CategoryKeywordsInput({
                                 >
                                     <Badge
                                         variant="secondary"
-                                        className={`rounded-lg px-3 py-1 gap-1 text-xs font-bold transition-all ${color === 'indigo'
-                                            ? "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-900"
-                                            : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-900"
-                                            }`}
+                                        className={cn(
+                                            "rounded-lg px-3 py-1 gap-1 text-sm font-bold transition-all tracking-wider",
+                                            color === 'indigo'
+                                                ? "bg-indigo-50 dark:bg-indigo-950/30 text-indigo-700 dark:text-indigo-300 border-indigo-100 dark:border-indigo-900"
+                                                : "bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300 border-emerald-100 dark:border-emerald-900"
+                                        )}
                                     >
                                         {kw}
                                         <button
@@ -405,7 +413,12 @@ function CategoryKeywordsInput({
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        className="rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 h-10 text-sm focus:ring-2 focus:ring-indigo-600/20"
+                        className={cn(
+                            "rounded-xl bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 h-10 text-sm focus:ring-1 focus-visible:ring-1 placeholder:tracking-wider focus:tracking-wider",
+                            color === "indigo"
+                                ? "focus:ring-indigo-600 focus-visible:ring-indigo-600"
+                                : "focus:ring-emerald-600 focus-visible:ring-emerald-600"
+                        )}
                     />
                     <Plus className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-slate-500 transition-colors" />
                 </div>

@@ -150,7 +150,7 @@ export function TalentAnalyticsClient({
                             variant="ghost"
                             className="rounded-xl px-4 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
                         >
-                            <Link href="/">
+                            <Link href={mode === "config-only" ? "/admin-restricted" : "/"}>
                                 <ArrowLeft className="h-4 w-4 mr-2" />
                                 Kembali ke Dashboard
                             </Link>

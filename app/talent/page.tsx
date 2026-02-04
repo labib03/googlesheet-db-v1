@@ -3,7 +3,7 @@ import { getGlobalConfig } from "@/app/actions";
 import { Navbar } from "@/components/navbar";
 import { TalentAnalyticsClient } from "@/components/admin/talent-analytics-client";
 import { Suspense } from "react";
-import Loading from "@/app/loading";
+import { TalentSkeleton } from "@/components/admin/talent-skeleton";
 import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
 
 export const dynamic = "force-dynamic";
@@ -64,7 +64,7 @@ export default function TalentDashboardPage() {
         <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 font-outfit">
             <Navbar />
             <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-                <Suspense fallback={<Loading />}>
+                <Suspense fallback={<TalentSkeleton />}>
                     <TalentAnalyticsContent />
                 </Suspense>
             </main>
