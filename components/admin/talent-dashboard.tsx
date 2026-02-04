@@ -1,7 +1,6 @@
 import { SheetRow } from "@/lib/google-sheets";
 import { COLUMNS } from "@/lib/constants";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Users, Search, LayoutGrid } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
@@ -13,7 +12,10 @@ interface TalentDashboardProps {
     activeContentType: "hobi" | "skill";
 }
 
-export function TalentDashboard({ categorizedData, activeContentType }: TalentDashboardProps) {
+export function TalentDashboard({
+    categorizedData,
+    activeContentType,
+}: TalentDashboardProps) {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
@@ -60,6 +62,7 @@ export function TalentDashboard({ categorizedData, activeContentType }: TalentDa
                     <LayoutGrid className={`w-5 h-5 ${activeContentType === 'hobi' ? 'text-indigo-600' : 'text-emerald-600'}`} />
                     <h2 className="text-sm font-black uppercase tracking-widest text-slate-500">Ringkasan Kategori</h2>
                 </div>
+
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                     {categories.map((cat) => (
                         <motion.div

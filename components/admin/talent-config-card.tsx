@@ -7,9 +7,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { X, Plus, Save, RotateCcw, Info, Settings } from "lucide-react";
-import { toast } from "sonner"; // Assuming sonner is used, if not, use alert or console.log
+import { X, Plus, Save, RotateCcw, Info, Settings, AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface TalentConfigCardProps {
     hobiMapping: Record<string, string[]>;
@@ -44,6 +54,7 @@ export function TalentConfigCard({
 }: TalentConfigCardProps) {
     const [newCategory, setNewCategory] = useState("");
     const [isSaving, setIsSaving] = useState(false);
+    const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
     const handleSave = async () => {
         setIsSaving(true);
@@ -87,19 +98,27 @@ export function TalentConfigCard({
             toast.error("Kategori sistem tidak bisa dihapus!");
             return;
         }
-        if (confirm(`Hapus kategori "${cat}"? Mapping untuk kategori ini di tab ${configTab.toUpperCase()} akan hilang.`)) {
-            if (configTab === "hobi") {
-                setHobiCategories(hobiCategories.filter(c => c !== cat));
-                const newHobi = { ...hobiMapping };
-                delete newHobi[cat];
-                setHobiMapping(newHobi);
-            } else {
-                setSkillCategories(skillCategories.filter(c => c !== cat));
-                const newSkill = { ...skillMapping };
-                delete newSkill[cat];
-                setSkillMapping(newSkill);
-            }
+        setCategoryToDelete(cat);
+    };
+
+    const confirmDelete = () => {
+        if (!categoryToDelete) return;
+        const cat = categoryToDelete;
+
+        if (configTab === "hobi") {
+            setHobiCategories(hobiCategories.filter(c => c !== cat));
+            const newHobi = { ...hobiMapping };
+            delete newHobi[cat];
+            setHobiMapping(newHobi);
+        } else {
+            setSkillCategories(skillCategories.filter(c => c !== cat));
+            const newSkill = { ...skillMapping };
+            delete newSkill[cat];
+            setSkillMapping(newSkill);
         }
+
+        setCategoryToDelete(null);
+        toast.success(`Kategori "${cat}" berhasil dihapus.`);
     };
 
     const addKeyword = (category: string, keyword: string, type: 'hobi' | 'skill') => {
@@ -282,6 +301,34 @@ export function TalentConfigCard({
                     ))}
                 </AnimatePresence>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={!!categoryToDelete} onOpenChange={(open) => !open && setCategoryToDelete(null)}>
+                <AlertDialogContent className="rounded-[2.5rem] border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 p-8 shadow-2xl">
+                    <AlertDialogHeader className="space-y-4">
+                        <div className="mx-auto p-4 bg-red-50 dark:bg-red-950/30 rounded-full w-fit">
+                            <AlertTriangle className="w-8 h-8 text-red-600 animate-pulse" />
+                        </div>
+                        <AlertDialogTitle className="text-2xl font-black font-syne text-center">Hapus Kategori?</AlertDialogTitle>
+                        <AlertDialogDescription className="text-center text-slate-500 dark:text-slate-400 font-medium pb-2">
+                            Apakah Anda yakin ingin menghapus kategori <span className="font-bold text-slate-900 dark:text-white">"{categoryToDelete}"</span>?
+                            <br />
+                            Semua mapping kata kunci untuk kategori ini di tab <span className="font-bold text-indigo-600">{configTab.toUpperCase()}</span> akan terhapus secara permanen.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter className="flex-col sm:flex-row gap-3 pt-4">
+                        <AlertDialogCancel className="rounded-2xl border-slate-200 dark:border-slate-800 font-bold h-12 m-0 flex-1">
+                            BATALKAN
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            className="rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold h-12 m-0 flex-1 shadow-lg shadow-red-200 dark:shadow-none transition-all"
+                        >
+                            YA, HAPUS SEKARANG
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
