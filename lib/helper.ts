@@ -131,12 +131,19 @@ export function categorizeByKeywords(
 
   Object.entries(mapping).forEach(([category, keywords]) => {
     const isMatched = keywords.some((keyword) => {
-      if (!keyword.trim()) return false;
+      const trimmedKeyword = keyword.trim();
+      if (!trimmedKeyword) return false;
       try {
-        const regex = new RegExp(keyword, "gi");
+        // Use word boundaries \b to ensure exact word match
+        // Escape special characters to treat the keyword as a literal string
+        const escapedKeyword = trimmedKeyword.replace(
+          /[.*+?^${}()|[\]\\]/g,
+          "\\$&",
+        );
+        const regex = new RegExp(`\\b${escapedKeyword}\\b`, "gi");
         return regex.test(text);
       } catch (e) {
-        console.error(`Invalid regex for keyword: ${keyword}`, e);
+        console.error(`Invalid regex for keyword: ${trimmedKeyword}`, e);
         return false;
       }
     });
