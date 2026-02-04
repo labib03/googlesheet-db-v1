@@ -162,7 +162,10 @@ export function TalentAnalyticsClient({
                     transition={{ duration: 0.3 }}
                 >
                     {activeTab === "dashboard" ? (
-                        <TalentDashboard categorizedData={categorizedData} />
+                        <TalentDashboard
+                            categorizedData={categorizedData}
+                            activeContentType={contentType}
+                        />
                     ) : (
                         <TalentConfigCard
                             hobiMapping={hobiMapping}
