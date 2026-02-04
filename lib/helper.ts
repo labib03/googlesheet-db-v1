@@ -23,7 +23,10 @@ export function calculateAge(dateString: string): string {
   }
 }
 
-export function formatDate(dateString: string, formatOutputDate: string = "dd/MM/yyyy"): string {
+export function formatDate(
+  dateString: string,
+  formatOutputDate: string = "dd/MM/yyyy",
+): string {
   if (!dateString) return "-";
 
   try {
@@ -77,11 +80,16 @@ export function getJenjangKelas(age: string) {
  * Safety helper to get cell value from a row case-insensitively.
  * Prevents logic breaking if Google Sheet column names change case.
  */
-export function getCellValue(row: Record<string, unknown>, columnName: string): string {
+export function getCellValue(
+  row: Record<string, unknown>,
+  columnName: string,
+): string {
   if (!row) return "";
   const keys = Object.keys(row);
-  const targetKey = keys.find((k) => k.toLowerCase() === columnName.toLowerCase());
-  return targetKey ? String(row[targetKey] as string || "").trim() : "";
+  const targetKey = keys.find(
+    (k) => k.toLowerCase() === columnName.toLowerCase(),
+  );
+  return targetKey ? String((row[targetKey] as string) || "").trim() : "";
 }
 
 /**
@@ -89,7 +97,10 @@ export function getCellValue(row: Record<string, unknown>, columnName: string): 
  */
 export function findColumnKey(headers: string[], columnName: string): string {
   if (!headers) return columnName;
-  return headers.find((h) => h.toLowerCase() === columnName.toLowerCase()) || columnName;
+  return (
+    headers.find((h) => h.toLowerCase() === columnName.toLowerCase()) ||
+    columnName
+  );
 }
 
 /**
@@ -99,8 +110,41 @@ export function isMappingCorrect(desa: string, kelompok: string): boolean {
   if (!desa || !kelompok) return true;
   const validKelompoks = desaData[desa.toUpperCase()];
   if (!validKelompoks) return false;
-  
+
   // Normalize strings for comparison (trim and lowercase)
   const normalizedKelompok = kelompok.trim().toLowerCase();
-  return validKelompoks.some(k => k.trim().toLowerCase() === normalizedKelompok);
+  return validKelompoks.some(
+    (k) => k.trim().toLowerCase() === normalizedKelompok,
+  );
+}
+
+/**
+ * Categorizes a string based on a mapping of categories to keywords using Regex.
+ * Returns an array of matched categories.
+ */
+export function categorizeByKeywords(
+  text: string,
+  mapping: Record<string, string[]>,
+): string[] {
+  if (!text) return [];
+  const categories: string[] = [];
+
+  Object.entries(mapping).forEach(([category, keywords]) => {
+    const isMatched = keywords.some((keyword) => {
+      if (!keyword.trim()) return false;
+      try {
+        const regex = new RegExp(keyword, "gi");
+        return regex.test(text);
+      } catch (e) {
+        console.error(`Invalid regex for keyword: ${keyword}`, e);
+        return false;
+      }
+    });
+
+    if (isMatched) {
+      categories.push(category);
+    }
+  });
+
+  return categories;
 }

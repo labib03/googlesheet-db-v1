@@ -12,11 +12,39 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   if (!password) {
-    // Init default password if missing in sheet
     password = "admin";
-    // We fire and forget the save to avoid blocking render too long, 
-    // or await it to ensure consistency. Awaiting is safer for "first run".
     await saveGlobalConfig(CONFIG_KEYS.ADMIN_PASSWORD, password);
+  }
+
+  // Init talent mapping if missing
+  if (result.success && result.data) {
+    if (!result.data[CONFIG_KEYS.MAP_KATEGORI_HOBI]) {
+      await saveGlobalConfig(CONFIG_KEYS.MAP_KATEGORI_HOBI, {
+        "Olahraga": ["bola", "futsal", "renang", "badminton", "sepeda", "basket", "sepak"],
+        "Seni & Kreatif": ["menggambar", "mewarnai", "melukis", "menulis", "musik", "seni"],
+        "Edukasi": ["membaca", "baca", "buku", "belajar", "mengaji"],
+        "Lifestyle": ["game", "jalan", "traveling", "nonton"]
+      });
+    }
+    if (!result.data[CONFIG_KEYS.MAP_KATEGORI_SKILL]) {
+      await saveGlobalConfig(CONFIG_KEYS.MAP_KATEGORI_SKILL, {
+        "Kesehatan": ["dokter", "bidan", "perawat"],
+        "Pendidikan": ["guru", "dosen"],
+        "Wirausaha": ["pengusaha", "bisnis", "dagang"],
+        "Keamanan": ["tentara", "polisi", "tni", "polri"],
+        "Digital": ["desain", "design", "grafis", "it", "coding", "editing"]
+      });
+    }
+    if (!result.data[CONFIG_KEYS.LIST_KATEGORI_HOBI_ALL]) {
+      await saveGlobalConfig(CONFIG_KEYS.LIST_KATEGORI_HOBI_ALL, [
+        "Olahraga", "Seni & Kreatif", "Edukasi", "Lifestyle"
+      ]);
+    }
+    if (!result.data[CONFIG_KEYS.LIST_KATEGORI_SKILL_ALL]) {
+      await saveGlobalConfig(CONFIG_KEYS.LIST_KATEGORI_SKILL_ALL, [
+        "Kesehatan", "Pendidikan", "Wirausaha", "Keamanan", "Digital"
+      ]);
+    }
   }
 
   return (

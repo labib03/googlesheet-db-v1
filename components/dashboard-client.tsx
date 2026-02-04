@@ -91,7 +91,7 @@ export function DashboardClient({
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="show"
       variants={staggerContainer}
@@ -112,6 +112,16 @@ export function DashboardClient({
         </div>
         <div className="w-full lg:w-auto flex flex-wrap gap-3">
           <DashboardExportButton data={data.filteredData} headers={headers} />
+          <Button
+            asChild
+            variant="outline"
+            className="gap-2 rounded-xl h-10 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shadow-sm"
+          >
+            <Link href="/talent">
+              <BarChart3 className="h-4 w-4 text-emerald-500" />
+              Talent
+            </Link>
+          </Button>
           <Button
             asChild
             variant="outline"
@@ -147,7 +157,7 @@ export function DashboardClient({
           <CardContent className="p-0 relative">
             <AnimatePresence mode="wait">
               {status.isVisualPending ? (
-                <motion.div 
+                <motion.div
                   key="skeleton-dashboard"
                   variants={fadeVariants}
                   initial="initial"
@@ -163,7 +173,7 @@ export function DashboardClient({
                   </div>
                 </motion.div>
               ) : data.filteredData.length === 0 ? (
-                <motion.div 
+                <motion.div
                   key="empty-dashboard"
                   variants={fadeVariants}
                   initial="initial"
@@ -192,7 +202,7 @@ export function DashboardClient({
                   )}
                 </motion.div>
               ) : (
-                <motion.div 
+                <motion.div
                   key="data-dashboard"
                   variants={fadeVariants}
                   initial="initial"

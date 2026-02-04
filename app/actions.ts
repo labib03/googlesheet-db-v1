@@ -12,7 +12,7 @@ import {
 } from "@/lib/google-sheets";
 import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { CONFIG_SHEET_NAME, CONFIG_KEYS } from "@/lib/constants";
+import { CONFIG_SHEET_NAME } from "@/lib/constants";
 
 export type ActionState = {
   success: boolean;
@@ -41,8 +41,10 @@ export async function addData(prevState: ActionState, formData: FormData) {
       minute: "2-digit",
       second: "2-digit",
       hour12: false,
-    }).format(new Date()).replace(",", "");
-    
+    })
+      .format(new Date())
+      .replace(",", "");
+
     rawData["Timestamp"] = timestamp;
 
     await appendSheetData(rawData);
@@ -85,7 +87,9 @@ export async function updateData(
       minute: "2-digit",
       second: "2-digit",
       hour12: false,
-    }).format(new Date()).replace(",", "");
+    })
+      .format(new Date())
+      .replace(",", "");
 
     rawData["Timestamp"] = timestamp;
 
@@ -106,13 +110,17 @@ export async function updateData(
 }
 
 export async function deleteData(
-  rowIndex: number, 
-  metadata?: { isMarried?: boolean; isPindahSambung?: boolean; keterangan?: string }
+  rowIndex: number,
+  metadata?: {
+    isMarried?: boolean;
+    isPindahSambung?: boolean;
+    keterangan?: string;
+  },
 ) {
   try {
     // 1. Ambil data asli sebelum dihapus
     const rowToDelete = await getRowData(rowIndex);
-    
+
     // 2. Salin data ke sheet "Trash"
     // Update timestamp to deletion time
     const timestamp = new Intl.DateTimeFormat("en-GB", {
@@ -124,8 +132,10 @@ export async function deleteData(
       minute: "2-digit",
       second: "2-digit",
       hour12: false,
-    }).format(new Date()).replace(",", "");
-    
+    })
+      .format(new Date())
+      .replace(",", "");
+
     rowToDelete["Timestamp"] = timestamp;
 
     // Add metadata for Trash
@@ -152,7 +162,10 @@ export async function deleteData(
   }
 }
 
-export async function bulkDeleteData(rowIndices: number[], keterangan?: string) {
+export async function bulkDeleteData(
+  rowIndices: number[],
+  keterangan?: string,
+) {
   try {
     const timestamp = new Intl.DateTimeFormat("en-GB", {
       timeZone: "Asia/Jakarta",
@@ -163,7 +176,9 @@ export async function bulkDeleteData(rowIndices: number[], keterangan?: string) 
       minute: "2-digit",
       second: "2-digit",
       hour12: false,
-    }).format(new Date()).replace(",", "");
+    })
+      .format(new Date())
+      .replace(",", "");
 
     const allData = await getSheetData();
     const rowsToDelete: SheetRow[] = [];
@@ -174,7 +189,7 @@ export async function bulkDeleteData(rowIndices: number[], keterangan?: string) 
       if (allData[dataIdx]) {
         const row = { ...allData[dataIdx] };
         row["Timestamp"] = timestamp;
-        
+
         // Add default/provided metadata for Trash in bulk
         row["IsMarried"] = 0;
         row["IsPindahSambung"] = 0;
@@ -241,7 +256,7 @@ export async function getGlobalConfig() {
     const rawData = await getSheetData(CONFIG_SHEET_NAME);
     const config: Record<string, unknown> = {};
 
-    rawData.forEach(row => {
+    rawData.forEach((row) => {
       const key = String(row["KEY"] || "");
       const value = String(row["VALUE"] || "");
       const type = String(row["TYPE"] || "string");
@@ -273,18 +288,18 @@ export async function getGlobalConfig() {
 export async function saveGlobalConfig(key: string, value: unknown) {
   try {
     const rawData = await getSheetData(CONFIG_SHEET_NAME);
-    const rowIndex = rawData.findIndex(row => row["KEY"] === key);
-    
+    const rowIndex = rawData.findIndex((row) => row["KEY"] === key);
+
     let stringValue = String(value);
     let type = "string";
 
-    if (Array.isArray(value) || (typeof value === 'object' && value !== null)) {
+    if (Array.isArray(value) || (typeof value === "object" && value !== null)) {
       stringValue = JSON.stringify(value);
       type = "json";
-    } else if (typeof value === 'boolean') {
+    } else if (typeof value === "boolean") {
       stringValue = String(value);
       type = "boolean";
-    } else if (typeof value === 'number') {
+    } else if (typeof value === "number") {
       stringValue = String(value);
       type = "number";
     }
@@ -293,7 +308,7 @@ export async function saveGlobalConfig(key: string, value: unknown) {
       KEY: key,
       VALUE: stringValue,
       TYPE: type,
-      LAST_UPDATED: new Date().toISOString()
+      LAST_UPDATED: new Date().toISOString(),
     };
 
     if (rowIndex >= 0) {
@@ -304,7 +319,7 @@ export async function saveGlobalConfig(key: string, value: unknown) {
     } else {
       await appendSheetData(rowData, CONFIG_SHEET_NAME);
     }
-    
+
     revalidateTag("google-sheets", "default");
     revalidatePath("/admin-restricted/settings");
     return { success: true, message: "Configuration saved" };

@@ -11,7 +11,7 @@ import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
-import { ShieldCheck, AlertCircle, History, Settings, Check, Trash, AlertTriangle } from "lucide-react";
+import { ShieldCheck, AlertCircle, History, Settings, Check, Trash, AlertTriangle, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExportButton } from "./dashboard/export-button";
@@ -65,9 +65,9 @@ export function AdminDashboardClient({
   const [selectedIndices, setSelectedIndices] = useState<number[]>([]);
 
   const toggleSelection = (sheetIndex: number) => {
-    setSelectedIndices(prev => 
-      prev.includes(sheetIndex) 
-        ? prev.filter(i => i !== sheetIndex) 
+    setSelectedIndices(prev =>
+      prev.includes(sheetIndex)
+        ? prev.filter(i => i !== sheetIndex)
         : [...prev, sheetIndex]
     );
   };
@@ -78,7 +78,6 @@ export function AdminDashboardClient({
       .map(row => String(row[COLUMNS.NAMA] || "Tanpa Nama"));
   }, [selectedIndices, initialData]);
 
-  const dataTopRef = useRef<HTMLDivElement | null>(null);
   const isFirstMount = useRef(true);
 
   const mismatchCount = useMemo(() => {
@@ -93,29 +92,20 @@ export function AdminDashboardClient({
   const isEnableDelete = process.env.NEXT_PUBLIC_ENABLE_DELETE === "true";
   const isEnableEdit = process.env.NEXT_PUBLIC_ENABLE_EDIT === "true";
 
-  const scrollToTop = () => {
-    if (dataTopRef.current) {
-      setTimeout(() => {
-        dataTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-      }, 100);
-    }
-  };
-
   useEffect(() => {
+    // Always start at the window top when entering or returning to this page
     window.scrollTo(0, 0);
-  }, []);
 
-  useEffect(() => {
-    if (isFirstMount.current) {
+    // Mark first mount as complete after a small delay to ignore initial state setup
+    const timer = setTimeout(() => {
       isFirstMount.current = false;
-      return;
-    }
-    scrollToTop();
-  }, [pagination.currentPage, status.isFiltered, pagination.pageSize]);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (error) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="mx-auto max-w-2xl px-4"
@@ -135,72 +125,97 @@ export function AdminDashboardClient({
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="show"
       variants={staggerContainer}
       className="space-y-8 relative font-outfit"
     >
-      <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
-        <div className="flex flex-col space-y-2">
+      {/* Section 1: Header Introduction */}
+      <motion.div variants={itemVariants} className="px-1 border-b border-slate-200 dark:border-slate-800 pb-8">
+        <div className="flex flex-col space-y-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
-              <ShieldCheck className="w-6 h-6" />
+            <div className="p-2.5 bg-indigo-600 rounded-2xl text-white shadow-xl shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
+              <ShieldCheck className="w-7 h-7" />
             </div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight font-syne">
+            <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter font-syne">
               Admin Management
             </h1>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl">
-            Authorized personnel only. Data manipulation and deletion here will directly affect the Google Sheets database.
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
+            Halaman otorisasi khusus personil yang berwenang. Manipulasi data yang dilakukan di sini akan
+            langsung berdampak pada database Google Sheets secara real-time.
           </p>
         </div>
-        
-        <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end shrink-0 max-w-full">
-          <Button
-            asChild
-            variant="outline"
-            className="gap-2 rounded-xl h-10 w-10 p-0 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shadow-sm shrink-0"
-            title="Settings"
-          >
-            <Link href="/admin-restricted/settings">
-              <Settings className="h-4 w-4 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors" />
-            </Link>
-          </Button>
+      </motion.div>
 
+      {/* Section 2: Action Toolbar Grouped by Scope */}
+      <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-white/40 dark:bg-slate-900/40 p-4 rounded-3xl border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-md mx-1">
+
+        {/* Left/Main Group: Analytics & System Tools */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+            <Button
+              asChild
+              variant="ghost"
+              className="rounded-xl h-10 w-10 p-0 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm shrink-0"
+              title="Settings"
+            >
+              <Link href="/admin-restricted/settings">
+                <Settings className="h-4 w-4 text-slate-500 hover:text-indigo-600 transition-colors" />
+              </Link>
+            </Button>
+            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
+            <Button
+              asChild
+              variant="ghost"
+              className="gap-2 rounded-xl h-10 px-4 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-all font-bold text-xs shrink-0"
+            >
+              <Link href="/admin-restricted/talent-analytics">
+                <Sparkles className="h-4 w-4" />
+                <span>TALENT CONFIG</span>
+              </Link>
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Link href="/admin-restricted/trash" className="shrink-0">
+              <Button
+                variant="outline"
+                className="gap-2 rounded-2xl h-10 px-4 border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 hover:border-rose-100 transition-all font-bold text-xs shadow-sm"
+              >
+                <History className="h-4 w-4" />
+                <span>TRASH</span>
+                {trashData.length > 0 && (
+                  <span className="ml-1 bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900">
+                    {trashData.length}
+                  </span>
+                )}
+              </Button>
+            </Link>
+
+            <Link href="/admin-restricted/data-mismatch" className="shrink-0">
+              <Button
+                variant="outline"
+                className="gap-2 rounded-2xl h-10 px-4 border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:text-amber-600 hover:border-amber-100 transition-all font-bold text-xs shadow-sm"
+              >
+                <AlertTriangle className="h-4 w-4" />
+                <span>MISMATCH</span>
+                {mismatchCount > 0 && (
+                  <span className="ml-1 bg-amber-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900">
+                    {mismatchCount}
+                  </span>
+                )}
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Right Group: Data Operations */}
+        <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
           <div className="shrink-0">
             <ExportButton data={data.filteredData} headers={headers} />
           </div>
-
-          <Link href="/admin-restricted/trash" className="shrink-0">
-            <Button 
-                variant="outline" 
-                className="gap-2 rounded-xl h-10 px-3 sm:px-5 border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 hover:border-rose-100 transition-all font-semibold shadow-sm w-full sm:w-auto"
-            >
-                <History className="h-4 w-4" />
-                <span className="text-xs sm:text-sm">Trash</span>
-                {trashData.length > 0 && (
-                    <span className="ml-1 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                        {trashData.length}
-                    </span>
-                )}
-            </Button>
-          </Link>
-
-          <Link href="/admin-restricted/data-mismatch" className="shrink-0">
-            <Button 
-                variant="outline" 
-                className="gap-2 rounded-xl h-10 px-3 sm:px-5 border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:text-amber-600 hover:border-amber-100 transition-all font-semibold shadow-sm w-full sm:w-auto"
-            >
-                <AlertTriangle className="h-4 w-4" />
-                <span className="text-xs sm:text-sm">Mismatch</span>
-                {mismatchCount > 0 && (
-                    <span className="ml-1 bg-amber-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full ring-2 ring-white dark:ring-slate-900 animate-pulse">
-                        {mismatchCount}
-                    </span>
-                )}
-            </Button>
-          </Link>
 
           {isEnableAdd && (
             <div className="shrink-0">
@@ -209,6 +224,7 @@ export function AdminDashboardClient({
           )}
         </div>
       </motion.div>
+
 
       <motion.div variants={itemVariants}>
         <DashboardFilters
@@ -225,14 +241,12 @@ export function AdminDashboardClient({
         />
       </motion.div>
 
-      <div ref={dataTopRef} className="scroll-mt-16" />
-
       <motion.div variants={itemVariants}>
         <Card className="border-none shadow-none bg-transparent">
           <CardContent className="p-0 relative">
             <AnimatePresence mode="wait">
               {status.isVisualPending ? (
-                <motion.div 
+                <motion.div
                   key="skeleton-view"
                   variants={fadeVariants}
                   initial="initial"
@@ -248,7 +262,7 @@ export function AdminDashboardClient({
                   </div>
                 </motion.div>
               ) : data.filteredData.length === 0 ? (
-                <motion.div 
+                <motion.div
                   key="empty-view"
                   variants={fadeVariants}
                   initial="initial"
@@ -256,10 +270,10 @@ export function AdminDashboardClient({
                   exit="exit"
                   className="p-20 text-center bg-white dark:bg-slate-900 rounded-3xl ring-1 ring-slate-100 dark:ring-slate-800 shadow-sm mx-1"
                 >
-                   <p className="text-slate-500 font-medium">No records found matching your selection.</p>
+                  <p className="text-slate-500 font-medium">No records found matching your selection.</p>
                 </motion.div>
               ) : (
-                <motion.div 
+                <motion.div
                   key="data-view"
                   variants={fadeVariants}
                   initial="initial"
@@ -291,16 +305,16 @@ export function AdminDashboardClient({
                   />
 
                   <div className="pt-2">
-                      <DashboardPagination
-                        currentPage={pagination.currentPage}
-                        totalPages={pagination.totalPages}
-                        pageSize={pagination.pageSize}
-                        onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
-                        onPageSizeChange={(s) => actions.handleStartTransition(() => {
-                          pagination.setPageSize(s);
-                          pagination.setCurrentPage(1);
-                        })}
-                      />
+                    <DashboardPagination
+                      currentPage={pagination.currentPage}
+                      totalPages={pagination.totalPages}
+                      pageSize={pagination.pageSize}
+                      onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
+                      onPageSizeChange={(s) => actions.handleStartTransition(() => {
+                        pagination.setPageSize(s);
+                        pagination.setCurrentPage(1);
+                      })}
+                    />
                   </div>
                 </motion.div>
               )}
@@ -318,7 +332,7 @@ export function AdminDashboardClient({
             exit={{ y: 100, opacity: 0 }}
             className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.5rem)] sm:w-auto sm:min-w-[400px]"
           >
-            <div className="bg-slate-900/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-[2rem] p-2.5 flex items-center gap-4 group">
+            <div className="bg-slate-900/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.3)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-4xl p-2.5 flex items-center gap-4 group">
               {/* Left Side: Count & Icon */}
               <div className="flex items-center gap-3 pl-4 pr-2">
                 <div className="relative">
@@ -330,8 +344,8 @@ export function AdminDashboardClient({
                   </span>
                 </div>
                 <div className="hidden sm:block whitespace-nowrap">
-                   <p className="text-white font-bold text-sm tracking-tight leading-none">Data Terpilih</p>
-                   <p className="text-slate-400 text-[10px] font-medium mt-1">Siap untuk aksi massal</p>
+                  <p className="text-white font-bold text-sm tracking-tight leading-none">Data Terpilih</p>
+                  <p className="text-slate-400 text-[10px] font-medium mt-1">Siap untuk aksi massal</p>
                 </div>
               </div>
 
@@ -344,20 +358,20 @@ export function AdminDashboardClient({
                 >
                   BATAL
                 </Button>
-                
+
                 {isEnableDelete && (
-                  <BulkDeleteDialog 
+                  <BulkDeleteDialog
                     selectedIndices={selectedIndices}
                     selectedNames={selectedNames}
                     onSuccess={() => setSelectedIndices([])}
                     trigger={
-                       <Button 
-                         variant="destructive"
-                         className="rounded-2xl gap-2 h-10 px-6 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-900/20 border-t border-white/10 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap"
-                       >
-                         <Trash className="w-4 h-4" />
-                         <span>HAPUS MASSAL</span>
-                       </Button>
+                      <Button
+                        variant="destructive"
+                        className="rounded-2xl gap-2 h-10 px-6 bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs shadow-lg shadow-rose-900/20 border-t border-white/10 transition-all hover:scale-[1.02] active:scale-95 whitespace-nowrap"
+                      >
+                        <Trash className="w-4 h-4" />
+                        <span>HAPUS MASSAL</span>
+                      </Button>
                     }
                   />
                 )}
