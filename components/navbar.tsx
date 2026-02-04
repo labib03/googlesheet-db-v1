@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Menu, X, Home, BarChart3, Sparkles } from 'lucide-react';
+import { Menu, X, Home, BarChart3, Sparkles, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export function Navbar() {
@@ -58,6 +58,13 @@ export function Navbar() {
                   className="px-4 py-2 text-sm font-medium transition-colors hover:text-indigo-600 dark:hover:text-indigo-400"
                 >
                   Talent
+                </Link>
+                <Link
+                  href="/admin-restricted"
+                  className="px-4 py-2 text-sm font-medium text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 flex items-center gap-1.5"
+                >
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin
                 </Link>
               </div>
             </div>
@@ -116,6 +123,17 @@ export function Navbar() {
               <Sparkles className="h-4 w-4 text-emerald-500" />
               Talent Analytics
             </Link>
+            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
+              <span className="px-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">Admin Area</span>
+              <Link
+                href="/admin-restricted"
+                onClick={toggleMenu}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400 font-medium transition-colors mt-1"
+              >
+                <ShieldCheck className="h-4 w-4" />
+                Management
+              </Link>
+            </div>
           </div>
           <div className="p-4 border-t border-slate-100 dark:border-slate-800">
             <p className="text-xs text-slate-400 text-center">

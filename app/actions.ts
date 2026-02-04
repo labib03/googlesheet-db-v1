@@ -12,7 +12,14 @@ import {
 } from "@/lib/google-sheets";
 import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { CONFIG_SHEET_NAME } from "@/lib/constants";
+import { CONFIG_SHEET_NAME, CONFIG_KEYS } from "@/lib/constants";
+import {
+  comparePassword,
+  createSession,
+  deleteSession,
+  getSession,
+  hashPassword,
+} from "@/lib/auth-service";
 
 export type ActionState = {
   success: boolean;
@@ -251,7 +258,10 @@ export async function getSheetDataAction() {
   }
 }
 
-export async function getGlobalConfig() {
+/**
+ * Internal core function to fetch all configuration without filtering.
+ */
+async function getInternalConfig() {
   try {
     const rawData = await getSheetData(CONFIG_SHEET_NAME);
     const config: Record<string, unknown> = {};
@@ -280,9 +290,31 @@ export async function getGlobalConfig() {
 
     return { success: true, data: config };
   } catch (error) {
-    console.error("Failed to fetch global config:", error);
+    console.error("Internal config error:", error);
     return { success: false, data: {} };
   }
+}
+
+/**
+ * Publicly accessible version that filters out sensitive keys
+ */
+export async function getGlobalConfig() {
+  const result = await getInternalConfig();
+  if (!result.success) return result;
+
+  const SENSITIVE_KEYS: string[] = [
+    CONFIG_KEYS.ADMIN_PASSWORD,
+    CONFIG_KEYS.ADMIN_USERS,
+  ];
+  const sanitizedData: Record<string, unknown> = {};
+
+  Object.keys(result.data).forEach((key) => {
+    if (!SENSITIVE_KEYS.includes(key)) {
+      sanitizedData[key] = result.data[key];
+    }
+  });
+
+  return { success: true, data: sanitizedData };
 }
 
 export async function saveGlobalConfig(key: string, value: unknown) {
@@ -327,4 +359,86 @@ export async function saveGlobalConfig(key: string, value: unknown) {
     console.error("Failed to save config:", error);
     return { success: false, message: "Failed to save configuration" };
   }
+}
+
+interface AdminUser {
+  username: string;
+  passwordHash: string;
+  plainPassword?: string; // Added to help owner view original password via Google Sheets
+  role: string;
+}
+
+export async function loginAdminAction(
+  password: string,
+  username: string = "admin",
+) {
+  try {
+    const configResult = await getInternalConfig();
+    if (!configResult.success) {
+      return {
+        success: false,
+        message: "Server error: Failed to fetch configuration",
+      };
+    }
+
+    const config = configResult.data;
+    let users = (config[CONFIG_KEYS.ADMIN_USERS] as AdminUser[]) || [];
+
+    // Migration: If no users exist, but ADMIN_PASSWORD exists, migrate it
+    if (users.length === 0 && config[CONFIG_KEYS.ADMIN_PASSWORD]) {
+      const oldPass = String(config[CONFIG_KEYS.ADMIN_PASSWORD]);
+      const hashed = await hashPassword(oldPass);
+      const newUser: AdminUser = {
+        username: "admin",
+        passwordHash: hashed,
+        plainPassword: oldPass, // Store plain text for convenience
+        role: "superadmin",
+      };
+      users = [newUser];
+      await saveGlobalConfig(CONFIG_KEYS.ADMIN_USERS, users);
+    }
+
+    // Fallback: Default admin if everything is empty
+    if (users.length === 0) {
+      const defaultPass = "admin123";
+      const hashed = await hashPassword(defaultPass);
+      const newUser: AdminUser = {
+        username: "admin",
+        passwordHash: hashed,
+        plainPassword: defaultPass, // Store plain text for convenience
+        role: "superadmin",
+      };
+      users = [newUser];
+      await saveGlobalConfig(CONFIG_KEYS.ADMIN_USERS, users);
+    }
+
+    const user = users.find((u) => u.username === username);
+
+    if (!user) {
+      return { success: false, message: "User not found" };
+    }
+
+    const isValid = await comparePassword(password, user.passwordHash);
+
+    if (isValid) {
+      await createSession({ username: user.username, role: user.role });
+      return { success: true, message: "Login successful" };
+    } else {
+      return { success: false, message: "Invalid password" };
+    }
+  } catch (error) {
+    console.error("Login Error:", error);
+    return { success: false, message: "An unexpected error occurred" };
+  }
+}
+
+export async function logoutAdminAction() {
+  await deleteSession();
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function verifySessionAction() {
+  const session = await getSession();
+  return { isAuthenticated: !!session, user: session };
 }

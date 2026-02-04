@@ -5,18 +5,8 @@ import { AdminAuthGate } from "@/components/admin-auth-gate";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const result = await getGlobalConfig();
-  let password = "";
 
-  if (result.success && result.data) {
-    password = String(result.data[CONFIG_KEYS.ADMIN_PASSWORD] || "");
-  }
-
-  if (!password) {
-    password = "admin";
-    await saveGlobalConfig(CONFIG_KEYS.ADMIN_PASSWORD, password);
-  }
-
-  // Init talent mapping if missing
+  // Init talent mapping if missing (kept for logic initialization)
   if (result.success && result.data) {
     if (!result.data[CONFIG_KEYS.MAP_KATEGORI_HOBI]) {
       await saveGlobalConfig(CONFIG_KEYS.MAP_KATEGORI_HOBI, {
@@ -48,7 +38,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   return (
-    <AdminAuthGate correctPassword={String(password)}>
+    <AdminAuthGate>
       {children}
     </AdminAuthGate>
   );
