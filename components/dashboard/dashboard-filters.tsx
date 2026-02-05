@@ -12,6 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { usePathname } from "next/navigation";
 
 interface DashboardFiltersProps {
   filters: {
@@ -85,6 +86,10 @@ export const DashboardFilters = memo(function DashboardFilters({
     setFilterAgeRange,
   } = filters;
 
+  const pathname = usePathname();
+  const isAdminPage = pathname.includes("/admin-restricted");
+
+  console.log("pathname", pathname);
   const startRange = (pagination.currentPage - 1) * pagination.pageSize + 1;
   const endRange = Math.min(
     pagination.currentPage * pagination.pageSize,
@@ -175,11 +180,10 @@ export const DashboardFilters = memo(function DashboardFilters({
                 <div className="w-full">
                   <select
                     disabled={showDuplicates}
-                    className={`w-full h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                      filterGender
-                        ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold shadow-sm shadow-indigo-100/10"
-                        : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600"
-                    }`}
+                    className={`w-full h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none appearance-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${filterGender
+                      ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold shadow-sm shadow-indigo-100/10"
+                      : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600"
+                      }`}
                     value={filterGender}
                     onChange={(e) => {
                       const nextGender = e.target.value;
@@ -237,85 +241,85 @@ export const DashboardFilters = memo(function DashboardFilters({
             </Tooltip>
           </div>
 
-           {/* Umur Range */}
-           <div className="space-y-1.5 flex flex-col">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-1 inline-flex items-center gap-1">
-              Rentang Umur: {filterAgeRange.min} - {filterAgeRange.max} th
-              {showDuplicates && <Info className="w-3 h-3 text-indigo-400" />}
-            </label>
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    disabled={showDuplicates}
-                    value={filterAgeRange.min}
-                    onChange={(e) => {
-                      const valStr = e.target.value;
-                      if (valStr === "") {
-                        actions.handleStartTransition(() => {
-                          setFilterAgeRange({ ...filterAgeRange, min: 0 });
-                          actions.setCurrentPage(1);
-                        });
-                        return;
-                      }
-                      const val = parseInt(valStr);
-                      if (!isNaN(val)) {
-                        actions.handleStartTransition(() => {
-                          setFilterAgeRange({ ...filterAgeRange, min: val });
-                          actions.setCurrentPage(1);
-                        });
-                      }
-                    }}
-                    className={`h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
-                      filterAgeRange.min > 0
+          {/* Umur Range */}
+          {isAdminPage && (
+            <div className="space-y-1.5 flex flex-col">
+              <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-1 inline-flex items-center gap-1">
+                Rentang Umur: {filterAgeRange.min} - {filterAgeRange.max} th
+                {showDuplicates && <Info className="w-3 h-3 text-indigo-400" />}
+              </label>
+              <Tooltip delayDuration={300}>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      disabled={showDuplicates}
+                      value={filterAgeRange.min}
+                      onChange={(e) => {
+                        const valStr = e.target.value;
+                        if (valStr === "") {
+                          actions.handleStartTransition(() => {
+                            setFilterAgeRange({ ...filterAgeRange, min: 0 });
+                            actions.setCurrentPage(1);
+                          });
+                          return;
+                        }
+                        const val = parseInt(valStr);
+                        if (!isNaN(val)) {
+                          actions.handleStartTransition(() => {
+                            setFilterAgeRange({ ...filterAgeRange, min: val });
+                            actions.setCurrentPage(1);
+                          });
+                        }
+                      }}
+                      className={`h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed ${filterAgeRange.min > 0
                         ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold"
                         : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-                    }`}
-                    placeholder="Min"
-                  />
-                  <span className="text-slate-400 font-medium">-</span>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={100}
-                    disabled={showDuplicates}
-                    value={filterAgeRange.max}
-                    onChange={(e) => {
-                      const valStr = e.target.value;
-                      if (valStr === "") {
-                        actions.handleStartTransition(() => {
-                          setFilterAgeRange({ ...filterAgeRange, max: 0 });
-                          actions.setCurrentPage(1);
-                        });
-                        return;
-                      }
-                      const val = parseInt(valStr);
-                      if (!isNaN(val)) {
-                        actions.handleStartTransition(() => {
-                          setFilterAgeRange({ ...filterAgeRange, max: val });
-                          actions.setCurrentPage(1);
-                        });
-                      }
-                    }}
-                    className={`h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed ${
-                      filterAgeRange.max < 100
+                        }`}
+                      placeholder="Min"
+                    />
+                    <span className="text-slate-400 font-medium">-</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      disabled={showDuplicates}
+                      value={filterAgeRange.max}
+                      onChange={(e) => {
+                        const valStr = e.target.value;
+                        if (valStr === "") {
+                          actions.handleStartTransition(() => {
+                            setFilterAgeRange({ ...filterAgeRange, max: 0 });
+                            actions.setCurrentPage(1);
+                          });
+                          return;
+                        }
+                        const val = parseInt(valStr);
+                        if (!isNaN(val)) {
+                          actions.handleStartTransition(() => {
+                            setFilterAgeRange({ ...filterAgeRange, max: val });
+                            actions.setCurrentPage(1);
+                          });
+                        }
+                      }}
+                      className={`h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none disabled:opacity-50 disabled:cursor-not-allowed ${filterAgeRange.max < 100
                         ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold"
                         : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
-                    }`}
-                    placeholder="Max"
-                  />
-                </div>
-              </TooltipTrigger>
-              {showDuplicates && (
-                <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-                  Field bisa diklik ketika tombol show duplicate tidak aktif
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </div>
+                        }`}
+                      placeholder="Max"
+                    />
+                  </div>
+                </TooltipTrigger>
+                {showDuplicates && (
+                  <TooltipContent side="bottom" className="max-w-[200px] text-xs">
+                    Field bisa diklik ketika tombol show duplicate tidak aktif
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </div>
+          )}
 
           {/* Nama */}
           <div className="space-y-1.5 flex flex-col">
@@ -330,11 +334,10 @@ export const DashboardFilters = memo(function DashboardFilters({
                     type="text"
                     disabled={showDuplicates}
                     placeholder="Ex: Fulan..."
-                    className={`w-full h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed ${
-                      filterNama
-                        ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold shadow-sm shadow-indigo-100/10"
-                        : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600"
-                    }`}
+                    className={`w-full h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed ${filterNama
+                      ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold shadow-sm shadow-indigo-100/10"
+                      : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600"
+                      }`}
                     value={filterNama}
                     onChange={(e) => {
                       setFilterNama(e.target.value);
@@ -362,7 +365,7 @@ export const DashboardFilters = memo(function DashboardFilters({
 
         {/* Action Sections */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-slate-100 dark:border-slate-800">
-          
+
           {/* Section 1: System Controls */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 px-1">
@@ -401,11 +404,10 @@ export const DashboardFilters = memo(function DashboardFilters({
                     }}
                     variant={filterNoDob ? "default" : "outline"}
                     size="sm"
-                    className={`font-semibold text-xs rounded-xl h-9 flex items-center gap-2 transition-all duration-300 ${
-                      filterNoDob
-                        ? "bg-amber-600 hover:bg-amber-700 text-white border-transparent shadow-lg shadow-amber-200 dark:shadow-none translate-y+[-1px]"
-                        : "text-slate-700 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 border-slate-200 dark:border-slate-800"
-                    }`}
+                    className={`font-semibold text-xs rounded-xl h-9 flex items-center gap-2 transition-all duration-300 ${filterNoDob
+                      ? "bg-amber-600 hover:bg-amber-700 text-white border-transparent shadow-lg shadow-amber-200 dark:shadow-none translate-y+[-1px]"
+                      : "text-slate-700 dark:text-slate-300 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 border-slate-200 dark:border-slate-800"
+                      }`}
                   >
                     <div className={`w-1.5 h-1.5 rounded-full ${filterNoDob ? "bg-white animate-pulse" : "bg-slate-300"}`} />
                     Tgl Lahir Kosong / Invalid
@@ -438,11 +440,10 @@ export const DashboardFilters = memo(function DashboardFilters({
                       disabled={status.isFiltered}
                       variant={showDuplicates ? "default" : "outline"}
                       size="sm"
-                      className={`font-semibold text-xs rounded-xl h-9 flex items-center gap-2 transition-all duration-300 ${
-                        showDuplicates
-                          ? "bg-rose-600 hover:bg-rose-700 text-white border-transparent shadow-lg shadow-rose-200 dark:shadow-none translate-y+[-1px]"
-                          : "text-slate-700 dark:text-slate-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-slate-200 dark:border-slate-800"
-                      } disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed`}
+                      className={`font-semibold text-xs rounded-xl h-9 flex items-center gap-2 transition-all duration-300 ${showDuplicates
+                        ? "bg-rose-600 hover:bg-rose-700 text-white border-transparent shadow-lg shadow-rose-200 dark:shadow-none translate-y+[-1px]"
+                        : "text-slate-700 dark:text-slate-300 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border-slate-200 dark:border-slate-800"
+                        } disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed`}
                     >
                       <Copy className="w-4 h-4" />
                       {showDuplicates ? "Mode Duplikasi Aktif" : "Cek Data Duplikat"}
@@ -470,7 +471,7 @@ export const DashboardFilters = memo(function DashboardFilters({
               Data <span className="font-bold text-slate-900 dark:text-white">{startRange}-{endRange}</span>
             </span>
           </div>
-          
+
           <div className="flex items-center gap-3">
             {(status.isFiltered || showDuplicates) && (
               <span className="text-[10px] font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/30 px-3 py-1.5 rounded-lg border border-indigo-100/50 dark:border-indigo-800/50 inline-flex items-center gap-2 animate-in fade-in zoom-in duration-300">

@@ -26,7 +26,8 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
 
   const [debouncedValue] = useDebounceValue(filterNama, 1000);
   const [isPending, startTransition] = useTransition();
-  const [keepShowingSkeleton, setKeepShowingSkeleton] = useState(true);
+  const [keepShowingSkeleton, setKeepShowingSkeleton] =
+    useState(!initialTrashData);
 
   const isVisualPending = isPending || keepShowingSkeleton;
 
@@ -62,21 +63,28 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
         const rowNama = getCellValue(row, COLUMNS.NAMA);
         const rowJenjang = getCellValue(row, COLUMNS.JENJANG);
 
-        const matchDesa = filterDesa.length > 0
-          ? filterDesa.some(d => d.toLowerCase() === rowDesa.toLowerCase())
-          : true;
-        const matchKelompok = filterKelompok.length > 0
-          ? filterKelompok.some(k => k.toLowerCase() === rowKelompok.toLowerCase())
-          : true;
+        const matchDesa =
+          filterDesa.length > 0
+            ? filterDesa.some((d) => d.toLowerCase() === rowDesa.toLowerCase())
+            : true;
+        const matchKelompok =
+          filterKelompok.length > 0
+            ? filterKelompok.some(
+                (k) => k.toLowerCase() === rowKelompok.toLowerCase(),
+              )
+            : true;
         const matchGender = filterGender
           ? rowGender.toLowerCase() === filterGender.toLowerCase()
           : true;
         const matchNama = debouncedValue
           ? rowNama.toLowerCase().includes(debouncedValue.toLowerCase())
           : true;
-        const matchJenjangKelas = filterJenjangKelas.length > 0
-          ? filterJenjangKelas.some(j => j.toLowerCase() === rowJenjang.toLowerCase())
-          : true;
+        const matchJenjangKelas =
+          filterJenjangKelas.length > 0
+            ? filterJenjangKelas.some(
+                (j) => j.toLowerCase() === rowJenjang.toLowerCase(),
+              )
+            : true;
 
         // Age Filter
         let matchAge = true;
@@ -87,16 +95,17 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
           if (isNaN(ageNum)) {
             matchAge = false;
           } else {
-            matchAge = ageNum >= filterAgeRange.min && ageNum <= filterAgeRange.max;
+            matchAge =
+              ageNum >= filterAgeRange.min && ageNum <= filterAgeRange.max;
           }
         }
 
         // Audit Filters
         let matchAudit = true;
-        
+
         if (filterNoDob) {
           const dob = getCellValue(row, COLUMNS.TANGGAL_LAHIR);
-          
+
           let isNoDob = false;
           if (!dob) {
             isNoDob = true;
@@ -111,7 +120,15 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
           matchAudit = isNoDob;
         }
 
-        return matchDesa && matchKelompok && matchGender && matchNama && matchJenjangKelas && matchAudit && matchAge;
+        return (
+          matchDesa &&
+          matchKelompok &&
+          matchGender &&
+          matchNama &&
+          matchJenjangKelas &&
+          matchAudit &&
+          matchAge
+        );
       })
       .sort((a, b) => {
         const tsA = getCellValue(a, COLUMNS.TIMESTAMP);
@@ -120,18 +137,35 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
         const dateB = tsB ? parse(tsB, formatString, new Date()) : new Date(0);
         return compareDesc(dateA, dateB);
       });
-  }, [initialTrashData, filterDesa, filterKelompok, filterGender, debouncedValue, filterJenjangKelas, filterNoDob, filterAgeRange]);
+  }, [
+    initialTrashData,
+    filterDesa,
+    filterKelompok,
+    filterGender,
+    debouncedValue,
+    filterJenjangKelas,
+    filterNoDob,
+    filterAgeRange,
+  ]);
 
   const totalPages = Math.ceil(filteredData.length / pageSize);
 
   const paginatedData = useMemo(() => {
     return filteredData.slice(
       (currentPage - 1) * pageSize,
-      currentPage * pageSize
+      currentPage * pageSize,
     );
   }, [filteredData, currentPage, pageSize]);
 
-  const isFiltered = filterDesa.length > 0 || filterKelompok.length > 0 || filterGender !== "" || debouncedValue !== "" || filterJenjangKelas.length > 0 || filterNoDob || (filterAgeRange.min > 0 || filterAgeRange.max < 100);
+  const isFiltered =
+    filterDesa.length > 0 ||
+    filterKelompok.length > 0 ||
+    filterGender !== "" ||
+    debouncedValue !== "" ||
+    filterJenjangKelas.length > 0 ||
+    filterNoDob ||
+    filterAgeRange.min > 0 ||
+    filterAgeRange.max < 100;
 
   const resetFilters = () => {
     handleStartTransition(() => {
@@ -148,31 +182,46 @@ export function useTrashPageData({ initialTrashData }: UseTrashPageDataProps) {
 
   return {
     filters: {
-      filterDesa, setFilterDesa,
-      filterKelompok, setFilterKelompok,
-      filterGender, setFilterGender,
-      filterJenjangKelas, setFilterJenjangKelas,
-      filterNama, setFilterNama,
-      showDuplicates, setShowDuplicates,
-      filterNoDob, setFilterNoDob,
-      filterAgeRange, setFilterAgeRange,
+      filterDesa,
+      setFilterDesa,
+      filterKelompok,
+      setFilterKelompok,
+      filterGender,
+      setFilterGender,
+      filterJenjangKelas,
+      setFilterJenjangKelas,
+      filterNama,
+      setFilterNama,
+      showDuplicates,
+      setShowDuplicates,
+      filterNoDob,
+      setFilterNoDob,
+      filterAgeRange,
+      setFilterAgeRange,
     },
     pagination: {
-      currentPage, setCurrentPage,
-      pageSize, setPageSize,
+      currentPage,
+      setCurrentPage,
+      pageSize,
+      setPageSize,
       totalPages,
     },
     status: {
-      isPending, isVisualPending, isFiltered,
+      isPending,
+      isVisualPending,
+      isFiltered,
     },
     data: {
-      filteredData, paginatedData,
+      filteredData,
+      paginatedData,
     },
     options: {
-      desaOptions, kelompokOptions,
+      desaOptions,
+      kelompokOptions,
     },
     actions: {
-      handleStartTransition, resetFilters,
-    }
+      handleStartTransition,
+      resetFilters,
+    },
   };
 }

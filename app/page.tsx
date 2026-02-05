@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/card";
 import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
 import { Suspense } from "react";
+import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -80,7 +81,7 @@ export default async function Home() {
             <CardHeader className="pt-6">
               <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span className="p-1 bg-red-100 dark:bg-red-950/20 rounded-md">
-                   <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                  <svg className="w-5 h-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
                 </span>
                 Connection Failure
               </CardTitle>
@@ -114,7 +115,7 @@ export default async function Home() {
 
         {/* Dashboard Content */}
         {!error && (
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<DashboardSkeleton />}>
             <DashboardClient initialData={data} headers={headers} />
           </Suspense>
         )}

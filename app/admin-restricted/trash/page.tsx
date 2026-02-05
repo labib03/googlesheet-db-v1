@@ -3,7 +3,7 @@ import { Navbar } from "@/components/navbar";
 import { TrashPageClient } from "@/components/trash/trash-page-client";
 import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
 import { Suspense } from "react";
-import Loading from "@/app/loading";
+import { TrashSkeleton } from "@/components/trash-skeleton";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +13,7 @@ async function TrashContent() {
 
   try {
     const rawTrashData = await getSheetData("Trash").catch(() => []);
-    
+
     if (rawTrashData.length > 0) {
       trashData = rawTrashData.map((row, index) => {
         const tanggalLahirRaw = String(row["TANGGAL LAHIR"] || "");
@@ -48,7 +48,7 @@ export default function TrashPage() {
     <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 font-outfit selection:bg-indigo-100 selection:text-indigo-900">
       <Navbar />
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
-        <Suspense fallback={<Loading />}>
+        <Suspense fallback={<TrashSkeleton />}>
           <TrashContent />
         </Suspense>
       </main>

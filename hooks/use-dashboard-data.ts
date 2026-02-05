@@ -13,26 +13,39 @@ interface UseDashboardDataProps {
   initialData?: SheetRow[];
 }
 
-export function useDashboardData({ initialData: propsData }: UseDashboardDataProps = {}) {
+export function useDashboardData({
+  initialData: propsData,
+}: UseDashboardDataProps = {}) {
   const context = useDashboard();
   const initialData = propsData || context.data;
 
   const {
-    filterDesa, setFilterDesa,
-    filterKelompok, setFilterKelompok,
-    filterGender, setFilterGender,
-    filterJenjangKelas, setFilterJenjangKelas,
-    filterNama, setFilterNama,
-    showDuplicates, setShowDuplicates,
-    filterNoDob, setFilterNoDob,
-    pageSize, setPageSize,
-    currentPage, setCurrentPage,
-    filterAgeRange, setFilterAgeRange,
+    filterDesa,
+    setFilterDesa,
+    filterKelompok,
+    setFilterKelompok,
+    filterGender,
+    setFilterGender,
+    filterJenjangKelas,
+    setFilterJenjangKelas,
+    filterNama,
+    setFilterNama,
+    showDuplicates,
+    setShowDuplicates,
+    filterNoDob,
+    setFilterNoDob,
+    pageSize,
+    setPageSize,
+    currentPage,
+    setCurrentPage,
+    filterAgeRange,
+    setFilterAgeRange,
   } = context;
 
   const [debouncedValue] = useDebounceValue(filterNama, 1000);
   const [isPending, startTransition] = useTransition();
-  const [keepShowingSkeleton, setKeepShowingSkeleton] = useState(true);
+  // If we already have data on mount, we don't need to show the initial skeleton
+  const [keepShowingSkeleton, setKeepShowingSkeleton] = useState(!propsData);
 
   // Derived state to show skeleton if either transition is pending or we are still in "cooldown"
   const isVisualPending = isPending || keepShowingSkeleton;
@@ -86,8 +99,12 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
 
           const tsA = getCellValue(a, COLUMNS.TIMESTAMP);
           const tsB = getCellValue(b, COLUMNS.TIMESTAMP);
-          const dateA = tsA ? parse(tsA, formatString, new Date()) : new Date(0);
-          const dateB = tsB ? parse(tsB, formatString, new Date()) : new Date(0);
+          const dateA = tsA
+            ? parse(tsA, formatString, new Date())
+            : new Date(0);
+          const dateB = tsB
+            ? parse(tsB, formatString, new Date())
+            : new Date(0);
           return compareDesc(dateA, dateB);
         });
     }
@@ -100,21 +117,28 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
         const rowNama = getCellValue(row, COLUMNS.NAMA);
         const rowJenjang = getCellValue(row, COLUMNS.JENJANG);
 
-        const matchDesa = filterDesa.length > 0
-          ? filterDesa.some(d => d.toLowerCase() === rowDesa.toLowerCase())
-          : true;
-        const matchKelompok = filterKelompok.length > 0
-          ? filterKelompok.some(k => k.toLowerCase() === rowKelompok.toLowerCase())
-          : true;
+        const matchDesa =
+          filterDesa.length > 0
+            ? filterDesa.some((d) => d.toLowerCase() === rowDesa.toLowerCase())
+            : true;
+        const matchKelompok =
+          filterKelompok.length > 0
+            ? filterKelompok.some(
+                (k) => k.toLowerCase() === rowKelompok.toLowerCase(),
+              )
+            : true;
         const matchGender = filterGender
           ? rowGender.toLowerCase() === filterGender.toLowerCase()
           : true;
         const matchNama = debouncedValue
           ? rowNama.toLowerCase().includes(debouncedValue.toLowerCase())
           : true;
-        const matchJenjangKelas = filterJenjangKelas.length > 0
-          ? filterJenjangKelas.some(j => j.toLowerCase() === rowJenjang.toLowerCase())
-          : true;
+        const matchJenjangKelas =
+          filterJenjangKelas.length > 0
+            ? filterJenjangKelas.some(
+                (j) => j.toLowerCase() === rowJenjang.toLowerCase(),
+              )
+            : true;
 
         // Age Filter
         let matchAge = true;
@@ -125,16 +149,17 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
           if (isNaN(ageNum)) {
             matchAge = false;
           } else {
-            matchAge = ageNum >= filterAgeRange.min && ageNum <= filterAgeRange.max;
+            matchAge =
+              ageNum >= filterAgeRange.min && ageNum <= filterAgeRange.max;
           }
         }
 
         // Audit Filters
         let matchAudit = true;
-        
+
         if (filterNoDob) {
           const dob = getCellValue(row, COLUMNS.TANGGAL_LAHIR);
-          
+
           let isNoDob = false;
           if (!dob) {
             isNoDob = true;
@@ -184,7 +209,7 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
   const paginatedData = useMemo(() => {
     return filteredData.slice(
       (currentPage - 1) * pageSize,
-      currentPage * pageSize
+      currentPage * pageSize,
     );
   }, [filteredData, currentPage, pageSize]);
 
@@ -195,7 +220,8 @@ export function useDashboardData({ initialData: propsData }: UseDashboardDataPro
     debouncedValue !== "" ||
     filterJenjangKelas.length > 0 ||
     filterNoDob ||
-    (filterAgeRange.min > 0 || filterAgeRange.max < 100);
+    filterAgeRange.min > 0 ||
+    filterAgeRange.max < 100;
 
   const resetFilters = () => {
     handleStartTransition(() => {
