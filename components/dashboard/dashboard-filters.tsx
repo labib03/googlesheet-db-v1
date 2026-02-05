@@ -89,7 +89,6 @@ export const DashboardFilters = memo(function DashboardFilters({
   const pathname = usePathname();
   const isAdminPage = pathname.includes("/admin-restricted");
 
-  console.log("pathname", pathname);
   const startRange = (pagination.currentPage - 1) * pagination.pageSize + 1;
   const endRange = Math.min(
     pagination.currentPage * pagination.pageSize,
