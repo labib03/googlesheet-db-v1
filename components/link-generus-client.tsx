@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import { linkGenerusAction } from "@/app/actions";
 import { toast } from "sonner";
-import { GenerusPickerDialog } from "@/components/generus-picker-dialog";
+import { GenerusPickerDialog } from "./generus-picker-dialog";
 import Link from "next/link";
 
 interface LinkGenerusClientProps {
@@ -79,10 +79,11 @@ export function LinkGenerusClient({
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
             filtered = filtered.filter((row) => {
-                const nama = String(row["Nama Panggilan"] || "").toLowerCase();
+                const namaPanggilan = String(row["Nama Panggilan"] || "").toLowerCase();
+                const namaLengkap = String(row["Nama Lengkap"] || "").toLowerCase();
                 const kelompok = String(row["Kelompok"] || "").toLowerCase();
                 const gender = String(row["Jenis Kelamin"] || "").toLowerCase();
-                return nama.includes(q) || kelompok.includes(q) || gender.includes(q);
+                return namaPanggilan.includes(q) || namaLengkap.includes(q) || kelompok.includes(q) || gender.includes(q);
             });
         }
 
@@ -259,6 +260,9 @@ export function LinkGenerusClient({
                                 <thead>
                                     <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
                                         <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
+                                            Nama Lengkap
+                                        </th>
+                                        <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
                                             Nama Panggilan
                                         </th>
                                         <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 hidden sm:table-cell">
@@ -293,6 +297,11 @@ export function LinkGenerusClient({
                                             >
                                                 <td className="px-4 py-3">
                                                     <span className="font-medium text-slate-900 dark:text-white text-sm">
+                                                        {String(row["Nama Lengkap"] || "-")}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className="text-sm text-slate-600 dark:text-slate-400">
                                                         {String(row["Nama Panggilan"] || "-")}
                                                     </span>
                                                     <span className="block sm:hidden text-xs text-slate-400 mt-0.5">
@@ -386,7 +395,10 @@ export function LinkGenerusClient({
                                             <div>
                                                 <p className="text-xs text-slate-400">AdditionalInfo</p>
                                                 <p className="font-medium text-slate-900 dark:text-white">
-                                                    {String(additionalInfoData.find(r => (r._index as number) === pendingLink.additionalInfoIdx)?.["Nama Panggilan"] || "-")}
+                                                    {(() => {
+                                                        const row = additionalInfoData.find(r => (r._index as number) === pendingLink?.additionalInfoIdx);
+                                                        return row ? `${row["Nama Lengkap"] || "-"} (${row["Nama Panggilan"] || ""})` : "-";
+                                                    })()}
                                                 </p>
                                             </div>
                                         </div>

@@ -82,6 +82,7 @@ export const ADDITIONAL_INFO_SHEET_NAME = "AdditionalInfo";
 
 // Column names from AdditionalInfo sheet (excluding system fields)
 export const ADDITIONAL_INFO_COLUMNS = [
+  "Nama Lengkap",
   "Nama Panggilan",
   "Jenis Kelamin",
   "Kelompok",
