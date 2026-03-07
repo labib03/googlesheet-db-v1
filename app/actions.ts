@@ -3,6 +3,7 @@
 import {
   appendSheetData,
   updateSheetData,
+  updateSheetCell,
   deleteSheetData,
   appendSheetDataBulk,
   deleteSheetRowsBulk,
@@ -12,7 +13,11 @@ import {
 } from "@/lib/google-sheets";
 import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { CONFIG_SHEET_NAME, CONFIG_KEYS } from "@/lib/constants";
+import {
+  CONFIG_SHEET_NAME,
+  CONFIG_KEYS,
+  ADDITIONAL_INFO_SHEET_NAME,
+} from "@/lib/constants";
 import {
   comparePassword,
   createSession,
@@ -230,7 +235,20 @@ export async function bulkDeleteData(
 
 export async function getSheetDataAction() {
   try {
-    const rawData = await getSheetData();
+    const [rawData, additionalInfoRaw] = await Promise.all([
+      getSheetData(),
+      getSheetData(ADDITIONAL_INFO_SHEET_NAME).catch(() => [] as SheetRow[]),
+    ]);
+
+    // Build lookup: UserId -> AdditionalInfo row
+    const additionalInfoMap = new Map<string, SheetRow>();
+    for (const aiRow of additionalInfoRaw) {
+      const userId = String(aiRow["UserId"] || "").trim();
+      if (userId) {
+        additionalInfoMap.set(userId, aiRow);
+      }
+    }
+
     const processedData = rawData.map((row, index) => {
       const tanggalLahirRaw = String(row["TANGGAL LAHIR"] || "");
       const updatedRow: SheetRow & { _index: number } = {
@@ -247,6 +265,18 @@ export async function getSheetDataAction() {
         updatedRow["Jenjang Kelas"] = getJenjangKelas(
           updatedRow["Umur"] as string,
         );
+      }
+
+      // Merge AdditionalInfo if linked
+      const idGenerus = String(row["ID GENERUS"] || "").trim();
+      if (idGenerus && additionalInfoMap.has(idGenerus)) {
+        const aiRow = additionalInfoMap.get(idGenerus)!;
+        for (const [key, value] of Object.entries(aiRow)) {
+          if (key !== "Timestamp" && key !== "UserId" && key !== "_index") {
+            updatedRow[`_ai_${key}`] = value;
+          }
+        }
+        updatedRow["_hasAdditionalInfo"] = "true";
       }
 
       return updatedRow;
@@ -441,4 +471,72 @@ export async function logoutAdminAction() {
 export async function verifySessionAction() {
   const session = await getSession();
   return { isAuthenticated: !!session, user: session };
+}
+
+export async function getAdditionalInfoData() {
+  try {
+    const rawData = await getSheetData(ADDITIONAL_INFO_SHEET_NAME);
+    const data = rawData.map((row, index) => ({
+      ...row,
+      _index: index,
+    }));
+    return { success: true, data };
+  } catch {
+    return {
+      success: false,
+      data: [],
+      message: "Failed to fetch AdditionalInfo data",
+    };
+  }
+}
+
+export async function getUnlinkedGenerus() {
+  try {
+    const rawData = await getSheetData();
+    const data = rawData
+      .map((row, index) => ({
+        ...row,
+        _index: index,
+      }))
+      .filter((row) => !String((row as SheetRow)["ID GENERUS"] || "").trim());
+    return { success: true, data };
+  } catch {
+    return {
+      success: false,
+      data: [],
+      message: "Failed to fetch generus data",
+    };
+  }
+}
+
+export async function linkGenerusAction(
+  additionalInfoRowIndex: number,
+  generusRowIndex: number,
+) {
+  try {
+    const guid = crypto.randomUUID();
+
+    // Update UserId in AdditionalInfo (rowIndex is 0-based data index, sheet row = index + 2)
+    await updateSheetCell(
+      additionalInfoRowIndex + 2,
+      "UserId",
+      guid,
+      ADDITIONAL_INFO_SHEET_NAME,
+    );
+
+    // Update ID GENERUS in Form Responses 1 (same logic)
+    await updateSheetCell(generusRowIndex + 2, "ID GENERUS", guid);
+
+    revalidateTag("google-sheets", "default");
+    revalidatePath("/admin-restricted/link-generus");
+
+    return { success: true, message: "Generus berhasil di-link!", guid };
+  } catch (error) {
+    console.error("Failed to link generus:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Gagal melinking generus",
+    };
+  }
 }

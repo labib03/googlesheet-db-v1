@@ -13,7 +13,7 @@ import { DataDetailDialog } from "@/components/data-detail-dialog";
 import { EditDataDialog } from "@/components/edit-data-dialog";
 import { DeleteDataDialog } from "@/components/delete-data-dialog";
 import { getCellValue, capitalizeWords, formatDate } from "@/lib/helper";
-import { COLUMNS } from "@/lib/constants";
+import { COLUMNS, ADDITIONAL_INFO_COLUMNS, ADDITIONAL_INFO_SHORT_LABELS } from "@/lib/constants";
 import { useViewConfig } from "@/context/view-config-context";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -48,6 +48,11 @@ export const DashboardTable = memo(function DashboardTable({
     : headers.filter((h) => config.tableColumns.includes(h));
   const isUmurVisible =
     ignoreViewConfig || config.tableColumns.includes(COLUMNS.UMUR);
+
+  // AdditionalInfo columns: admin sees all, public sees only those toggled in tableColumns
+  const visibleAiColumns = ignoreViewConfig
+    ? [...ADDITIONAL_INFO_COLUMNS]
+    : ADDITIONAL_INFO_COLUMNS.filter((col) => config.tableColumns.includes(`_ai_${col}`));
 
   const getValue = (header: string, value: string) => {
     if (
@@ -103,6 +108,15 @@ export const DashboardTable = memo(function DashboardTable({
                 UMUR
               </TableHead>
             )}
+            {visibleAiColumns.map((col) => (
+              <TableHead
+                key={`ai-${col}`}
+                className="w-40 font-semibold text-white text-xs tracking-wider whitespace-normal px-4 bg-teal-600"
+                title={col}
+              >
+                {(ADDITIONAL_INFO_SHORT_LABELS[col] || col).toUpperCase()}
+              </TableHead>
+            ))}
             <TableHead className="w-24 font-semibold text-white text-xs tracking-wider text-center px-2">
               ACTIONS
             </TableHead>
@@ -117,13 +131,12 @@ export const DashboardTable = memo(function DashboardTable({
             return (
               <TableRow
                 key={originalIndex}
-                className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-slate-100 dark:border-slate-800/50 ${
-                  onToggleSelection && selectedIndices.includes(originalIndex + 2) ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""
-                }`}
+                className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-slate-100 dark:border-slate-800/50 ${onToggleSelection && selectedIndices.includes(originalIndex + 2) ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""
+                  }`}
               >
                 {onToggleSelection && (
                   <TableCell className="text-center px-2">
-                    <Checkbox 
+                    <Checkbox
                       checked={selectedIndices.includes(originalIndex + 2)}
                       onCheckedChange={() => onToggleSelection?.(originalIndex + 2)}
                       className={selectedIndices.includes(originalIndex + 2) ? "border-indigo-500" : ""}
@@ -146,6 +159,14 @@ export const DashboardTable = memo(function DashboardTable({
                     {rowAge}
                   </TableCell>
                 )}
+                {visibleAiColumns.map((col) => (
+                  <TableCell
+                    key={`${originalIndex}-ai-${col}`}
+                    className="text-sm text-teal-700 dark:text-teal-300 py-3 px-4 whitespace-normal break-words leading-relaxed bg-teal-50/30 dark:bg-teal-950/10"
+                  >
+                    {String(row[`_ai_${col}`] || "-")}
+                  </TableCell>
+                ))}
                 <TableCell className="py-2 px-2">
                   <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <DataDetailDialog

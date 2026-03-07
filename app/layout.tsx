@@ -28,18 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              try {
-                document.documentElement.setAttribute('data-preloader', 'active');
-              } catch (e) {}
-            `,
-          }}
-        />
-      </head>
+    <html lang="en" data-preloader="active" suppressHydrationWarning>
+      <head />
       <body
         className={`${outfit.variable} ${syne.variable} font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-50`}
       >

@@ -1,5 +1,5 @@
-import { google } from 'googleapis';
-import { unstable_cache } from 'next/cache';
+import { google } from "googleapis";
+import { unstable_cache } from "next/cache";
 
 export interface SheetRow {
   [key: string]: string | number | boolean;
@@ -7,7 +7,8 @@ export interface SheetRow {
 
 // Get default sheet name from environment variable, fallback to "Sheet1"
 const DEFAULT_SHEET_NAME =
-  (process.env.GOOGLE_SHEET_NAME && process.env.GOOGLE_SHEET_NAME.trim()) || 'Sheet1';
+  (process.env.GOOGLE_SHEET_NAME && process.env.GOOGLE_SHEET_NAME.trim()) ||
+  "Sheet1";
 
 // Helper to escape sheet names for A1 notation
 const escapeSheetName = (name: string) => `'${name.replace(/'/g, "''")}'`;
@@ -19,7 +20,7 @@ async function withRetry<T>(
   fn: () => Promise<T>,
   retries = 3,
   delay = 1000,
-  backoff = 2
+  backoff = 2,
 ): Promise<T> {
   try {
     return await fn();
@@ -29,7 +30,9 @@ async function withRetry<T>(
 
     // Retry on quota errors (429) or server errors (500, 503)
     if (err.code === 429 || err.code === 500 || err.code === 503) {
-      console.warn(`API quota/error hit. Retrying in ${delay}ms... (Attempts left: ${retries})`);
+      console.warn(
+        `API quota/error hit. Retrying in ${delay}ms... (Attempts left: ${retries})`,
+      );
       await new Promise((resolve) => setTimeout(resolve, delay));
       return withRetry(fn, retries - 1, delay * backoff, backoff);
     }
@@ -43,12 +46,15 @@ async function withRetry<T>(
  */
 async function getAuth() {
   const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const privateKey = process.env.GOOGLE_PRIVATE_KEY
-    ?.replace(/\\n/g, '\n')
-    .replace(/^"|"$/g, '');
+  const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(
+    /\\n/g,
+    "\n",
+  ).replace(/^"|"$/g, "");
 
   if (!serviceAccountEmail || !privateKey) {
-    throw new Error('Missing required environment variables: GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY');
+    throw new Error(
+      "Missing required environment variables: GOOGLE_SERVICE_ACCOUNT_EMAIL or GOOGLE_PRIVATE_KEY",
+    );
   }
 
   return new google.auth.GoogleAuth({
@@ -56,7 +62,7 @@ async function getAuth() {
       client_email: serviceAccountEmail,
       private_key: privateKey,
     },
-    scopes: ['https://www.googleapis.com/auth/spreadsheets'],
+    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
   });
 }
 
@@ -67,7 +73,7 @@ const fetchSheetDataInternal = async (sheetName: string, range?: string) => {
   return withRetry(async () => {
     const auth = await getAuth();
     const sheetId = process.env.GOOGLE_SHEET_ID!;
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: "v4", auth });
 
     // Construct the range with escaped sheet name
     const escapedName = escapeSheetName(sheetName);
@@ -92,7 +98,7 @@ const fetchSheetDataInternal = async (sheetName: string, range?: string) => {
     const data: SheetRow[] = rows.slice(1).map((row) => {
       const obj: SheetRow = {};
       headers.forEach((header, index) => {
-        obj[header] = row[index] || '';
+        obj[header] = row[index] || "";
       });
       return obj;
     });
@@ -109,17 +115,17 @@ const fetchSheetDataInternal = async (sheetName: string, range?: string) => {
  */
 export const getSheetData = async (
   sheetName: string = DEFAULT_SHEET_NAME,
-  range?: string
+  range?: string,
 ) => {
   try {
     const getData = unstable_cache(
       async () => fetchSheetDataInternal(sheetName, range),
-      [`sheet-data-${sheetName}-${range || 'all'}`],
-      { tags: ['google-sheets'], revalidate: 30 } // Cache for 30s to prevent spamming
+      [`sheet-data-${sheetName}-${range || "all"}`],
+      { tags: ["google-sheets"], revalidate: 30 }, // Cache for 30s to prevent spamming
     );
     return await getData();
   } catch (error) {
-    console.error('Error fetching Google Sheets data:', error);
+    console.error("Error fetching Google Sheets data:", error);
     throw error;
   }
 };
@@ -130,13 +136,14 @@ export const getSheetData = async (
 const fetchSheetNamesInternal = async () => {
   return withRetry(async () => {
     const serviceAccountEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-    const privateKey = process.env.GOOGLE_PRIVATE_KEY
-      ?.replace(/\\n/g, '\n')
-      .replace(/^"|"$/g, '');
+    const privateKey = process.env.GOOGLE_PRIVATE_KEY?.replace(
+      /\\n/g,
+      "\n",
+    ).replace(/^"|"$/g, "");
     const sheetId = process.env.GOOGLE_SHEET_ID;
 
     if (!serviceAccountEmail || !privateKey || !sheetId) {
-      throw new Error('Missing required environment variables');
+      throw new Error("Missing required environment variables");
     }
 
     const auth = new google.auth.GoogleAuth({
@@ -144,16 +151,18 @@ const fetchSheetNamesInternal = async () => {
         client_email: serviceAccountEmail,
         private_key: privateKey,
       },
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+      scopes: ["https://www.googleapis.com/auth/spreadsheets.readonly"],
     });
 
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: "v4", auth });
 
     const response = await sheets.spreadsheets.get({
       spreadsheetId: sheetId,
     });
 
-    return response.data.sheets?.map((sheet) => sheet.properties?.title || '') || [];
+    return (
+      response.data.sheets?.map((sheet) => sheet.properties?.title || "") || []
+    );
   });
 };
 
@@ -165,12 +174,12 @@ export const getSheetNames = async () => {
   try {
     const getNames = unstable_cache(
       async () => fetchSheetNamesInternal(),
-      ['sheet-names'],
-      { tags: ['google-sheets'], revalidate: 60 } // Cache for 1 minute
+      ["sheet-names"],
+      { tags: ["google-sheets"], revalidate: 60 }, // Cache for 1 minute
     );
     return await getNames();
   } catch (error) {
-    console.error('Error fetching sheet names:', error);
+    console.error("Error fetching sheet names:", error);
     throw error;
   }
 };
@@ -182,10 +191,10 @@ export const getSheetNames = async () => {
  */
 export async function appendSheetData(
   rowData: SheetRow,
-  sheetName: string = DEFAULT_SHEET_NAME
+  sheetName: string = DEFAULT_SHEET_NAME,
 ): Promise<void> {
   try {
-    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheets = google.sheets({ version: "v4", auth: await getAuth() });
     const sheetId = process.env.GOOGLE_SHEET_ID!;
     const escapedName = escapeSheetName(sheetName);
 
@@ -197,15 +206,15 @@ export async function appendSheetData(
 
     const headers = headerResponse.data.values?.[0] as string[];
     if (!headers || headers.length === 0) {
-      throw new Error('Sheet is empty or missing headers');
+      throw new Error("Sheet is empty or missing headers");
     }
 
     // 2. Map rowData object to array based on headers (case-insensitive)
     const values = headers.map((header) => {
       const targetKey = Object.keys(rowData).find(
-        (key) => key.toLowerCase() === header.toLowerCase()
+        (key) => key.toLowerCase() === header.toLowerCase(),
       );
-      return targetKey ? rowData[targetKey] : '';
+      return targetKey ? rowData[targetKey] : "";
     });
 
     // 3. Append data at the end of the table
@@ -215,16 +224,15 @@ export async function appendSheetData(
       await sheets.spreadsheets.values.append({
         spreadsheetId: sheetId,
         range: `${escapedName}!A1`,
-        valueInputOption: 'RAW',
-        insertDataOption: 'INSERT_ROWS',
+        valueInputOption: "RAW",
+        insertDataOption: "INSERT_ROWS",
         requestBody: {
           values: [values],
         },
       });
     });
-
   } catch (error) {
-    console.error('Error appending data:', error);
+    console.error("Error appending data:", error);
     throw error;
   }
 }
@@ -236,12 +244,12 @@ export async function appendSheetData(
  */
 export async function appendSheetDataBulk(
   rowsData: SheetRow[],
-  sheetName: string = DEFAULT_SHEET_NAME
+  sheetName: string = DEFAULT_SHEET_NAME,
 ): Promise<void> {
   if (rowsData.length === 0) return;
-  
+
   try {
-    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheets = google.sheets({ version: "v4", auth: await getAuth() });
     const sheetId = process.env.GOOGLE_SHEET_ID!;
     const escapedName = escapeSheetName(sheetName);
 
@@ -253,16 +261,16 @@ export async function appendSheetDataBulk(
 
     const headers = headerResponse.data.values?.[0] as string[];
     if (!headers || headers.length === 0) {
-      throw new Error('Sheet is empty or missing headers');
+      throw new Error("Sheet is empty or missing headers");
     }
 
     // 2. Map each row to array based on headers
     const allValues = rowsData.map((rowData) => {
       return headers.map((header) => {
         const targetKey = Object.keys(rowData).find(
-          (key) => key.toLowerCase() === header.toLowerCase()
+          (key) => key.toLowerCase() === header.toLowerCase(),
         );
-        return targetKey ? rowData[targetKey] : '';
+        return targetKey ? rowData[targetKey] : "";
       });
     });
 
@@ -271,16 +279,15 @@ export async function appendSheetDataBulk(
       await sheets.spreadsheets.values.append({
         spreadsheetId: sheetId,
         range: `${escapedName}!A1`,
-        valueInputOption: 'RAW',
-        insertDataOption: 'INSERT_ROWS',
+        valueInputOption: "RAW",
+        insertDataOption: "INSERT_ROWS",
         requestBody: {
           values: allValues,
         },
       });
     });
-
   } catch (error) {
-    console.error('Error appending bulk data:', error);
+    console.error("Error appending bulk data:", error);
     throw error;
   }
 }
@@ -294,10 +301,10 @@ export async function appendSheetDataBulk(
 export async function updateSheetData(
   rowIndex: number,
   rowData: SheetRow,
-  sheetName: string = DEFAULT_SHEET_NAME
+  sheetName: string = DEFAULT_SHEET_NAME,
 ): Promise<void> {
   try {
-    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheets = google.sheets({ version: "v4", auth: await getAuth() });
     const sheetId = process.env.GOOGLE_SHEET_ID!;
     const escapedName = escapeSheetName(sheetName);
 
@@ -309,15 +316,15 @@ export async function updateSheetData(
 
     const headers = headerResponse.data.values?.[0] as string[];
     if (!headers || headers.length === 0) {
-      throw new Error('Sheet is empty or missing headers');
+      throw new Error("Sheet is empty or missing headers");
     }
 
     // 2. Map data case-insensitively
     const values = headers.map((header) => {
       const targetKey = Object.keys(rowData).find(
-        (key) => key.toLowerCase() === header.toLowerCase()
+        (key) => key.toLowerCase() === header.toLowerCase(),
       );
-      return targetKey ? rowData[targetKey] : '';
+      return targetKey ? rowData[targetKey] : "";
     });
 
     // 3. Update
@@ -325,14 +332,72 @@ export async function updateSheetData(
       await sheets.spreadsheets.values.update({
         spreadsheetId: sheetId,
         range: `${escapedName}!A${rowIndex}`,
-        valueInputOption: 'RAW',
+        valueInputOption: "RAW",
         requestBody: {
           values: [values],
         },
       });
     });
   } catch (error) {
-    console.error('Error updating data:', error);
+    console.error("Error updating data:", error);
+    throw error;
+  }
+}
+
+/**
+ * Updates a single cell in the sheet by column name
+ * @param rowIndex - The 1-based row index in the sheet (including header)
+ * @param columnName - The header name of the column to update
+ * @param value - The value to set
+ * @param sheetName - The sheet name
+ */
+export async function updateSheetCell(
+  rowIndex: number,
+  columnName: string,
+  value: string | number | boolean,
+  sheetName: string = DEFAULT_SHEET_NAME,
+): Promise<void> {
+  try {
+    const sheets = google.sheets({ version: "v4", auth: await getAuth() });
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
+    const escapedName = escapeSheetName(sheetName);
+
+    // 1. Get headers to find column index
+    const headerResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${escapedName}!1:1`,
+    });
+
+    const headers = headerResponse.data.values?.[0] as string[];
+    if (!headers || headers.length === 0) {
+      throw new Error("Sheet is empty or missing headers");
+    }
+
+    const colIndex = headers.findIndex(
+      (h) => h.toLowerCase() === columnName.toLowerCase(),
+    );
+    if (colIndex === -1) {
+      throw new Error(
+        `Column "${columnName}" not found in sheet "${sheetName}"`,
+      );
+    }
+
+    // Convert column index to letter (A, B, C, ... Z, AA, AB, ...)
+    const colLetter = String.fromCharCode(65 + colIndex);
+
+    // 2. Update the specific cell
+    await withRetry(async () => {
+      await sheets.spreadsheets.values.update({
+        spreadsheetId: sheetId,
+        range: `${escapedName}!${colLetter}${rowIndex}`,
+        valueInputOption: "RAW",
+        requestBody: {
+          values: [[value]],
+        },
+      });
+    });
+  } catch (error) {
+    console.error("Error updating cell:", error);
     throw error;
   }
 }
@@ -344,21 +409,21 @@ export async function updateSheetData(
  */
 export async function deleteSheetData(
   rowIndex: number,
-  sheetName: string = DEFAULT_SHEET_NAME
+  sheetName: string = DEFAULT_SHEET_NAME,
 ): Promise<void> {
   try {
-    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheets = google.sheets({ version: "v4", auth: await getAuth() });
     const sheetId = process.env.GOOGLE_SHEET_ID!;
 
     const spreadsheet = await sheets.spreadsheets.get({
       spreadsheetId: sheetId,
     });
-    
+
     const sheet = spreadsheet.data.sheets?.find(
-      (s) => s.properties?.title === sheetName
+      (s) => s.properties?.title === sheetName,
     );
 
-    if (!sheet || typeof sheet.properties?.sheetId !== 'number') {
+    if (!sheet || typeof sheet.properties?.sheetId !== "number") {
       throw new Error(`Sheet "${sheetName}" not found or invalid`);
     }
 
@@ -374,7 +439,7 @@ export async function deleteSheetData(
               deleteDimension: {
                 range: {
                   sheetId: gridId,
-                  dimension: 'ROWS',
+                  dimension: "ROWS",
                   startIndex: rowIndex - 1,
                   endIndex: rowIndex,
                 },
@@ -385,7 +450,7 @@ export async function deleteSheetData(
       });
     });
   } catch (error) {
-    console.error('Error deleting data:', error);
+    console.error("Error deleting data:", error);
     throw error;
   }
 }
@@ -397,23 +462,23 @@ export async function deleteSheetData(
  */
 export async function deleteSheetRowsBulk(
   rowIndices: number[],
-  sheetName: string = DEFAULT_SHEET_NAME
+  sheetName: string = DEFAULT_SHEET_NAME,
 ): Promise<void> {
   if (rowIndices.length === 0) return;
 
   try {
-    const sheets = google.sheets({ version: 'v4', auth: await getAuth() });
+    const sheets = google.sheets({ version: "v4", auth: await getAuth() });
     const sheetId = process.env.GOOGLE_SHEET_ID!;
 
     const spreadsheet = await sheets.spreadsheets.get({
       spreadsheetId: sheetId,
     });
-    
+
     const sheet = spreadsheet.data.sheets?.find(
-      (s) => s.properties?.title === sheetName
+      (s) => s.properties?.title === sheetName,
     );
 
-    if (!sheet || typeof sheet.properties?.sheetId !== 'number') {
+    if (!sheet || typeof sheet.properties?.sheetId !== "number") {
       throw new Error(`Sheet "${sheetName}" not found or invalid`);
     }
 
@@ -426,7 +491,7 @@ export async function deleteSheetRowsBulk(
       deleteDimension: {
         range: {
           sheetId: gridId,
-          dimension: 'ROWS' as const,
+          dimension: "ROWS" as const,
           startIndex: rowIndex - 1,
           endIndex: rowIndex,
         },
@@ -442,7 +507,7 @@ export async function deleteSheetRowsBulk(
       });
     });
   } catch (error) {
-    console.error('Error deleting bulk data:', error);
+    console.error("Error deleting bulk data:", error);
     throw error;
   }
 }
@@ -453,11 +518,11 @@ export async function deleteSheetRowsBulk(
  */
 export async function getRowData(
   rowIndex: number,
-  sheetName: string = DEFAULT_SHEET_NAME
+  sheetName: string = DEFAULT_SHEET_NAME,
 ): Promise<SheetRow> {
   try {
     const auth = await getAuth();
-    const sheets = google.sheets({ version: 'v4', auth });
+    const sheets = google.sheets({ version: "v4", auth });
     const sheetId = process.env.GOOGLE_SHEET_ID!;
     const escapedName = escapeSheetName(sheetName);
 
@@ -467,16 +532,18 @@ export async function getRowData(
       range: `${escapedName}!1:1`,
     });
     const headers = headerResponse.data.values?.[0] as string[];
-    
+
     if (!headers || headers.length === 0) {
-      throw new Error('Sheet is empty or missing headers');
+      throw new Error("Sheet is empty or missing headers");
     }
 
     // 2. Get the actual row data
-    const rowResponse = await withRetry(async () => sheets.spreadsheets.values.get({
-      spreadsheetId: sheetId,
-      range: `${escapedName}!${rowIndex}:${rowIndex}`,
-    }));
+    const rowResponse = await withRetry(async () =>
+      sheets.spreadsheets.values.get({
+        spreadsheetId: sheetId,
+        range: `${escapedName}!${rowIndex}:${rowIndex}`,
+      }),
+    );
     const values = rowResponse.data.values?.[0] as string[];
 
     if (!values || values.length === 0) {
@@ -486,12 +553,12 @@ export async function getRowData(
     // 3. Map values to object based on headers
     const obj: SheetRow = {};
     headers.forEach((header, index) => {
-      obj[header] = values[index] || '';
+      obj[header] = values[index] || "";
     });
 
     return obj;
   } catch (error) {
-    console.error('Error getting row data:', error);
+    console.error("Error getting row data:", error);
     throw error;
   }
 }

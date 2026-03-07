@@ -8,6 +8,7 @@ export interface ViewConfig {
   tableColumns: string[];
   cardFields: string[];
   detailFields: string[];
+  additionalInfoFields: string[];
 }
 
 interface ViewConfigContextType {
@@ -21,9 +22,10 @@ const ViewConfigContext = createContext<ViewConfigContextType | undefined>(undef
 
 export function ViewConfigProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = useState<ViewConfig>({
-    tableColumns: [], 
+    tableColumns: [],
     cardFields: [],
     detailFields: [],
+    additionalInfoFields: [],
   });
   const [isLoaded, setIsLoaded] = useState(false);
 
@@ -31,7 +33,6 @@ export function ViewConfigProvider({ children }: { children: React.ReactNode }) 
     const saved = localStorage.getItem("view-config");
     if (saved) {
       try {
-        // eslint-disable-next-line react-hooks/exhaustive-deps
         setConfig(JSON.parse(saved));
       } catch (e) {
         console.error("Failed to parse view config", e);
@@ -44,11 +45,11 @@ export function ViewConfigProvider({ children }: { children: React.ReactNode }) 
       if (result.success && result.data) {
         setConfig((prev) => {
           const next = { ...prev };
-          // Strict sync: if key missing in server, default to []
           next.tableColumns = (result.data[CONFIG_KEYS.VIEW_TABLE_COLS] as string[]) || [];
           next.cardFields = (result.data[CONFIG_KEYS.VIEW_CARD_FIELDS] as string[]) || [];
           next.detailFields = (result.data[CONFIG_KEYS.VIEW_DETAIL_FIELDS] as string[]) || [];
-          
+          next.additionalInfoFields = (result.data[CONFIG_KEYS.VIEW_ADDITIONAL_INFO_FIELDS] as string[]) || [];
+
           localStorage.setItem("view-config", JSON.stringify(next));
           return next;
         });
@@ -65,7 +66,7 @@ export function ViewConfigProvider({ children }: { children: React.ReactNode }) 
   };
 
   const resetConfig = () => {
-    const defaults = { tableColumns: [], cardFields: [], detailFields: [] };
+    const defaults: ViewConfig = { tableColumns: [], cardFields: [], detailFields: [], additionalInfoFields: [] };
     setConfig(defaults);
     localStorage.removeItem("view-config");
   };
@@ -74,9 +75,8 @@ export function ViewConfigProvider({ children }: { children: React.ReactNode }) 
     return config[key].length > 0;
   };
 
-  // Prevent flash of default content if needed, though for view configs often default is "Show All" which is fine
   if (!isLoaded) {
-     // Optional: return null or loading if strict
+    // Optional: return null or loading if strict
   }
 
   return (

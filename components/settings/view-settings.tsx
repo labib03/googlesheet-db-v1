@@ -11,7 +11,7 @@ import { useState, useEffect, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { saveGlobalConfig } from "@/app/actions";
-import { CONFIG_KEYS, COLUMNS } from "@/lib/constants";
+import { CONFIG_KEYS, COLUMNS, ADDITIONAL_INFO_COLUMNS } from "@/lib/constants";
 
 export function ViewSettings() {
   const { headers } = useDashboard();
@@ -20,7 +20,6 @@ export function ViewSettings() {
   const [localConfig, setLocalConfig] = useState<ViewConfig>(config);
   const [isPending, startTransition] = useTransition();
 
-  // Sync local state with context (server/local data)
   useEffect(() => {
     setLocalConfig(config);
   }, [config]);
@@ -40,16 +39,15 @@ export function ViewSettings() {
 
   const handleSave = (key: keyof ViewConfig) => {
     startTransition(async () => {
-      // 1. Update Client Context
       updateConfig(key, localConfig[key]);
-      
-      // 2. Map to DB Keys
+
       const dbKeyMap: Record<keyof ViewConfig, string> = {
         tableColumns: CONFIG_KEYS.VIEW_TABLE_COLS,
         cardFields: CONFIG_KEYS.VIEW_CARD_FIELDS,
         detailFields: CONFIG_KEYS.VIEW_DETAIL_FIELDS,
+        additionalInfoFields: CONFIG_KEYS.VIEW_ADDITIONAL_INFO_FIELDS,
       };
-      
+
       const dbKey = dbKeyMap[key];
       if (dbKey) {
         const result = await saveGlobalConfig(dbKey, localConfig[key]);
@@ -62,32 +60,76 @@ export function ViewSettings() {
     });
   };
 
-  const allHeaders = [...headers, COLUMNS.UMUR];
+  const mainHeaders = [...headers.filter(h => !h.startsWith("_")), COLUMNS.UMUR];
+  const aiHeaders = [...ADDITIONAL_INFO_COLUMNS];
 
   const renderToggleList = (sectionKey: keyof ViewConfig) => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in duration-500">
-        {allHeaders.map((header) => (
-          <div
-            key={header}
-            className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-colors shadow-sm"
-          >
-            <label
-              htmlFor={`${sectionKey}-${header}`}
-              className="text-sm font-medium cursor-pointer flex-1 mr-4 select-none text-slate-700 dark:text-slate-300"
+    <div className="space-y-8">
+      {/* Main Columns */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
+          Data Utama (Form Responses)
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in duration-500">
+          {mainHeaders.map((header) => (
+            <div
+              key={header}
+              className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-colors shadow-sm"
             >
-              {header}
-            </label>
-            <Switch
-              id={`${sectionKey}-${header}`}
-              checked={isFieldVisible(sectionKey, header)}
-              onChange={() => handleToggle(sectionKey, header)}
-            />
-          </div>
-        ))}
+              <label
+                htmlFor={`${sectionKey}-${header}`}
+                className="text-sm font-medium cursor-pointer flex-1 mr-4 select-none text-slate-700 dark:text-slate-300"
+              >
+                {header}
+              </label>
+              <Switch
+                id={`${sectionKey}-${header}`}
+                checked={isFieldVisible(sectionKey, header)}
+                onChange={() => handleToggle(sectionKey, header)}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* AdditionalInfo Columns */}
+      <div>
+        <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+          Additional Info
+          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-in fade-in duration-500">
+          {aiHeaders.map((header) => (
+            <div
+              key={`ai-${header}`}
+              className="flex items-center justify-between p-3 rounded-xl border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/50 hover:border-indigo-100 dark:hover:border-indigo-900/50 transition-colors shadow-sm"
+            >
+              <label
+                htmlFor={`${sectionKey}-ai-${header}`}
+                className="text-sm font-medium cursor-pointer flex-1 mr-4 select-none text-slate-700 dark:text-slate-300"
+              >
+                {header}
+              </label>
+              <Switch
+                id={`${sectionKey}-ai-${header}`}
+                checked={isFieldVisible(sectionKey, `_ai_${header}`)}
+                onChange={() => handleToggle(sectionKey, `_ai_${header}`)}
+              />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
+
+  const tabConfig = [
+    { key: "tableColumns" as keyof ViewConfig, label: "Table View", icon: LayoutTemplate, description: "Select columns to display in the main data table (Desktop).", title: "Table Visibility" },
+    { key: "cardFields" as keyof ViewConfig, label: "Card View", icon: Smartphone, description: "Select fields to show on mobile card cards.", title: "Card Visibility" },
+    { key: "detailFields" as keyof ViewConfig, label: "Detail View", icon: FileText, description: "Select properties to show in the detailed view modal.", title: "Detail Modal Visibility" },
+  ];
+
+  const activeTabConfig = tabConfig.find(t => t.key === activeTab) || tabConfig[0];
 
   return (
     <div className="space-y-8">
@@ -114,63 +156,29 @@ export function ViewSettings() {
       </div>
 
       <div className="w-full">
-        {/* Custom Tabs List */}
         <div className="grid w-full grid-cols-3 mb-8 p-1 bg-slate-100 dark:bg-slate-900 rounded-2xl">
-          <button
-            onClick={() => setActiveTab("tableColumns")}
-            className={cn(
-              "flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all",
-              activeTab === "tableColumns"
-                ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
-                : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-300"
-            )}
-          >
-            <LayoutTemplate className="w-4 h-4" />
-            <span className="hidden sm:inline">Table View</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("cardFields")}
-            className={cn(
-              "flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all",
-              activeTab === "cardFields"
-                ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
-                : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-300"
-            )}
-          >
-            <Smartphone className="w-4 h-4" />
-            <span className="hidden sm:inline">Card View</span>
-          </button>
-          <button
-            onClick={() => setActiveTab("detailFields")}
-            className={cn(
-              "flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all",
-              activeTab === "detailFields"
-                ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
-                : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-300"
-            )}
-          >
-            <FileText className="w-4 h-4" />
-            <span className="hidden sm:inline">Detail View</span>
-          </button>
+          {tabConfig.map(({ key, label, icon: Icon }) => (
+            <button
+              key={key}
+              onClick={() => setActiveTab(key)}
+              className={cn(
+                "flex items-center justify-center gap-2 py-2.5 text-sm font-semibold rounded-xl transition-all",
+                activeTab === key
+                  ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                  : "text-slate-500 hover:text-slate-900 dark:hover:text-slate-300"
+              )}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Tab Content */}
         <Card className="border-none shadow-none bg-transparent">
           <CardHeader className="px-0 pt-0 pb-6 flex flex-row items-center justify-between space-y-0">
             <div className="space-y-1.5">
-              <CardTitle className="text-lg">
-                {activeTab === "tableColumns" && "Table Visibility"}
-                {activeTab === "cardFields" && "Card Visibility"}
-                {activeTab === "detailFields" && "Detail Modal Visibility"}
-              </CardTitle>
-              <CardDescription>
-                {activeTab === "tableColumns" &&
-                  "Select columns to display in the main data table (Desktop)."}
-                {activeTab === "cardFields" &&
-                  "Select fields to show on mobile card cards."}
-                {activeTab === "detailFields" &&
-                  "Select properties to show in the detailed view modal."}
-              </CardDescription>
+              <CardTitle className="text-lg">{activeTabConfig.title}</CardTitle>
+              <CardDescription>{activeTabConfig.description}</CardDescription>
             </div>
             <Button
               onClick={() => handleSave(activeTab)}

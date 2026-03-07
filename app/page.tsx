@@ -9,6 +9,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
+import { ADDITIONAL_INFO_SHEET_NAME } from "@/lib/constants";
 import { Suspense } from "react";
 import { DashboardSkeleton } from "@/components/dashboard-skeleton";
 
@@ -22,24 +23,28 @@ export default async function Home() {
   let headers: string[] = [];
 
   try {
-    const rawData = await getSheetData();
+    const [rawData, additionalInfoRaw] = await Promise.all([
+      getSheetData(),
+      getSheetData(ADDITIONAL_INFO_SHEET_NAME).catch(() => [] as SheetRow[]),
+    ]);
+
+    // Build AdditionalInfo lookup by UserId
+    const additionalInfoMap = new Map<string, SheetRow>();
+    for (const aiRow of additionalInfoRaw) {
+      const userId = String(aiRow["UserId"] || "").trim();
+      if (userId) additionalInfoMap.set(userId, aiRow);
+    }
 
     if (rawData.length > 0) {
-      // Process rows: Calculate Age & Format Date
       data = rawData.map((row, index) => {
         const tanggalLahirRaw = String(row["TANGGAL LAHIR"] || "");
         const updatedRow: SheetRow & { _index: number } = {
           ...row,
-          _index: index, // Adding original index for edit/delete
+          _index: index,
         };
 
-        // 1. Calculate Age (if DOB exists)
         if (tanggalLahirRaw.trim()) {
           updatedRow["Umur"] = calculateAge(tanggalLahirRaw);
-        }
-
-        // 2. Format Date of Birth (if DOB exists)
-        if (tanggalLahirRaw.trim()) {
           updatedRow["_rawBirthDate"] = tanggalLahirRaw;
           updatedRow["TANGGAL LAHIR"] = formatDate(tanggalLahirRaw);
         }
@@ -50,15 +55,25 @@ export default async function Home() {
           );
         }
 
+        // Merge AdditionalInfo if linked
+        const idGenerus = String(row["ID GENERUS"] || "").trim();
+        if (idGenerus && additionalInfoMap.has(idGenerus)) {
+          const aiRow = additionalInfoMap.get(idGenerus)!;
+          for (const [key, value] of Object.entries(aiRow)) {
+            if (key !== "Timestamp" && key !== "UserId" && key !== "_index") {
+              updatedRow[`_ai_${key}`] = value;
+            }
+          }
+          updatedRow["_hasAdditionalInfo"] = "true";
+        }
+
         return updatedRow;
       });
-      // Headers come from first row which is data[0]'s keys if data exists?
-      // getSheetData typically returns array of objects where keys are headers.
-      // So Object.keys of first row is correct.
+
       if (data.length > 0) {
         headers = Object.keys(data[0]).filter(
-          (k) => k !== "_index" && k !== "Timestamp" && k !== "Umur",
-        ); // Exclude internal index, Timestamp, and Umur (calculated field)
+          (k) => k !== "_index" && k !== "Timestamp" && k !== "Umur" && !k.startsWith("_"),
+        );
       }
     }
   } catch (err) {

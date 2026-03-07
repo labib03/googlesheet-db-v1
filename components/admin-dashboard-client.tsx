@@ -11,7 +11,7 @@ import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
-import { ShieldCheck, AlertCircle, History, Settings, Check, Trash, AlertTriangle, Sparkles } from "lucide-react";
+import { ShieldCheck, AlertCircle, History, Settings, Check, Trash, AlertTriangle, Sparkles, Link2 } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExportButton } from "./dashboard/export-button";
@@ -174,6 +174,17 @@ export function AdminDashboardClient({
               <Link href="/admin-restricted/talent-analytics">
                 <Sparkles className="h-4 w-4" />
                 <span>TALENT CONFIG</span>
+              </Link>
+            </Button>
+            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
+            <Button
+              asChild
+              variant="ghost"
+              className="gap-2 rounded-xl h-10 px-4 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 transition-all font-bold text-xs shrink-0"
+            >
+              <Link href="/admin-restricted/link-generus">
+                <Link2 className="h-4 w-4" />
+                <span>LINK GENERUS</span>
               </Link>
             </Button>
           </div>

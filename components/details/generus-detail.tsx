@@ -2,7 +2,7 @@
 
 import { SheetRow } from "@/lib/google-sheets";
 import { capitalizeWords, formatDate, getCellValue } from "@/lib/helper";
-import { COLUMNS } from "@/lib/constants";
+import { COLUMNS, ADDITIONAL_INFO_COLUMNS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
@@ -38,7 +38,7 @@ export function GenerusDetail({ row, onBack, ignoreViewConfig }: GenerusDetailPr
   const rowNama = getCellValue(row, COLUMNS.NAMA);
   const rowDesa = getCellValue(row, COLUMNS.DESA);
   const rowKelompok = getCellValue(row, COLUMNS.KELOMPOK);
-  
+
   const { config } = useViewConfig();
 
   const initials = (rowNama || "?")
@@ -48,7 +48,7 @@ export function GenerusDetail({ row, onBack, ignoreViewConfig }: GenerusDetailPr
     .slice(0, 2)
     .toUpperCase();
 
-  const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase(), "_rawbirthdate"];
+  const ignoredKeys = ["_index", "timestamp", COLUMNS.NAMA.toLowerCase(), "_rawbirthdate", "_hasadditionalinfo"];
 
   return (
     <div className="flex flex-col h-auto max-h-dvh md:max-h-[85vh] bg-white dark:bg-slate-900 overflow-hidden relative font-outfit">
@@ -68,7 +68,7 @@ export function GenerusDetail({ row, onBack, ignoreViewConfig }: GenerusDetailPr
       </div>
 
       {/* Content - Scrollable */}
-      <ScrollArea 
+      <ScrollArea
         className="flex-1 h-auto overflow-y-auto"
         onScrollCapture={checkScroll}
         ref={scrollRef}
@@ -76,7 +76,12 @@ export function GenerusDetail({ row, onBack, ignoreViewConfig }: GenerusDetailPr
         <div className="px-5 md:px-8 py-6">
           <div className="grid gap-1">
             {Object.entries(row)
-              .filter(([key]) => !ignoredKeys.includes(key.toLowerCase()) && (ignoreViewConfig || config.detailFields.includes(key)))
+              .filter(([key]) => {
+                const keyLower = key.toLowerCase();
+                if (ignoredKeys.includes(keyLower)) return false;
+                if (key.startsWith("_")) return false;
+                return ignoreViewConfig || config.detailFields.includes(key);
+              })
               .map(([key, value]) => (
                 <div
                   key={key}
@@ -90,17 +95,36 @@ export function GenerusDetail({ row, onBack, ignoreViewConfig }: GenerusDetailPr
                   </span>
                 </div>
               ))}
+            {/* AdditionalInfo fields — always show active columns even if not linked */}
+            {(() => {
+              const activeAiCols = ignoreViewConfig
+                ? [...ADDITIONAL_INFO_COLUMNS]
+                : ADDITIONAL_INFO_COLUMNS.filter((col) => config.detailFields.includes(`_ai_${col}`));
+              if (activeAiCols.length === 0) return null;
+              return activeAiCols.map((col) => (
+                <div
+                  key={`ai-${col}`}
+                  className="flex flex-col py-3 border-b border-slate-50 dark:border-slate-800/50 last:border-0 group"
+                >
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1 group-hover:text-indigo-500 transition-colors">
+                    {col}
+                  </span>
+                  <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 break-words leading-relaxed">
+                    {String(row[`_ai_${col}`] || "-")}
+                  </span>
+                </div>
+              ));
+            })()}
           </div>
         </div>
       </ScrollArea>
 
       {/* Scroll Indicator Icon */}
       <div
-        className={`absolute bottom-[100px] left-1/2 -translate-x-1/2 w-8 h-9 bg-indigo-500 text-white rounded-full flex flex-col items-center justify-center shadow-lg transition-all duration-300 pointer-events-none z-[9999] ${
-          showScrollIndicator
-            ? "opacity-100 translate-y-0"
-            : "opacity-0 translate-y-4"
-        }`}
+        className={`absolute bottom-[100px] left-1/2 -translate-x-1/2 w-8 h-9 bg-indigo-500 text-white rounded-full flex flex-col items-center justify-center shadow-lg transition-all duration-300 pointer-events-none z-[9999] ${showScrollIndicator
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 translate-y-4"
+          }`}
       >
         <div className="relative h-6 w-full flex flex-col items-center">
           <motion.div

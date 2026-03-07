@@ -5,7 +5,7 @@ import { DataDetailDialog } from "@/components/data-detail-dialog";
 import { EditDataDialog } from "@/components/edit-data-dialog";
 import { DeleteDataDialog } from "@/components/delete-data-dialog";
 import { getCellValue, capitalizeWords } from "@/lib/helper";
-import { COLUMNS } from "@/lib/constants";
+import { COLUMNS, ADDITIONAL_INFO_COLUMNS } from "@/lib/constants";
 import { Pencil, Trash2, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { useViewConfig } from "@/context/view-config-context";
@@ -24,12 +24,12 @@ interface DashboardCardsProps {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 15 },
-  show: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-        duration: 0.4
-    } 
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4
+    }
   },
 };
 
@@ -106,9 +106,8 @@ export function DashboardCards({
               row={row}
               title={`Detail ${capitalizeWords(rowNamaRaw) || "Data"}`}
             >
-              <div className={`p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors grow ${
-                onToggleSelection && selectedIndices.includes(originalIndex + 2) ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""
-              }`}>
+              <div className={`p-5 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors grow ${onToggleSelection && selectedIndices.includes(originalIndex + 2) ? "bg-indigo-50/50 dark:bg-indigo-900/10" : ""
+                }`}>
                 {/* Header */}
                 <div className="flex items-start gap-4 mb-5 border-b border-slate-100 dark:border-slate-800 pb-5">
                   <div className="flex items-center justify-center w-12 h-12 bg-slate-50 dark:bg-slate-950 border border-slate-100 dark:border-slate-800 rounded-xl text-indigo-600 font-bold text-lg shrink-0">
@@ -141,46 +140,65 @@ export function DashboardCards({
                   {headers
                     .filter(h => config.cardFields.includes(h))
                     .map((header) => {
-                    if (header === COLUMNS.NAMA) return null;
-                    if (header === COLUMNS.TANGGAL_LAHIR) return null;
+                      if (header === COLUMNS.NAMA) return null;
+                      if (header === COLUMNS.TANGGAL_LAHIR) return null;
 
-                    return (
-                      <div key={header} className="flex flex-col">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">
-                          {getKeyLabel(header)}
-                        </span>
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">
-                          {getValueDisplay(header, String(row[header] || ""))}
-                        </span>
-                      </div>
-                    );
-                  })}
+                      return (
+                        <div key={header} className="flex flex-col">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-0.5">
+                            {getKeyLabel(header)}
+                          </span>
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-200 leading-snug">
+                            {getValueDisplay(header, String(row[header] || ""))}
+                          </span>
+                        </div>
+                      );
+                    })}
                 </div>
+                {/* AdditionalInfo fields */}
+                {(() => {
+                  const visibleAiFields = ADDITIONAL_INFO_COLUMNS.filter((col) => config.cardFields.includes(`_ai_${col}`));
+                  if (visibleAiFields.length === 0) return null;
+                  return (
+                    <div className="mt-4 pt-4 border-t border-teal-100 dark:border-teal-900/30">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-teal-500 mb-3">Additional Info</p>
+                      <div className="grid grid-cols-2 gap-y-4 gap-x-4">
+                        {visibleAiFields.map((col) => (
+                          <div key={`ai-${col}`} className="flex flex-col">
+                            <span className="text-[10px] font-semibold uppercase tracking-wider text-teal-400 mb-0.5">
+                              {col}
+                            </span>
+                            <span className="text-sm font-medium text-teal-700 dark:text-teal-200 leading-snug">
+                              {String(row[`_ai_${col}`] || "-")}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </DataDetailDialog>
             {/* Actions Grid */}
             <div
-              className={`grid ${
-                onToggleSelection 
+              className={`grid ${onToggleSelection
                   ? (isEnableEdit && isEnableDelete ? "grid-cols-3" : (isEnableEdit || isEnableDelete ? "grid-cols-2" : "grid-cols-1"))
                   : (isEnableEdit && isEnableDelete ? "grid-cols-2" : (isEnableEdit || isEnableDelete ? "grid-cols-1" : "hidden"))
-              } border-t border-slate-100 dark:border-slate-800`}
+                } border-t border-slate-100 dark:border-slate-800`}
             >
               {/* Select Action */}
               {onToggleSelection && (
                 <button
                   onClick={() => onToggleSelection?.(originalIndex + 2)}
-                  className={`flex items-center justify-center gap-2 py-3.5 transition-all active:scale-95 border-r border-slate-100 dark:border-slate-800 ${
-                    selectedIndices.includes(originalIndex + 2)
+                  className={`flex items-center justify-center gap-2 py-3.5 transition-all active:scale-95 border-r border-slate-100 dark:border-slate-800 ${selectedIndices.includes(originalIndex + 2)
                       ? "bg-indigo-600 text-white"
                       : "bg-slate-50/50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 font-bold"
-                  }`}
+                    }`}
                 >
-                  <div className={`flex items-center justify-center w-4 h-4 rounded-md border-2 transition-colors ${
-                    selectedIndices.includes(originalIndex + 2)
+                  <div className={`flex items-center justify-center w-4 h-4 rounded-md border-2 transition-colors ${selectedIndices.includes(originalIndex + 2)
                       ? "bg-white border-white text-indigo-600"
                       : "border-indigo-200 dark:border-indigo-800"
-                  }`}>
+                    }`}>
                     {selectedIndices.includes(originalIndex + 2) && <Check className="w-3 h-3 stroke-[4]" />}
                   </div>
                   <span className="text-[10px] uppercase tracking-wider font-black">

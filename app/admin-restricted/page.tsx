@@ -2,6 +2,7 @@ import { getSheetData, SheetRow } from "@/lib/google-sheets";
 import { Navbar } from "@/components/navbar";
 import { AdminDashboardClient } from "@/components/admin-dashboard-client";
 import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
+import { ADDITIONAL_INFO_SHEET_NAME } from "@/lib/constants";
 import { Suspense } from "react";
 import { AdminDashboardSkeleton } from "@/components/admin-dashboard-skeleton";
 
@@ -14,10 +15,18 @@ async function AdminDashboardContent() {
   let headers: string[] = [];
 
   try {
-    const [rawData, rawTrashData] = await Promise.all([
+    const [rawData, rawTrashData, additionalInfoRaw] = await Promise.all([
       getSheetData(),
-      getSheetData("Trash").catch(() => [])
+      getSheetData("Trash").catch(() => []),
+      getSheetData(ADDITIONAL_INFO_SHEET_NAME).catch(() => [] as SheetRow[]),
     ]);
+
+    // Build AdditionalInfo lookup by UserId
+    const additionalInfoMap = new Map<string, SheetRow>();
+    for (const aiRow of additionalInfoRaw) {
+      const userId = String(aiRow["UserId"] || "").trim();
+      if (userId) additionalInfoMap.set(userId, aiRow);
+    }
 
     if (rawData.length > 0) {
       data = rawData.map((row, index) => {
@@ -38,12 +47,24 @@ async function AdminDashboardContent() {
           );
         }
 
+        // Merge AdditionalInfo if linked
+        const idGenerus = String(row["ID GENERUS"] || "").trim();
+        if (idGenerus && additionalInfoMap.has(idGenerus)) {
+          const aiRow = additionalInfoMap.get(idGenerus)!;
+          for (const [key, value] of Object.entries(aiRow)) {
+            if (key !== "Timestamp" && key !== "UserId" && key !== "_index") {
+              updatedRow[`_ai_${key}`] = value;
+            }
+          }
+          updatedRow["_hasAdditionalInfo"] = "true";
+        }
+
         return updatedRow;
       });
 
       if (data.length > 0) {
         headers = Object.keys(data[0]).filter(
-          (k) => k !== "_index" && k !== "Timestamp" && k !== "Umur",
+          (k) => k !== "_index" && k !== "Timestamp" && k !== "Umur" && !k.startsWith("_"),
         );
       }
     }

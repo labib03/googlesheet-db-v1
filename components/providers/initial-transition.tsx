@@ -5,27 +5,27 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Database } from "lucide-react";
 
 export function InitialTransition({ children }: { children: React.ReactNode }) {
-  const [isVisible, setIsVisible] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return document.documentElement.getAttribute('data-preloader') === 'active';
-  });
+  const [isVisible, setIsVisible] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [showChildren, setShowChildren] = useState(false);
 
+  // Initialize state on client only (after hydration) to avoid SSR mismatch
   useEffect(() => {
+    const hasPreloader = document.documentElement.getAttribute('data-preloader') === 'active';
+    if (hasPreloader) {
+      setIsVisible(true);
+    } else {
+      setShowChildren(true);
+    }
     setTimeout(() => setIsMounted(true), 0);
   }, []);
-
-  const [showChildren, setShowChildren] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return !document.documentElement.hasAttribute('data-preloader');
-  });
 
   useEffect(() => {
     if (isVisible) {
       // Aggressive scroll lock when preloader starts
       const root = document.documentElement;
       const body = document.body;
-      
+
       root.style.overflow = 'hidden';
       root.style.scrollbarWidth = 'none';
       body.style.overflow = 'hidden';
@@ -33,7 +33,7 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
 
       const timer = setTimeout(() => {
         setIsVisible(false);
-        
+
         // Wait for exit animation to complete (1s duration + 0.1s delay) before restoring
         setTimeout(() => {
           root.style.overflow = '';
@@ -44,7 +44,7 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
           setShowChildren(true);
         }, 1100);
       }, 3200);
-      
+
       return () => clearTimeout(timer);
     }
   }, [isVisible]);
@@ -59,13 +59,13 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
           <motion.div
             key="global-preloader"
             initial={{ opacity: 1 }}
-            exit={{ 
+            exit={{
               y: "-100%",
-              transition: { 
-                duration: 1, 
+              transition: {
+                duration: 1,
                 ease: [0.7, 0, 0.3, 1], // Luxury slide ease
                 delay: 0.1
-              } 
+              }
             }}
             className="fixed inset-0 z-[999999] flex items-center justify-center bg-indigo-600 font-syne touch-none select-none pointer-events-auto overflow-hidden"
           >
@@ -74,9 +74,9 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 240, 
+                transition={{
+                  type: "spring",
+                  stiffness: 240,
                   damping: 18,
                   delay: 0.2
                 }}
@@ -92,10 +92,10 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
                     key={i}
                     initial={{ y: 80, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
-                    transition={{ 
-                      duration: 0.5, 
-                      ease: "easeOut", 
-                      delay: 0.5 + (i * 0.1) 
+                    transition={{
+                      duration: 0.5,
+                      ease: "easeOut",
+                      delay: 0.5 + (i * 0.1)
                     }}
                     className="text-6xl md:text-8xl font-black text-white tracking-tighter"
                   >
@@ -115,12 +115,12 @@ export function InitialTransition({ children }: { children: React.ReactNode }) {
                   Initializing Dashboard Generus System
                 </p>
                 <div className="h-[2px] w-40 bg-white/20 rounded-full overflow-hidden">
-                   <motion.div 
-                     initial={{ x: "-100%" }}
-                     animate={{ x: "100%" }}
-                     transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }}
-                     className="h-full w-1/3 bg-white"
-                   />
+                  <motion.div
+                    initial={{ x: "-100%" }}
+                    animate={{ x: "100%" }}
+                    transition={{ duration: 1.8, repeat: Infinity, ease: "linear" }}
+                    className="h-full w-1/3 bg-white"
+                  />
                 </div>
               </motion.div>
             </div>
