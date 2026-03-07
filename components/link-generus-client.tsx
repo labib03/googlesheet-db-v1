@@ -59,6 +59,7 @@ export function LinkGenerusClient({
     const [linkedRows, setLinkedRows] = useState<Set<number>>(new Set());
     const [linkedGenerusIndices, setLinkedGenerusIndices] = useState<Set<number>>(new Set());
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [matchCategory, setMatchCategory] = useState<"all" | "matchable" | "unmatchable">("all");
     const [pendingLink, setPendingLink] = useState<{
         additionalInfoIdx: number;
         generusRow: SheetRow;
@@ -74,6 +75,18 @@ export function LinkGenerusClient({
                     !String(row["UserId"] || "").trim() &&
                     !linkedRows.has(row._index as number),
             );
+
+            // Sub-filter by matching status
+            if (matchCategory !== "all") {
+                filtered = filtered.filter((row) => {
+                    const aiName = String(row["Nama Lengkap"] || "").trim().toLowerCase();
+                    const hasMatch = aiName && unlinkedGenerus.some(g =>
+                        !linkedGenerusIndices.has(g._index as number) &&
+                        String(g["NAMA LENGKAP"] || "").trim().toLowerCase() === aiName
+                    );
+                    return matchCategory === "matchable" ? hasMatch : !hasMatch;
+                });
+            }
         } else if (filterMode === "linked") {
             filtered = filtered.filter(
                 (row) =>
@@ -94,7 +107,15 @@ export function LinkGenerusClient({
         }
 
         return filtered;
-    }, [additionalInfoData, filterMode, searchQuery, linkedRows]);
+    }, [
+        additionalInfoData,
+        filterMode,
+        searchQuery,
+        linkedRows,
+        matchCategory,
+        unlinkedGenerus,
+        linkedGenerusIndices
+    ]);
 
     const unlinkedCount = additionalInfoData.filter(
         (row) =>
@@ -284,6 +305,32 @@ export function LinkGenerusClient({
                     </div>
                 </div>
             </div>
+
+            {/* Match Status Sub-Tabs (Only for Unlinked) */}
+            {filterMode === "unlinked" && (
+                <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-100 dark:border-slate-800/50 animate-in fade-in slide-in-from-left-2 duration-300">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 px-3 tracking-wider">Quick Filter:</span>
+                    {(
+                        [
+                            { id: "all", label: "Semua Belum", icon: UserX },
+                            { id: "matchable", label: "Siap Match ✨", icon: Wand2 },
+                            { id: "unmatchable", label: "Perlu Cek", icon: AlertCircle },
+                        ] as const
+                    ).map((cat) => (
+                        <button
+                            key={cat.id}
+                            onClick={() => setMatchCategory(cat.id)}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${matchCategory === cat.id
+                                ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
+                                : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                }`}
+                        >
+                            <cat.icon className={`h-3.5 w-3.5 ${matchCategory === cat.id ? "text-indigo-500" : ""}`} />
+                            {cat.label}
+                        </button>
+                    ))}
+                </div>
+            )}
 
             {/* Search + Filter + AutoMatch */}
             <div
