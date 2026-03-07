@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { SheetRow } from "@/lib/google-sheets";
 import {
     Dialog,
@@ -26,6 +26,12 @@ export function GenerusPickerDialog({
     onSelect,
 }: GenerusPickerDialogProps) {
     const [search, setSearch] = useState("");
+
+    useEffect(() => {
+        if (!open) {
+            setSearch("");
+        }
+    }, [open]);
 
     const filtered = useMemo(() => {
         if (!search.trim()) return generusList;
