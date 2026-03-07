@@ -1,10 +1,11 @@
-import { getSheetData, SheetRow } from "@/lib/google-sheets";
+import { SheetRow } from "@/lib/google-sheets";
 import { Navbar } from "@/components/navbar";
 import { MismatchPageClient } from "@/components/mismatch/mismatch-page-client";
-import { getJenjangKelas, calculateAge, formatDate, isMappingCorrect } from "@/lib/helper";
+import { isMappingCorrect } from "@/lib/helper";
 import { Suspense } from "react";
 import Loading from "@/app/loading";
 import { COLUMNS } from "@/lib/constants";
+import { fetchAndProcessData } from "@/lib/process-sheet-data";
 
 export const dynamic = "force-dynamic";
 
@@ -13,36 +14,13 @@ async function MismatchContent() {
   let error: string | null = null;
 
   try {
-    const rawData = await getSheetData();
-    
-    if (rawData.length > 0) {
-      mismatchData = rawData
-        .map((row, index) => {
-          const tanggalLahirRaw = String(row[COLUMNS.TANGGAL_LAHIR] || "");
-          const updatedRow: SheetRow & { _index: number } = {
-            ...row,
-            _index: index,
-          };
+    const result = await fetchAndProcessData({ includeAdditionalInfo: false });
 
-          if (tanggalLahirRaw.trim()) {
-            updatedRow["Umur"] = calculateAge(tanggalLahirRaw);
-            updatedRow[COLUMNS.TANGGAL_LAHIR] = formatDate(tanggalLahirRaw);
-          }
-
-          if (updatedRow["Umur"] != undefined) {
-            updatedRow[COLUMNS.JENJANG] = getJenjangKelas(
-              updatedRow["Umur"] as string,
-            );
-          }
-
-          return updatedRow;
-        })
-        .filter((row) => {
-          const desa = String(row[COLUMNS.DESA] || "");
-          const kelompok = String(row[COLUMNS.KELOMPOK] || "");
-          return !isMappingCorrect(desa, kelompok);
-        });
-    }
+    mismatchData = result.data.filter((row) => {
+      const desa = String(row[COLUMNS.DESA] || "");
+      const kelompok = String(row[COLUMNS.KELOMPOK] || "");
+      return !isMappingCorrect(desa, kelompok);
+    });
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to fetch data";
   }

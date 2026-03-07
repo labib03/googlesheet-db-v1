@@ -1,9 +1,9 @@
 import { getSheetData, SheetRow } from "@/lib/google-sheets";
 import { Navbar } from "@/components/navbar";
 import { TrashPageClient } from "@/components/trash/trash-page-client";
-import { getJenjangKelas, calculateAge, formatDate } from "@/lib/helper";
 import { Suspense } from "react";
 import { TrashSkeleton } from "@/components/trash-skeleton";
+import { processRows } from "@/lib/process-sheet-data";
 
 export const dynamic = "force-dynamic";
 
@@ -15,26 +15,8 @@ async function TrashContent() {
     const rawTrashData = await getSheetData("Trash").catch(() => []);
 
     if (rawTrashData.length > 0) {
-      trashData = rawTrashData.map((row, index) => {
-        const tanggalLahirRaw = String(row["TANGGAL LAHIR"] || "");
-        const updatedRow: SheetRow & { _index: number } = {
-          ...row,
-          _index: index,
-        };
-
-        if (tanggalLahirRaw.trim()) {
-          updatedRow["Umur"] = calculateAge(tanggalLahirRaw);
-          updatedRow["TANGGAL LAHIR"] = formatDate(tanggalLahirRaw);
-        }
-
-        if (updatedRow["Umur"] != undefined) {
-          updatedRow["Jenjang Kelas"] = getJenjangKelas(
-            updatedRow["Umur"] as string,
-          );
-        }
-
-        return updatedRow;
-      });
+      const result = processRows(rawTrashData);
+      trashData = result.data;
     }
   } catch (err) {
     error = err instanceof Error ? err.message : "Failed to fetch trash data";

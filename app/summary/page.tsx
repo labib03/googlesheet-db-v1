@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getSheetData, SheetRow } from "@/lib/google-sheets";
+import { SheetRow } from "@/lib/google-sheets";
 import { Navbar } from "@/components/navbar";
 import {
   Card,
@@ -23,11 +23,11 @@ import { StatsOverview } from "@/components/dashboard/stats-overview";
 import { AnalyticsService } from "@/services/analytics-service";
 import { SummaryLayout, SummarySection } from "@/components/summary-layout";
 import { cn } from "@/lib/utils";
-import { ADDITIONAL_INFO_SHEET_NAME } from "@/lib/constants";
 import { SummaryTabs } from "@/components/summary-tabs";
 import { SummaryTabContent } from "@/components/summary-tab-content";
 import { AnalyticsDetailDashboard } from "@/components/analytics-detail-dashboard";
 import { SummaryAdditionalInsights } from "@/components/summary-additional-insights";
+import { fetchAndProcessData } from "@/lib/process-sheet-data";
 
 
 export const dynamic = "force-dynamic";
@@ -54,12 +54,8 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   const activeView = resolvedParams.view || "overview";
 
   try {
-    const [rawData, aiRaw] = await Promise.all([
-      getSheetData(),
-      getSheetData(ADDITIONAL_INFO_SHEET_NAME).catch(() => [] as SheetRow[]),
-    ]);
-    const processed = AnalyticsService.processRows(rawData);
-    rows = AnalyticsService.mergeAdditionalInfo(processed, aiRaw);
+    const result = await fetchAndProcessData({ includeAdditionalInfo: true });
+    rows = result.data;
   } catch (err) {
     error = err instanceof Error ? err.message : "Gagal memuat data";
   }

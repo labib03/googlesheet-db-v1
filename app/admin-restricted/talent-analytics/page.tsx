@@ -1,10 +1,10 @@
-import { getSheetData, SheetRow } from "@/lib/google-sheets";
+import { SheetRow } from "@/lib/google-sheets";
 import { getGlobalConfig } from "@/app/actions";
 import { Navbar } from "@/components/navbar";
 import { TalentAnalyticsClient } from "@/components/admin/talent-analytics-client";
 import { Suspense } from "react";
 import Loading from "@/app/loading";
-import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
+import { fetchAndProcessData } from "@/lib/process-sheet-data";
 
 export const dynamic = "force-dynamic";
 
@@ -14,33 +14,12 @@ async function TalentAnalyticsContent() {
     let error: string | null = null;
 
     try {
-        const [rawData, configResult] = await Promise.all([
-            getSheetData(),
+        const [result, configResult] = await Promise.all([
+            fetchAndProcessData({ includeAdditionalInfo: false }),
             getGlobalConfig()
         ]);
 
-        if (rawData.length > 0) {
-            data = rawData.map((row, index) => {
-                const tanggalLahirRaw = String(row["TANGGAL LAHIR"] || "");
-                const updatedRow: SheetRow & { _index: number } = {
-                    ...row,
-                    _index: index,
-                };
-
-                if (tanggalLahirRaw.trim()) {
-                    updatedRow["Umur"] = calculateAge(tanggalLahirRaw);
-                    updatedRow["TANGGAL LAHIR"] = formatDate(tanggalLahirRaw);
-                }
-
-                if (updatedRow["Umur"] != undefined) {
-                    updatedRow["Jenjang Kelas"] = getJenjangKelas(
-                        updatedRow["Umur"] as string,
-                    );
-                }
-
-                return updatedRow;
-            });
-        }
+        data = result.data;
 
         if (configResult.success) {
             config = configResult.data || {};

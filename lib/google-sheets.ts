@@ -13,8 +13,35 @@ const DEFAULT_SHEET_NAME =
 // Helper to escape sheet names for A1 notation
 const escapeSheetName = (name: string) => `'${name.replace(/'/g, "''")}'`;
 
+const API_TIMEOUT_MS = 10_000; // 10 seconds per API call
+
 /**
- * Helper to implement Exponential Backoff
+ * Helper to enforce a timeout on any promise
+ */
+async function withTimeout<T>(
+  promise: Promise<T>,
+  ms: number = API_TIMEOUT_MS,
+): Promise<T> {
+  let timeoutId: NodeJS.Timeout;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    timeoutId = setTimeout(() => {
+      reject(
+        new Error(
+          `Koneksi ke Google Sheets timeout setelah ${ms / 1000} detik. Silakan coba lagi.`,
+        ),
+      );
+    }, ms);
+  });
+
+  try {
+    return await Promise.race([promise, timeoutPromise]);
+  } finally {
+    clearTimeout(timeoutId!);
+  }
+}
+
+/**
+ * Helper to implement Exponential Backoff with Timeout
  */
 async function withRetry<T>(
   fn: () => Promise<T>,
@@ -23,15 +50,16 @@ async function withRetry<T>(
   backoff = 2,
 ): Promise<T> {
   try {
-    return await fn();
+    return await withTimeout(fn());
   } catch (error: unknown) {
-    const err = error as { code?: number | string };
+    const err = error as { code?: number | string; message?: string };
     if (retries === 0 || err.code === 404) throw error; // Don't retry 404
 
-    // Retry on quota errors (429) or server errors (500, 503)
-    if (err.code === 429 || err.code === 500 || err.code === 503) {
+    // Retry on timeout, quota errors (429) or server errors (500, 503)
+    const isTimeout = err.message?.includes("timeout");
+    if (isTimeout || err.code === 429 || err.code === 500 || err.code === 503) {
       console.warn(
-        `API quota/error hit. Retrying in ${delay}ms... (Attempts left: ${retries})`,
+        `API ${isTimeout ? "timeout" : "quota/error"} hit. Retrying in ${delay}ms... (Attempts left: ${retries})`,
       );
       await new Promise((resolve) => setTimeout(resolve, delay));
       return withRetry(fn, retries - 1, delay * backoff, backoff);

@@ -12,6 +12,7 @@ import {
   SheetRow,
 } from "@/lib/google-sheets";
 import { calculateAge, formatDate, getJenjangKelas } from "@/lib/helper";
+import { fetchAndProcessData } from "@/lib/process-sheet-data";
 import { revalidatePath, revalidateTag } from "next/cache";
 import {
   CONFIG_SHEET_NAME,
@@ -235,54 +236,8 @@ export async function bulkDeleteData(
 
 export async function getSheetDataAction() {
   try {
-    const [rawData, additionalInfoRaw] = await Promise.all([
-      getSheetData(),
-      getSheetData(ADDITIONAL_INFO_SHEET_NAME).catch(() => [] as SheetRow[]),
-    ]);
-
-    // Build lookup: UserId -> AdditionalInfo row
-    const additionalInfoMap = new Map<string, SheetRow>();
-    for (const aiRow of additionalInfoRaw) {
-      const userId = String(aiRow["UserId"] || "").trim();
-      if (userId) {
-        additionalInfoMap.set(userId, aiRow);
-      }
-    }
-
-    const processedData = rawData.map((row, index) => {
-      const tanggalLahirRaw = String(row["TANGGAL LAHIR"] || "");
-      const updatedRow: SheetRow & { _index: number } = {
-        ...row,
-        _index: index,
-      };
-
-      if (tanggalLahirRaw.trim()) {
-        updatedRow["Umur"] = calculateAge(tanggalLahirRaw);
-        updatedRow["TANGGAL LAHIR"] = formatDate(tanggalLahirRaw);
-      }
-
-      if (updatedRow["Umur"] != undefined) {
-        updatedRow["Jenjang Kelas"] = getJenjangKelas(
-          updatedRow["Umur"] as string,
-        );
-      }
-
-      // Merge AdditionalInfo if linked
-      const idGenerus = String(row["ID GENERUS"] || "").trim();
-      if (idGenerus && additionalInfoMap.has(idGenerus)) {
-        const aiRow = additionalInfoMap.get(idGenerus)!;
-        for (const [key, value] of Object.entries(aiRow)) {
-          if (key !== "Timestamp" && key !== "UserId" && key !== "_index") {
-            updatedRow[`_ai_${key}`] = value;
-          }
-        }
-        updatedRow["_hasAdditionalInfo"] = "true";
-      }
-
-      return updatedRow;
-    });
-
-    return { success: true, data: processedData };
+    const result = await fetchAndProcessData({ includeAdditionalInfo: true });
+    return { success: true, data: result.data };
   } catch {
     return { success: false, message: "Failed to fetch data" };
   }
