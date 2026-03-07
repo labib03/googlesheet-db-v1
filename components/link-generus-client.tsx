@@ -373,6 +373,10 @@ export function LinkGenerusClient({
                     (g) => !linkedRows.has(g._index as number),
                 )}
                 onSelect={handlePickerSelect}
+                initialSearch={(() => {
+                    const row = additionalInfoData.find(r => (r._index as number) === pickerTargetRow);
+                    return row ? String(row["Nama Lengkap"] || "") : "";
+                })()}
             />
 
             {/* Confirmation Dialog */}

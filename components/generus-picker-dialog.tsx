@@ -17,6 +17,7 @@ interface GenerusPickerDialogProps {
     onOpenChange: (open: boolean) => void;
     generusList: SheetRow[];
     onSelect: (row: SheetRow) => void;
+    initialSearch?: string;
 }
 
 export function GenerusPickerDialog({
@@ -24,14 +25,17 @@ export function GenerusPickerDialog({
     onOpenChange,
     generusList,
     onSelect,
+    initialSearch = "",
 }: GenerusPickerDialogProps) {
     const [search, setSearch] = useState("");
 
     useEffect(() => {
-        if (!open) {
+        if (open) {
+            setSearch(initialSearch);
+        } else {
             setSearch("");
         }
-    }, [open]);
+    }, [open, initialSearch]);
 
     const filtered = useMemo(() => {
         if (!search.trim()) return generusList;
