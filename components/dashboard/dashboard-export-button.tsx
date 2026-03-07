@@ -12,22 +12,22 @@ interface DashboardExportButtonProps {
 
 export function DashboardExportButton({ data, headers }: DashboardExportButtonProps) {
   const { config, isCustomized } = useViewConfig();
-  
+
   // Calculate which headers to export based on table view settings
   // If use has customized table columns, use only those.
   // Otherwise, use all headers + Umur (default view behavior).
-  
+
   const hasCustomTableCols = isCustomized("tableColumns");
-  
-  const exportHeaders = hasCustomTableCols 
+
+  const exportHeaders = hasCustomTableCols
     ? [...headers, COLUMNS.UMUR].filter(h => config.tableColumns.includes(h))
     : [...headers, COLUMNS.UMUR];
 
   return (
-    <ExportButton 
-      data={data} 
-      headers={exportHeaders} 
-      filename={`export-generus-${new Date().toISOString().split('T')[0]}.csv`}
+    <ExportButton
+      data={data}
+      headers={exportHeaders}
+      filename={`export-generus`}
       includeNo={false}
     />
   );
