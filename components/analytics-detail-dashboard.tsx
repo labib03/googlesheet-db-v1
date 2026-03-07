@@ -190,34 +190,66 @@ export function AnalyticsDetailDashboard({ rows }: AnalyticsDetailDashboardProps
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="h-48 flex items-end justify-between gap-2 px-2 mt-4">
-                                {[...Array(10)].map((_, i) => {
-                                    const score = i + 1;
-                                    const data = marriageDist.find(d => Number(d.label) === score);
-                                    const height = data ? (data.count / Math.max(...marriageDist.map(d => d.count))) * 100 : 0;
-
-                                    return (
-                                        <div key={score} className="flex-1 flex flex-col items-center gap-2 group">
-                                            <div className="relative w-full h-full flex items-end justify-center">
-                                                {data && (
-                                                    <div className="absolute -top-8 text-[10px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        {data.count}
-                                                    </div>
-                                                )}
-                                                <motion.div
-                                                    initial={{ height: 0 }}
-                                                    animate={{ height: `${height}%` }}
-                                                    transition={{ duration: 1, delay: 0.8 + (i * 0.05) }}
-                                                    className={cn(
-                                                        "w-full rounded-t-lg transition-colors",
-                                                        score >= 8 ? "bg-rose-500" : score >= 5 ? "bg-amber-400" : "bg-slate-300 dark:bg-slate-700"
-                                                    )}
-                                                />
-                                            </div>
-                                            <span className="text-xs font-medium text-slate-500">{score}</span>
+                            <div className="relative h-64 mt-8 px-4">
+                                {/* Grid Lines */}
+                                <div className="absolute inset-0 flex flex-col justify-between pointer-events-none">
+                                    {[...Array(5)].map((_, i) => (
+                                        <div key={i} className="w-full flex items-center gap-4">
+                                            <div className="h-px flex-1 bg-slate-100 dark:bg-slate-800/50" />
                                         </div>
-                                    );
-                                })}
+                                    ))}
+                                </div>
+
+                                {/* Bars Container */}
+                                <div className="relative h-full flex items-end justify-between gap-1 sm:gap-2">
+                                    {[...Array(10)].map((_, i) => {
+                                        const score = i + 1;
+                                        const data = marriageDist.find(d => Number(d.label) === score);
+                                        const maxCount = Math.max(...marriageDist.map(d => d.count), 1);
+                                        const height = data ? (data.count / maxCount) * 100 : 0;
+
+                                        return (
+                                            <div key={score} className="flex-1 flex flex-col items-center h-full group">
+                                                <div className="relative w-full h-full flex items-end justify-center pb-8">
+                                                    {/* Persistent Count Label */}
+                                                    {data && data.count > 0 && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 10 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            transition={{ delay: 1 + (i * 0.05) }}
+                                                            className="absolute -top-6 text-[11px] font-black text-slate-400 dark:text-slate-500"
+                                                        >
+                                                            {data.count}
+                                                        </motion.div>
+                                                    )}
+
+                                                    {/* The Bar */}
+                                                    <motion.div
+                                                        initial={{ height: 0 }}
+                                                        animate={{ height: `${height}%` }}
+                                                        transition={{
+                                                            type: "spring",
+                                                            damping: 15,
+                                                            stiffness: 100,
+                                                            delay: 0.8 + (i * 0.05)
+                                                        }}
+                                                        className={cn(
+                                                            "w-4 sm:w-6 lg:w-8 rounded-t-lg transition-all relative",
+                                                            "shadow-[0_-4px_12px_-4px_rgba(16,185,129,0.2)]",
+                                                            "bg-linear-to-t from-emerald-600 to-emerald-400"
+                                                        )}
+                                                    >
+                                                        {/* Shine effect on bar */}
+                                                        <div className="absolute inset-x-0 top-0 h-1 bg-white/20 rounded-t-lg" />
+                                                    </motion.div>
+                                                </div>
+                                                <span className="text-xs font-bold mt-2 text-slate-500">
+                                                    {score}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
                             <div className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 pt-6 border-t border-slate-100 dark:border-slate-800">
                                 <div className="text-center">
