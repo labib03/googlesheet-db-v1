@@ -117,12 +117,33 @@ export function LinkGenerusClient({
         linkedGenerusIndices
     ]);
 
-    const unlinkedCount = additionalInfoData.filter(
-        (row) =>
-            !String(row["UserId"] || "").trim() &&
-            !linkedRows.has(row._index as number),
-    ).length;
-    const linkedCount = additionalInfoData.length - unlinkedCount;
+    const counts = useMemo(() => {
+        const unlinked = additionalInfoData.filter(
+            (row) => !String(row["UserId"] || "").trim() && !linkedRows.has(row._index as number)
+        );
+        const linkedCount = additionalInfoData.length - unlinked.length;
+
+        let matchable = 0;
+        let unmatchable = 0;
+
+        unlinked.forEach(row => {
+            const aiName = String(row["Nama Lengkap"] || "").trim().toLowerCase();
+            const hasMatch = aiName && unlinkedGenerus.some(g =>
+                !linkedGenerusIndices.has(g._index as number) &&
+                String(g["NAMA LENGKAP"] || "").trim().toLowerCase() === aiName
+            );
+            if (hasMatch) matchable++;
+            else unmatchable++;
+        });
+
+        return {
+            unlinked: unlinked.length,
+            linked: linkedCount,
+            total: additionalInfoData.length,
+            matchable,
+            unmatchable
+        };
+    }, [additionalInfoData, linkedRows, unlinkedGenerus, linkedGenerusIndices]);
 
     function handleOpenPicker(additionalInfoIndex: number) {
         setPickerTargetRow(additionalInfoIndex);
@@ -290,17 +311,23 @@ export function LinkGenerusClient({
                     </div>
                 </div>
 
-                <div className="flex gap-3">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800">
+                <div className="flex gap-2 sm:gap-3 flex-wrap">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
                         <UserX className="h-4 w-4 text-amber-500" />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            {unlinkedCount} Belum
+                        <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {counts.unlinked} Belum
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800">
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
                         <UserCheck className="h-4 w-4 text-emerald-500" />
-                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            {linkedCount} Sudah
+                        <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {counts.linked} Sudah
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
+                        <Users className="h-4 w-4 text-indigo-500" />
+                        <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {counts.total} Total
                         </span>
                     </div>
                 </div>
@@ -312,9 +339,9 @@ export function LinkGenerusClient({
                     <span className="text-[10px] uppercase font-bold text-slate-400 px-3 tracking-wider">Quick Filter:</span>
                     {(
                         [
-                            { id: "all", label: "Semua Belum", icon: UserX },
-                            { id: "matchable", label: "Siap Match ✨", icon: Wand2 },
-                            { id: "unmatchable", label: "Perlu Cek", icon: AlertCircle },
+                            { id: "all", label: "Semua Belum", icon: UserX, count: counts.unlinked },
+                            { id: "matchable", label: "Siap Match ✨", icon: Wand2, count: counts.matchable },
+                            { id: "unmatchable", label: "Perlu Cek", icon: AlertCircle, count: counts.unmatchable },
                         ] as const
                     ).map((cat) => (
                         <button
@@ -327,6 +354,12 @@ export function LinkGenerusClient({
                         >
                             <cat.icon className={`h-3.5 w-3.5 ${matchCategory === cat.id ? "text-indigo-500" : ""}`} />
                             {cat.label}
+                            <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${matchCategory === cat.id
+                                ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
+                                : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                }`}>
+                                {cat.count}
+                            </span>
                         </button>
                     ))}
                 </div>
@@ -359,11 +392,11 @@ export function LinkGenerusClient({
                     <div className="flex gap-1 p-1 bg-white dark:bg-slate-900 rounded-lg ring-1 ring-slate-200 dark:ring-slate-800 h-[40px]">
                         {(
                             [
-                                { key: "unlinked", label: "Belum", icon: UserX },
-                                { key: "linked", label: "Sudah", icon: UserCheck },
-                                { key: "all", label: "Semua", icon: Users },
+                                { key: "unlinked", label: "Belum", icon: UserX, count: counts.unlinked },
+                                { key: "linked", label: "Sudah", icon: UserCheck, count: counts.linked },
+                                { key: "all", label: "Semua", icon: Users, count: counts.total },
                             ] as const
-                        ).map(({ key, label, icon: Icon }) => (
+                        ).map(({ key, label, icon: Icon, count }) => (
                             <button
                                 key={key}
                                 onClick={() => setFilterMode(key)}
@@ -374,6 +407,9 @@ export function LinkGenerusClient({
                             >
                                 <Icon className="h-3.5 w-3.5" />
                                 {label}
+                                <span className={`ml-1 text-[10px] opacity-70`}>
+                                    ({count})
+                                </span>
                             </button>
                         ))}
                     </div>
