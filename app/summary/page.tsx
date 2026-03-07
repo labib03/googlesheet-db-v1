@@ -25,6 +25,7 @@ import { SummaryLayout, SummarySection } from "@/components/summary-layout";
 import { cn } from "@/lib/utils";
 import { ADDITIONAL_INFO_SHEET_NAME } from "@/lib/constants";
 import { SummaryTabs } from "@/components/summary-tabs";
+import { SummaryTabContent } from "@/components/summary-tab-content";
 import { AnalyticsDetailDashboard } from "@/components/analytics-detail-dashboard";
 import { SummaryAdditionalInsights } from "@/components/summary-additional-insights";
 
@@ -245,46 +246,48 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
           {!error && (
             <SummarySection>
-              {activeView === "overview" ? (
-                <div className="grid grid-cols-1 gap-12">
-                  <SummaryAdditionalInsights rows={filteredRowsForStats} />
+              <SummaryTabContent activeView={activeView} key={activeView}>
+                {activeView === "overview" ? (
+                  <div className="grid grid-cols-1 gap-12">
+                    <SummaryAdditionalInsights rows={filteredRowsForStats} />
 
-                  {showKelompokView ? (
-                    <div className="space-y-6 relative">
-                      <div className="flex justify-start">
-                        <Button
-                          asChild
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors"
-                        >
-                          <Link href={selectedJenjang ? `/summary?jenjang=${selectedJenjang}` : "/summary"}>
-                            <ArrowLeft className="h-4 w-4 mr-2" />
-                            Kembali Pilih Desa
-                          </Link>
-                        </Button>
+                    {showKelompokView ? (
+                      <div className="space-y-6 relative">
+                        <div className="flex justify-start">
+                          <Button
+                            asChild
+                            variant="ghost"
+                            size="sm"
+                            className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors"
+                          >
+                            <Link href={selectedJenjang ? `/summary?jenjang=${selectedJenjang}` : "/summary"}>
+                              <ArrowLeft className="h-4 w-4 mr-2" />
+                              Kembali Pilih Desa
+                            </Link>
+                          </Button>
+                        </div>
+                        <SummaryList
+                          title={`Distribution [Kelompok] ${selectedJenjang ? `— ${selectedJenjang}` : ""}`}
+                          description={`Audit klaster data di desa: ${selectedDesaLabel}. Explore the groupings below.`}
+                          items={kelompokList}
+                          selectedKey={selectedKelompok.toLowerCase()}
+                          isClickable={true}
+                          selectionType="kelompok"
+                          baseParams={baseParamsForKelompok}
+                        />
                       </div>
-                      <SummaryList
-                        title={`Distribution [Kelompok] ${selectedJenjang ? `— ${selectedJenjang}` : ""}`}
-                        description={`Audit klaster data di desa: ${selectedDesaLabel}. Explore the groupings below.`}
-                        items={kelompokList}
-                        selectedKey={selectedKelompok.toLowerCase()}
-                        isClickable={true}
-                        selectionType="kelompok"
-                        baseParams={baseParamsForKelompok}
+                    ) : (
+                      <SummaryDesaList
+                        items={desaList}
+                        selectedKey={selectedDesa.toLowerCase()}
+                        baseParams={baseParamsForDesa}
                       />
-                    </div>
-                  ) : (
-                    <SummaryDesaList
-                      items={desaList}
-                      selectedKey={selectedDesa.toLowerCase()}
-                      baseParams={baseParamsForDesa}
-                    />
-                  )}
-                </div>
-              ) : (
-                <AnalyticsDetailDashboard rows={filteredRowsForStats} />
-              )}
+                    )}
+                  </div>
+                ) : (
+                  <AnalyticsDetailDashboard rows={filteredRowsForStats} />
+                )}
+              </SummaryTabContent>
             </SummarySection>
           )}
         </SummaryLayout>

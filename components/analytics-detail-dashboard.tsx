@@ -139,8 +139,9 @@ export function AnalyticsDetailDashboard({ rows }: AnalyticsDetailDashboardProps
                                     <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                         <motion.div
                                             initial={{ width: 0 }}
-                                            animate={{ width: `${(edu.count / aiRows.length) * 100}%` }}
-                                            transition={{ duration: 1, delay: 0.5 + (idx * 0.1) }}
+                                            whileInView={{ width: `${(edu.count / aiRows.length) * 100}%` }}
+                                            viewport={{ once: true, amount: 0.3 }}
+                                            transition={{ duration: 0.8, delay: 0.2 + (idx * 0.08), ease: "easeOut" }}
                                             className="h-full bg-indigo-500 rounded-full"
                                         />
                                     </div>
@@ -215,8 +216,9 @@ export function AnalyticsDetailDashboard({ rows }: AnalyticsDetailDashboardProps
                                                     {data && data.count > 0 && (
                                                         <motion.div
                                                             initial={{ opacity: 0, y: 10 }}
-                                                            animate={{ opacity: 1, y: 0 }}
-                                                            transition={{ delay: 1 + (i * 0.05) }}
+                                                            whileInView={{ opacity: 1, y: 0 }}
+                                                            viewport={{ once: true, amount: 0.5 }}
+                                                            transition={{ delay: 0.6 + (i * 0.04), ease: "easeOut" }}
                                                             className="absolute -top-6 text-[11px] font-black text-slate-400 dark:text-slate-500"
                                                         >
                                                             {data.count}
@@ -226,15 +228,15 @@ export function AnalyticsDetailDashboard({ rows }: AnalyticsDetailDashboardProps
                                                     {/* The Bar */}
                                                     <motion.div
                                                         initial={{ height: 0 }}
-                                                        animate={{ height: `${height}%` }}
+                                                        whileInView={{ height: `${height}%` }}
+                                                        viewport={{ once: true, amount: 0.3 }}
                                                         transition={{
-                                                            type: "spring",
-                                                            damping: 15,
-                                                            stiffness: 100,
-                                                            delay: 0.8 + (i * 0.05)
+                                                            duration: 0.6,
+                                                            delay: 0.3 + (i * 0.04),
+                                                            ease: [0.25, 0.46, 0.45, 0.94]
                                                         }}
                                                         className={cn(
-                                                            "w-4 sm:w-6 lg:w-8 rounded-t-lg transition-all relative",
+                                                            "w-4 sm:w-6 lg:w-8 rounded-t-lg relative",
                                                             "shadow-[0_-4px_12px_-4px_rgba(16,185,129,0.2)]",
                                                             "bg-linear-to-t from-emerald-600 to-emerald-400"
                                                         )}

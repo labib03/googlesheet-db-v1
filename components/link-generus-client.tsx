@@ -238,13 +238,14 @@ export function LinkGenerusClient({
         toast.info("Tidak ditemukan kecocokan otomatis berdasarkan Nama Lengkap.");
     }
 
+    const [isLinkingInDialog, setIsLinkingInDialog] = useState(false);
+
     function handleConfirmLink() {
-        if (!pendingLink) return;
-        setConfirmOpen(false);
+        if (!pendingLink || isLinkingInDialog) return;
 
         const { additionalInfoIdx, generusRow } = pendingLink;
+        setIsLinkingInDialog(true);
         setLinkingRow(additionalInfoIdx);
-        setPendingLink(null);
 
         startTransition(async () => {
             const result = await linkGenerusAction(
@@ -255,17 +256,18 @@ export function LinkGenerusClient({
                 toast.success(result.message);
                 setLinkedRows((prev) => new Set(prev).add(additionalInfoIdx));
                 setLinkedGenerusIndices((prev) => new Set(prev).add(generusRow._index as number));
-
-                // If it was an auto match, maybe try to find the next one?
-                // For now, let user trigger again manually or we could add a "Match Next" button
             } else {
                 toast.error(result.message);
             }
             setLinkingRow(null);
+            setIsLinkingInDialog(false);
+            setConfirmOpen(false);
+            setPendingLink(null);
         });
     }
 
     function handleCancelLink() {
+        if (isLinkingInDialog) return;
         setConfirmOpen(false);
         setPendingLink(null);
     }
@@ -671,7 +673,11 @@ export function LinkGenerusClient({
             />
 
             {/* Confirmation Dialog */}
-            <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+            <AlertDialog open={confirmOpen} onOpenChange={(v) => {
+                if (!v && isLinkingInDialog) return;
+                setConfirmOpen(v);
+                if (!v) setPendingLink(null);
+            }}>
                 <AlertDialogContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 max-w-3xl">
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3">
@@ -782,11 +788,26 @@ export function LinkGenerusClient({
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-4 gap-3">
-                        <AlertDialogCancel onClick={handleCancelLink} className="rounded-xl border-slate-200 dark:border-slate-800">
+                        <AlertDialogCancel
+                            onClick={handleCancelLink}
+                            disabled={isLinkingInDialog}
+                            className="rounded-xl border-slate-200 dark:border-slate-800"
+                        >
                             Batal
                         </AlertDialogCancel>
-                        <AlertDialogAction onClick={handleConfirmLink} className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-200 dark:shadow-none px-6">
-                            Ya, Hubungkan Sekarang
+                        <AlertDialogAction
+                            onClick={handleConfirmLink}
+                            disabled={isLinkingInDialog}
+                            className="rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-200 dark:shadow-none px-6"
+                        >
+                            {isLinkingInDialog ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Menghubungkan...
+                                </>
+                            ) : (
+                                "Ya, Hubungkan Sekarang"
+                            )}
                         </AlertDialogAction>
                     </AlertDialogFooter>
                 </AlertDialogContent>
