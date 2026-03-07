@@ -28,7 +28,8 @@ import {
     Wand2,
     ArrowRightCircle,
     Copy,
-    AlertCircle
+    AlertCircle,
+    MapPin
 } from "lucide-react";
 import { linkGenerusAction } from "@/app/actions";
 import { toast } from "sonner";
@@ -298,36 +299,36 @@ export function LinkGenerusClient({
                             <ArrowLeft className="h-4 w-4 text-slate-500" />
                         </Link>
                     </Button>
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-3">
-                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
-                                <Link2 className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                    <div className="min-w-0">
+                        <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3 truncate">
+                            <div className="p-1.5 sm:p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg sm:rounded-xl shrink-0">
+                                <Link2 className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600 dark:text-indigo-400" />
                             </div>
-                            Link Generus
+                            <span className="truncate">Link Generus</span>
                         </h1>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        <p className="mt-0.5 sm:mt-1 text-[10px] sm:text-sm text-slate-500 dark:text-slate-400">
                             Pilih data AdditionalInfo, lalu hubungkan ke data Generus
                         </p>
                     </div>
                 </div>
 
-                <div className="flex gap-2 sm:gap-3 flex-wrap">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
-                        <UserX className="h-4 w-4 text-amber-500" />
-                        <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-                            {counts.unlinked} Belum
+                <div className="flex gap-1.5 sm:gap-3 flex-wrap">
+                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
+                        <UserX className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-amber-500" />
+                        <span className="text-[10px] sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {counts.unlinked} <span className="hidden xs:inline">Belum</span>
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
-                        <UserCheck className="h-4 w-4 text-emerald-500" />
-                        <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-                            {counts.linked} Sudah
+                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
+                        <UserCheck className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-emerald-500" />
+                        <span className="text-[10px] sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {counts.linked} <span className="hidden xs:inline">Sudah</span>
                         </span>
                     </div>
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
-                        <Users className="h-4 w-4 text-indigo-500" />
-                        <span className="text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300">
-                            {counts.total} Total
+                    <div className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-slate-900 rounded-lg sm:rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 shadow-sm">
+                        <Users className="h-3.5 sm:h-4 w-3.5 sm:w-4 text-indigo-500" />
+                        <span className="text-[10px] sm:text-sm font-medium text-slate-700 dark:text-slate-300">
+                            {counts.total} <span className="hidden xs:inline">Total</span>
                         </span>
                     </div>
                 </div>
@@ -335,28 +336,28 @@ export function LinkGenerusClient({
 
             {/* Match Status Sub-Tabs (Only for Unlinked) */}
             {filterMode === "unlinked" && (
-                <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-50 dark:bg-slate-950/50 rounded-2xl border border-slate-100 dark:border-slate-800/50 animate-in fade-in slide-in-from-left-2 duration-300">
-                    <span className="text-[10px] uppercase font-bold text-slate-400 px-3 tracking-wider">Quick Filter:</span>
+                <div className="flex flex-wrap items-center gap-2 p-1 bg-slate-100/50 dark:bg-slate-950/50 rounded-xl border border-slate-200/50 dark:border-slate-800/50 animate-in fade-in slide-in-from-left-2 duration-300">
+                    <span className="hidden sm:inline text-[10px] uppercase font-bold text-slate-400 px-3 tracking-wider">Quick Filter:</span>
                     {(
                         [
-                            { id: "all", label: "Semua Belum", icon: UserX, count: counts.unlinked },
-                            { id: "matchable", label: "Siap Match ✨", icon: Wand2, count: counts.matchable },
-                            { id: "unmatchable", label: "Perlu Cek", icon: AlertCircle, count: counts.unmatchable },
+                            { id: "all", label: "Semua", icon: UserX, count: counts.unlinked },
+                            { id: "matchable", label: "Siap ✨", icon: Wand2, count: counts.matchable },
+                            { id: "unmatchable", label: "Cek", icon: AlertCircle, count: counts.unmatchable },
                         ] as const
                     ).map((cat) => (
                         <button
                             key={cat.id}
                             onClick={() => setMatchCategory(cat.id)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${matchCategory === cat.id
+                            className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg text-[11px] sm:text-xs font-semibold transition-all ${matchCategory === cat.id
                                 ? "bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm ring-1 ring-slate-200 dark:ring-slate-700"
                                 : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                                 }`}
                         >
-                            <cat.icon className={`h-3.5 w-3.5 ${matchCategory === cat.id ? "text-indigo-500" : ""}`} />
-                            {cat.label}
-                            <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] ${matchCategory === cat.id
+                            <cat.icon className={`h-3 sm:h-3.5 w-3 sm:w-3.5 ${matchCategory === cat.id ? "text-indigo-500" : ""}`} />
+                            <span className="whitespace-nowrap">{cat.label}</span>
+                            <span className={`px-1.5 py-0.5 rounded-full text-[9px] sm:text-[10px] ${matchCategory === cat.id
                                 ? "bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400"
-                                : "bg-slate-100 dark:bg-slate-800 text-slate-500"
+                                : "bg-slate-200 dark:bg-slate-800 text-slate-500"
                                 }`}>
                                 {cat.count}
                             </span>
@@ -369,45 +370,46 @@ export function LinkGenerusClient({
             <div
                 className="flex flex-col sm:flex-row gap-3 animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100"
             >
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                    <Input
-                        placeholder="Cari nama, kelompok, atau jenis kelamin..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800"
-                    />
+                <div className="flex-1 w-full order-1 sm:order-0">
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                        <Input
+                            placeholder="Cari data..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-10 h-10 bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-xl"
+                        />
+                    </div>
                 </div>
 
-                <div className="flex gap-3 items-center">
+                <div className="flex gap-2 w-full sm:w-auto items-center">
                     <Button
                         onClick={handleAutoMatch}
                         variant="ghost"
-                        className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 group"
+                        className="flex-1 sm:flex-none h-10 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-indigo-600 dark:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 px-3 sm:px-4 group"
                     >
                         <Wand2 className="w-4 h-4 mr-2 group-hover:rotate-12 transition-transform" />
-                        Auto Match
+                        <span className="text-xs sm:text-sm">Auto Match</span>
                     </Button>
 
-                    <div className="flex gap-1 p-1 bg-white dark:bg-slate-900 rounded-lg ring-1 ring-slate-200 dark:ring-slate-800 h-[40px]">
+                    <div className="flex-1 sm:flex-none flex gap-0.5 p-1 bg-white dark:bg-slate-900 rounded-xl ring-1 ring-slate-200 dark:ring-slate-800 h-10">
                         {(
                             [
                                 { key: "unlinked", label: "Belum", icon: UserX, count: counts.unlinked },
                                 { key: "linked", label: "Sudah", icon: UserCheck, count: counts.linked },
-                                { key: "all", label: "Semua", icon: Users, count: counts.total },
                             ] as const
                         ).map(({ key, label, icon: Icon, count }) => (
                             <button
                                 key={key}
                                 onClick={() => setFilterMode(key)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterMode === key
+                                className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-2 sm:px-3 rounded-lg text-[11px] sm:text-sm font-medium transition-all ${filterMode === key
                                     ? "bg-indigo-600 text-white shadow-sm"
                                     : "text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
                                     }`}
                             >
-                                <Icon className="h-3.5 w-3.5" />
-                                {label}
-                                <span className={`ml-1 text-[10px] opacity-70`}>
+                                <Icon className="h-3 sm:h-3.5 w-3 sm:w-3.5" />
+                                <span className="hidden xs:inline">{label}</span>
+                                <span className={`ml-1 text-[9px] sm:text-[10px] opacity-70`}>
                                     ({count})
                                 </span>
                             </button>
@@ -434,133 +436,222 @@ export function LinkGenerusClient({
                             </p>
                         </div>
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
-                                        <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
-                                            Nama Lengkap
-                                        </th>
-                                        <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
-                                            Nama Panggilan
-                                        </th>
-                                        <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 hidden sm:table-cell">
-                                            Kelompok
-                                        </th>
-                                        <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 hidden md:table-cell">
-                                            Jenis Kelamin
-                                        </th>
-                                        <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 hidden lg:table-cell">
-                                            Usia
-                                        </th>
-                                        <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
-                                            Status
-                                        </th>
-                                        <th className="text-right text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
-                                            Aksi
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredData.map((row) => {
-                                        const idx = row._index as number;
-                                        const isLinked =
-                                            !!String(row["UserId"] || "").trim() ||
-                                            linkedRows.has(idx);
-                                        const isLinking = linkingRow === idx;
+                        <>
+                            {/* Desktop Table View */}
+                            <div className="overflow-x-auto hidden sm:block">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50">
+                                            <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
+                                                Nama Lengkap
+                                            </th>
+                                            <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
+                                                Nama Panggilan
+                                            </th>
+                                            <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 hidden sm:table-cell">
+                                                Kelompok
+                                            </th>
+                                            <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 hidden md:table-cell">
+                                                Jenis Kelamin
+                                            </th>
+                                            <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3 hidden lg:table-cell">
+                                                Usia
+                                            </th>
+                                            <th className="text-left text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
+                                                Status
+                                            </th>
+                                            <th className="text-right text-xs font-semibold text-slate-500 uppercase tracking-wider px-4 py-3">
+                                                Aksi
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredData.map((row) => {
+                                            const idx = row._index as number;
+                                            const isLinked =
+                                                !!String(row["UserId"] || "").trim() ||
+                                                linkedRows.has(idx);
+                                            const isLinking = linkingRow === idx;
 
-                                        // Check if auto-match exists for this specific row
-                                        const aiName = String(row["Nama Lengkap"] || "").trim().toLowerCase();
-                                        const hasAutoMatch = aiName && unlinkedGenerus.some(g =>
-                                            !linkedGenerusIndices.has(g._index as number) &&
-                                            String(g["NAMA LENGKAP"] || "").trim().toLowerCase() === aiName
-                                        );
+                                            const aiName = String(row["Nama Lengkap"] || "").trim().toLowerCase();
+                                            const hasAutoMatch = aiName && unlinkedGenerus.some(g =>
+                                                !linkedGenerusIndices.has(g._index as number) &&
+                                                String(g["NAMA LENGKAP"] || "").trim().toLowerCase() === aiName
+                                            );
 
-                                        return (
-                                            <tr
-                                                key={idx}
-                                                className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors animate-in fade-in duration-300"
-                                            >
-                                                <td className="px-4 py-3">
-                                                    <span className="font-medium text-slate-900 dark:text-white text-sm">
-                                                        {String(row["Nama Lengkap"] || "-")}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                                                        {String(row["Nama Panggilan"] || "-")}
-                                                    </span>
-                                                    <span className="block sm:hidden text-xs text-slate-400 mt-0.5">
-                                                        {String(row["Kelompok"] || "")}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 hidden sm:table-cell">
-                                                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                                                        {String(row["Kelompok"] || "-")}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 hidden md:table-cell">
-                                                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                                                        {String(row["Jenis Kelamin"] || "-")}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3 hidden lg:table-cell">
-                                                    <span className="text-sm text-slate-600 dark:text-slate-400">
-                                                        {String(row["Usia"] || "-")}
-                                                    </span>
-                                                </td>
-                                                <td className="px-4 py-3">
-                                                    {isLinked ? (
-                                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full">
-                                                            <CheckCircle2 className="h-3 w-3" />
-                                                            Terhubung
+                                            return (
+                                                <tr
+                                                    key={idx}
+                                                    className="border-b border-slate-50 dark:border-slate-800/50 hover:bg-slate-50/80 dark:hover:bg-slate-800/30 transition-colors animate-in fade-in duration-300"
+                                                >
+                                                    <td className="px-4 py-3">
+                                                        <span className="font-medium text-slate-900 dark:text-white text-sm">
+                                                            {String(row["Nama Lengkap"] || "-")}
                                                         </span>
-                                                    ) : (
-                                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full">
-                                                            <UserX className="h-3 w-3" />
-                                                            Belum
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                                                            {String(row["Nama Panggilan"] || "-")}
                                                         </span>
-                                                    )}
-                                                </td>
-                                                <td className="px-4 py-3 text-right">
-                                                    {!isLinked && (
-                                                        <div className="flex items-center justify-end gap-2">
-                                                            {hasAutoMatch && (
+                                                    </td>
+                                                    <td className="px-4 py-3 hidden sm:table-cell">
+                                                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                                                            {String(row["Kelompok"] || "-")}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 hidden md:table-cell">
+                                                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                                                            {String(row["Jenis Kelamin"] || "-")}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 hidden lg:table-cell">
+                                                        <span className="text-sm text-slate-600 dark:text-slate-400">
+                                                            {String(row["Usia"] || "-")}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3">
+                                                        {isLinked ? (
+                                                            <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full">
+                                                                <CheckCircle2 className="h-3 w-3" />
+                                                                Terhubung
+                                                            </span>
+                                                        ) : (
+                                                            <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full">
+                                                                <UserX className="h-3 w-3" />
+                                                                Belum
+                                                            </span>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-right">
+                                                        {!isLinked && (
+                                                            <div className="flex items-center justify-end gap-2">
+                                                                {hasAutoMatch && (
+                                                                    <Button
+                                                                        size="sm"
+                                                                        variant="ghost"
+                                                                        onClick={() => handleRowAutoMatch(idx)}
+                                                                        disabled={isPending}
+                                                                        className="h-8 w-8 p-0 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 animate-in zoom-in duration-300"
+                                                                        title="Auto Match Baris Ini"
+                                                                    >
+                                                                        <Wand2 className="h-4 w-4" />
+                                                                    </Button>
+                                                                )}
                                                                 <Button
                                                                     size="sm"
-                                                                    variant="ghost"
-                                                                    onClick={() => handleRowAutoMatch(idx)}
+                                                                    onClick={() => handleOpenPicker(idx)}
                                                                     disabled={isPending}
-                                                                    className="h-8 w-8 p-0 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 animate-in zoom-in duration-300"
-                                                                    title="Auto Match Baris Ini"
+                                                                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-8 rounded-lg"
                                                                 >
-                                                                    <Wand2 className="h-4 w-4" />
+                                                                    {isLinking ? (
+                                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                                    ) : (
+                                                                        <div className="flex items-center gap-1.5 px-1">
+                                                                            <Link2 className="h-3 w-3" />
+                                                                            <span>Link</span>
+                                                                        </div>
+                                                                    )}
                                                                 </Button>
-                                                            )}
-                                                            <Button
-                                                                size="sm"
-                                                                onClick={() => handleOpenPicker(idx)}
-                                                                disabled={isPending}
-                                                                className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-8"
-                                                            >
-                                                                {isLinking ? (
-                                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                                ) : (
-                                                                    <>
-                                                                        <Link2 className="h-3 w-3 mr-1" />
-                                                                        Link Generus
-                                                                    </>
-                                                                )}
-                                                            </Button>
-                                                        </div>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Mobile Grid View */}
+                            <div className="sm:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                                {filteredData.map((row) => {
+                                    const idx = row._index as number;
+                                    const isLinked =
+                                        !!String(row["UserId"] || "").trim() ||
+                                        linkedRows.has(idx);
+                                    const isLinking = linkingRow === idx;
+
+                                    const aiName = String(row["Nama Lengkap"] || "").trim().toLowerCase();
+                                    const hasAutoMatch = aiName && unlinkedGenerus.some(g =>
+                                        !linkedGenerusIndices.has(g._index as number) &&
+                                        String(g["NAMA LENGKAP"] || "").trim().toLowerCase() === aiName
+                                    );
+
+                                    return (
+                                        <div key={idx} className="p-4 space-y-4 animate-in fade-in duration-300">
+                                            <div className="flex items-start justify-between gap-3">
+                                                <div className="space-y-1 min-w-0">
+                                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                                                        {String(row["Nama Lengkap"] || "-")}
+                                                    </h3>
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        <span className="text-[11px] text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                                                            {String(row["Nama Panggilan"] || "-")}
+                                                        </span>
+                                                        <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                                                            <MapPin className="h-3 w-3" />
+                                                            {String(row["Kelompok"] || "-")}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                {isLinked ? (
+                                                    <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 px-2 py-1 rounded-full uppercase tracking-tight">
+                                                        <CheckCircle2 className="h-3 w-3" />
+                                                        Linked
+                                                    </span>
+                                                ) : (
+                                                    <span className="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded-full uppercase tracking-tight">
+                                                        <AlertCircle className="h-3 w-3" />
+                                                        Unlinked
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                                <div className="p-2 bg-slate-50 dark:bg-slate-950 rounded-lg">
+                                                    <p className="text-slate-400 font-bold uppercase text-[9px]">Gender</p>
+                                                    <p className="text-slate-700 dark:text-slate-300 font-medium">{String(row["Jenis Kelamin"] || "-")}</p>
+                                                </div>
+                                                <div className="p-2 bg-slate-50 dark:bg-slate-950 rounded-lg">
+                                                    <p className="text-slate-400 font-bold uppercase text-[9px]">Usia</p>
+                                                    <p className="text-slate-700 dark:text-slate-300 font-medium">{String(row["Usia"] || "-")} th</p>
+                                                </div>
+                                            </div>
+
+                                            {!isLinked && (
+                                                <div className="flex gap-2 pt-1">
+                                                    <Button
+                                                        onClick={() => handleOpenPicker(idx)}
+                                                        disabled={isPending}
+                                                        variant="default"
+                                                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white h-9 text-xs rounded-xl shadow-sm"
+                                                    >
+                                                        {isLinking ? (
+                                                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <Link2 className="h-3.5 w-3.5 mr-2" />
+                                                                Link Generus
+                                                            </>
+                                                        )}
+                                                    </Button>
+                                                    {hasAutoMatch && (
+                                                        <Button
+                                                            onClick={() => handleRowAutoMatch(idx)}
+                                                            disabled={isPending}
+                                                            variant="outline"
+                                                            className="w-12 h-9 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 rounded-xl"
+                                                        >
+                                                            <Wand2 className="h-4 w-4" />
+                                                        </Button>
                                                     )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </>
                     )}
                 </CardContent>
             </Card>
@@ -583,11 +674,11 @@ export function LinkGenerusClient({
             <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
                 <AlertDialogContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 max-w-3xl">
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl">
-                                <Link2 className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />
+                        <AlertDialogTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3">
+                            <div className="p-1.5 sm:p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg sm:rounded-xl">
+                                <Link2 className="h-5 w-5 sm:h-6 sm:w-6 text-indigo-600 dark:text-indigo-400" />
                             </div>
-                            Konfirmasi Link Generus
+                            Konfirmasi Link
                         </AlertDialogTitle>
                         <AlertDialogDescription asChild>
                             <div className="space-y-6 pt-2">
@@ -601,51 +692,38 @@ export function LinkGenerusClient({
                                 </div>
 
                                 {pendingLink && (
-                                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-stretch gap-4">
+                                    <div className="flex flex-col md:grid md:grid-cols-[1fr_auto_1fr] items-center md:items-stretch gap-3 md:gap-4 max-h-[50vh] overflow-y-auto px-1">
                                         {/* Additional Info Side */}
-                                        <div className="group space-y-4 p-5 bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-indigo-300 dark:hover:border-indigo-700 relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 p-3 opacity-5">
-                                                <Copy className="w-12 h-12 text-slate-400" />
-                                            </div>
-
-                                            <div className="flex items-center gap-2 mb-2 relative z-10">
-                                                <div className="p-1.5 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                                                    <UserX className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                                        <div className="w-full group space-y-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-indigo-300 dark:hover:border-indigo-700 relative overflow-hidden">
+                                            <div className="flex items-center gap-2 mb-1 relative z-10">
+                                                <div className="p-1 px-2 bg-amber-100 dark:bg-amber-900/30 rounded text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">
+                                                    New Entry
                                                 </div>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">AdditionalInfo</span>
                                             </div>
 
                                             {(() => {
                                                 const row = additionalInfoData.find(r => (r._index as number) === pendingLink?.additionalInfoIdx);
                                                 if (!row) return null;
                                                 return (
-                                                    <div className="space-y-4 relative z-10">
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Nama Lengkap</p>
-                                                            <p className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                                                    <div className="space-y-3 relative z-10">
+                                                        <div className="space-y-0.5">
+                                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Nama Lengkap</p>
+                                                            <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
                                                                 {String(row["Nama Lengkap"] || "-")}
                                                             </p>
                                                         </div>
-                                                        <div className="grid grid-cols-1 gap-4 pt-2">
-                                                            <div className="space-y-1">
-                                                                <p className="text-[10px] font-bold text-slate-400 uppercase">Nama Panggilan</p>
-                                                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                                                    {String(row["Nama Panggilan"] || "-")}
+                                                        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200/50 dark:border-slate-800/50">
+                                                            <div className="space-y-0.5">
+                                                                <p className="text-[9px] font-bold text-slate-400 uppercase">Kelompok</p>
+                                                                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                                                    {String(row["Kelompok"] || "-")}
                                                                 </p>
                                                             </div>
-                                                            <div className="grid grid-cols-2 gap-3">
-                                                                <div className="space-y-1">
-                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Kelompok</p>
-                                                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                                                        {String(row["Kelompok"] || "-")}
-                                                                    </p>
-                                                                </div>
-                                                                <div className="space-y-1">
-                                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Gender</p>
-                                                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                                                        {String(row["Jenis Kelamin"] || "-")}
-                                                                    </p>
-                                                                </div>
+                                                            <div className="space-y-0.5">
+                                                                <p className="text-[9px] font-bold text-slate-400 uppercase">Gender</p>
+                                                                <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                                                    {String(row["Jenis Kelamin"] || "-")}
+                                                                </p>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -653,55 +731,43 @@ export function LinkGenerusClient({
                                             })()}
                                         </div>
 
-                                        {/* Connector */}
-                                        <div className="flex md:flex-col items-center justify-center gap-2 py-4">
-                                            <div className="h-px md:h-20 w-full md:w-px bg-slate-200 dark:bg-slate-800" />
-                                            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-full animate-pulse shadow-lg shadow-indigo-200 dark:shadow-none">
-                                                <ArrowRightCircle className="w-6 h-6 text-indigo-500 rotate-90 md:rotate-0" />
+                                        {/* Simplified Connector */}
+                                        <div className="flex md:flex-col items-center justify-center gap-2 py-1 md:py-4 w-full md:w-auto">
+                                            <div className="hidden md:block h-20 w-px bg-slate-200 dark:bg-slate-800" />
+                                            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-full shadow-md">
+                                                <ArrowRightCircle className="w-5 h-5 text-indigo-500 rotate-90 md:rotate-0" />
                                             </div>
-                                            <div className="h-px md:h-20 w-full md:w-px bg-slate-200 dark:bg-slate-800" />
+                                            <div className="hidden md:block h-20 w-px bg-slate-200 dark:bg-slate-800" />
+                                            <div className="md:hidden h-px grow bg-slate-200 dark:bg-slate-800" />
                                         </div>
 
                                         {/* Generus Side */}
-                                        <div className="group space-y-4 p-5 bg-white dark:bg-slate-950 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-emerald-300 dark:hover:border-emerald-700 relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 p-3 opacity-5">
-                                                <UserCheck className="w-12 h-12 text-slate-400" />
-                                            </div>
-
-                                            <div className="flex items-center gap-2 mb-2 relative z-10">
-                                                <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                                                    <UserCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                                        <div className="w-full group space-y-3 p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-all hover:border-emerald-300 dark:hover:border-emerald-700 relative overflow-hidden">
+                                            <div className="flex items-center gap-2 mb-1 relative z-10">
+                                                <div className="p-1 px-2 bg-emerald-100 dark:bg-emerald-900/30 rounded text-[9px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
+                                                    Master Data
                                                 </div>
-                                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Generus Master</span>
                                             </div>
 
-                                            <div className="space-y-4 relative z-10">
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Nama Lengkap</p>
-                                                    <p className="text-base font-bold text-slate-900 dark:text-white leading-tight">
+                                            <div className="space-y-3 relative z-10">
+                                                <div className="space-y-0.5">
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">Nama Lengkap</p>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-white leading-tight">
                                                         {String(pendingLink.generusRow["NAMA LENGKAP"] || "-")}
                                                     </p>
                                                 </div>
-                                                <div className="grid grid-cols-1 gap-4 pt-2">
-                                                    <div className="space-y-1">
-                                                        <p className="text-[10px] font-bold text-slate-400 uppercase">Nama Panggilan</p>
-                                                        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                                            {String(pendingLink.generusRow["NAMA PANGGILAN"] || "-")}
+                                                <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200/50 dark:border-slate-800/50">
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase">Kelompok</p>
+                                                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                                            {String(pendingLink.generusRow["KELOMPOK"] || "-")}
                                                         </p>
                                                     </div>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Kelompok</p>
-                                                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                                                {String(pendingLink.generusRow["KELOMPOK"] || "-")}
-                                                            </p>
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            <p className="text-[10px] font-bold text-slate-400 uppercase">Gender</p>
-                                                            <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                                                                {String(pendingLink.generusRow["JENIS KELAMIN"] || "-")}
-                                                            </p>
-                                                        </div>
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase">Gender</p>
+                                                        <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                                                            {String(pendingLink.generusRow["JENIS KELAMIN"] || "-")}
+                                                        </p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -725,6 +791,17 @@ export function LinkGenerusClient({
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
+
+            {/* Mobile Auto Match FAB */}
+            {filterMode === "unlinked" && (
+                <Button
+                    onClick={handleAutoMatch}
+                    className="sm:hidden fixed bottom-6 right-6 h-14 w-14 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-200 dark:shadow-indigo-900/20 z-40 p-0"
+                    title="Auto Match Semua"
+                >
+                    <Wand2 className="h-6 w-6" />
+                </Button>
+            )}
         </div >
     );
 }
