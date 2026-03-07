@@ -23,11 +23,21 @@ import { StatsOverview } from "@/components/dashboard/stats-overview";
 import { AnalyticsService } from "@/services/analytics-service";
 import { SummaryLayout, SummarySection } from "@/components/summary-layout";
 import { cn } from "@/lib/utils";
+import { ADDITIONAL_INFO_SHEET_NAME } from "@/lib/constants";
+import { SummaryTabs } from "@/components/summary-tabs";
+import { AnalyticsDetailDashboard } from "@/components/analytics-detail-dashboard";
+import { SummaryAdditionalInsights } from "@/components/summary-additional-insights";
+
 
 export const dynamic = "force-dynamic";
 
 interface SummaryPageProps {
-  searchParams?: Promise<{ desa?: string; kelompok?: string; jenjang?: string }>;
+  searchParams?: Promise<{
+    desa?: string;
+    kelompok?: string;
+    jenjang?: string;
+    view?: "overview" | "details";
+  }>;
 }
 
 export default async function SummaryPage({ searchParams }: SummaryPageProps) {
@@ -40,9 +50,15 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
   const selectedKelompok = resolvedParams.kelompok || "";
   const selectedJenjang = resolvedParams.jenjang || "";
 
+  const activeView = resolvedParams.view || "overview";
+
   try {
-    const rawData = await getSheetData();
-    rows = AnalyticsService.processRows(rawData);
+    const [rawData, aiRaw] = await Promise.all([
+      getSheetData(),
+      getSheetData(ADDITIONAL_INFO_SHEET_NAME).catch(() => [] as SheetRow[]),
+    ]);
+    const processed = AnalyticsService.processRows(rawData);
+    rows = AnalyticsService.mergeAdditionalInfo(processed, aiRaw);
   } catch (err) {
     error = err instanceof Error ? err.message : "Gagal memuat data";
   }
@@ -120,7 +136,8 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                 </p>
               </div>
 
-              <div className="flex gap-3 items-center">
+              <div className="flex flex-col sm:flex-row gap-3 items-center">
+                <SummaryTabs activeView={activeView} />
                 <Button
                   asChild
                   variant="ghost"
@@ -228,40 +245,46 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
           {!error && (
             <SummarySection>
-              <div className="grid grid-cols-1 gap-12">
-                {showKelompokView ? (
-                  <div className="space-y-6 relative">
-                    <div className="flex justify-start">
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="sm"
-                        className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors"
-                      >
-                        <Link href={selectedJenjang ? `/summary?jenjang=${selectedJenjang}` : "/summary"}>
-                          <ArrowLeft className="h-4 w-4 mr-2" />
-                          Kembali Pilih Desa
-                        </Link>
-                      </Button>
+              {activeView === "overview" ? (
+                <div className="grid grid-cols-1 gap-12">
+                  <SummaryAdditionalInsights rows={filteredRowsForStats} />
+
+                  {showKelompokView ? (
+                    <div className="space-y-6 relative">
+                      <div className="flex justify-start">
+                        <Button
+                          asChild
+                          variant="ghost"
+                          size="sm"
+                          className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors"
+                        >
+                          <Link href={selectedJenjang ? `/summary?jenjang=${selectedJenjang}` : "/summary"}>
+                            <ArrowLeft className="h-4 w-4 mr-2" />
+                            Kembali Pilih Desa
+                          </Link>
+                        </Button>
+                      </div>
+                      <SummaryList
+                        title={`Distribution [Kelompok] ${selectedJenjang ? `— ${selectedJenjang}` : ""}`}
+                        description={`Audit klaster data di desa: ${selectedDesaLabel}. Explore the groupings below.`}
+                        items={kelompokList}
+                        selectedKey={selectedKelompok.toLowerCase()}
+                        isClickable={true}
+                        selectionType="kelompok"
+                        baseParams={baseParamsForKelompok}
+                      />
                     </div>
-                    <SummaryList
-                      title={`Distribution [Kelompok] ${selectedJenjang ? `— ${selectedJenjang}` : ''}`}
-                      description={`Audit klaster data di desa: ${selectedDesaLabel}. Explore the groupings below.`}
-                      items={kelompokList}
-                      selectedKey={selectedKelompok.toLowerCase()}
-                      isClickable={true}
-                      selectionType="kelompok"
-                      baseParams={baseParamsForKelompok}
+                  ) : (
+                    <SummaryDesaList
+                      items={desaList}
+                      selectedKey={selectedDesa.toLowerCase()}
+                      baseParams={baseParamsForDesa}
                     />
-                  </div>
-                ) : (
-                  <SummaryDesaList
-                    items={desaList}
-                    selectedKey={selectedDesa.toLowerCase()}
-                    baseParams={baseParamsForDesa}
-                  />
-                )}
-              </div>
+                  )}
+                </div>
+              ) : (
+                <AnalyticsDetailDashboard rows={filteredRowsForStats} />
+              )}
             </SummarySection>
           )}
         </SummaryLayout>

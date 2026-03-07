@@ -9,6 +9,8 @@ import { COLUMNS, kelas } from "@/lib/constants";
 import { AnimatedNumber } from "@/components/animated-number";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
+import { AnalyticsService } from "@/services/analytics-service";
+import { GraduationCap, Briefcase } from "lucide-react";
 
 interface StatsOverviewProps {
   data: SheetRow[];                  // Fully filtered data (for KPIs)
@@ -93,14 +95,14 @@ export function StatsOverview({ data, distributionData, selectedJenjang }: Stats
   }>(() => {
     const targetData = distributionData || data;
     const jenjangCounts: Record<string, number> = {};
-    
+
     // Additional counts for Out of Category Info
     let noDobCount = 0;
 
     targetData.forEach((row) => {
       const jenjang = getCellValue(row, COLUMNS.JENJANG);
       const dob = getCellValue(row, COLUMNS.TANGGAL_LAHIR);
-      
+
       let isNoDob = false;
       if (!dob) {
         isNoDob = true;
@@ -124,18 +126,33 @@ export function StatsOverview({ data, distributionData, selectedJenjang }: Stats
     return { jenjangCounts, noDobCount };
   }, [data, distributionData]);
 
+  // 3. Additional Info Stats (Option B)
+  const aiStats = useMemo(() => {
+    const aiRows = data.filter((r) => r._hasAdditionalInfo === "true");
+    if (aiRows.length === 0) return null;
+
+    return {
+      eduDist: AnalyticsService.getFieldDistribution(aiRows, "_ai_Pendidikan"),
+      busyDist: AnalyticsService.getFieldDistribution(
+        aiRows,
+        "_ai_Kesibukan Saat ini"
+      ),
+      totalLinked: aiRows.length,
+    };
+  }, [data]);
+
 
   const handleJenjangClick = (jenjang: string) => {
     startTransition(() => {
       const params = new URLSearchParams(searchParams.toString());
-      
+
       // Toggle logic
       if (selectedJenjang?.toLowerCase() === jenjang.toLowerCase()) {
         params.delete("jenjang");
       } else {
         params.set("jenjang", jenjang);
       }
-      
+
       router.push(`/summary?${params.toString()}`);
     });
   };
@@ -235,17 +252,17 @@ export function StatsOverview({ data, distributionData, selectedJenjang }: Stats
               </p>
             </div>
           </div>
-          
+
           {selectedJenjang && (
-             <button 
-               onClick={() => handleJenjangClick(selectedJenjang)}
-               className="text-xs font-semibold text-red-500 hover:text-red-600 transition-colors px-3 py-1 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900/50"
-             >
-               Reset Filter
-             </button>
+            <button
+              onClick={() => handleJenjangClick(selectedJenjang)}
+              className="text-xs font-semibold text-red-500 hover:text-red-600 transition-colors px-3 py-1 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-900/50"
+            >
+              Reset Filter
+            </button>
           )}
         </div>
-        
+
         {/* Out of Category Info Banner (Option B Style) */}
         {distributionStats.noDobCount > 0 && (
           <div className="animate-in fade-in slide-in-from-top-2 duration-500">
@@ -283,8 +300,8 @@ export function StatsOverview({ data, distributionData, selectedJenjang }: Stats
                 className={cn(
                   "relative p-4 rounded-xl border shadow-sm flex flex-col items-center justify-center text-center space-y-1 transition-all",
                   "hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none",
-                  isSelected 
-                    ? "bg-indigo-600 border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900 shadow-indigo-200 dark:shadow-indigo-900/50" 
+                  isSelected
+                    ? "bg-indigo-600 border-indigo-500 ring-2 ring-indigo-200 dark:ring-indigo-900 shadow-indigo-200 dark:shadow-indigo-900/50"
                     : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-800"
                 )}
               >
@@ -309,6 +326,81 @@ export function StatsOverview({ data, distributionData, selectedJenjang }: Stats
           })}
         </div>
       </div>
+
+      {/* Option B: Additional Info Distributions */}
+      {aiStats && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-4">
+          {/* Kesibukan */}
+          <div className="space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-teal-100 dark:bg-teal-950/40 rounded-lg p-1.5 capitalize">
+                <Briefcase className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                Status Kesibukan
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {aiStats.busyDist.map((item) => (
+                <div
+                  key={item.key}
+                  className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-teal-200 dark:hover:border-teal-800 transition-colors"
+                >
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Status</p>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">
+                      {item.label}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-teal-600 dark:text-teal-400 leading-none">
+                      {item.count}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      {Math.round((item.count / aiStats.totalLinked) * 100)}%
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Pendidikan */}
+          <div className="space-y-5">
+            <div className="flex items-center gap-3">
+              <div className="bg-amber-100 dark:bg-amber-950/40 rounded-lg p-1.5">
+                <GraduationCap className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              </div>
+              <h2 className="text-xl font-bold text-slate-800 dark:text-white">
+                Latar Belakang Pendidikan
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {aiStats.eduDist.map((item) => (
+                <div
+                  key={item.key}
+                  className="p-4 bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-amber-200 dark:hover:border-amber-800 transition-colors"
+                >
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Pendidikan</p>
+                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">
+                      {item.label}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-amber-600 dark:text-amber-400 leading-none">
+                      {item.count}
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      {Math.round((item.count / aiStats.totalLinked) * 100)}%
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -397,7 +397,7 @@ export function LinkGenerusClient({
                                                 <p className="font-medium text-slate-900 dark:text-white">
                                                     {(() => {
                                                         const row = additionalInfoData.find(r => (r._index as number) === pendingLink?.additionalInfoIdx);
-                                                        return row ? `${row["Nama Lengkap"] || "-"} (${row["Nama Panggilan"] || ""})` : "-";
+                                                        return row ? `${row["Nama Lengkap"] || "-"} (${row["Nama Panggilan"] || ""}) - ${row["Kelompok"] || "-"}` : "-";
                                                     })()}
                                                 </p>
                                             </div>
