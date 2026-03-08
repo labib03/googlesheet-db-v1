@@ -120,6 +120,10 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <SummaryLayout>
           <SummarySection>
+            <div className="flex mb-2 -ml-2 sm:-ml-4">
+              <BackButton href="/" label="Kembali ke Dashboard" className="hover:bg-transparent" />
+            </div>
+
             <div className="flex flex-col lg:flex-row items-center justify-between gap-6 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
               <div className="space-y-1">
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-white tracking-tight font-syne">
@@ -136,7 +140,6 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
               <div className="flex flex-col sm:flex-row gap-3 items-center">
                 <SummaryTabs activeView={activeView} />
-                <BackButton href="/" label="Kembali ke Dashboard" />
               </div>
             </div>
           </SummarySection>

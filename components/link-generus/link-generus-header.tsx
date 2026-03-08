@@ -36,9 +36,12 @@ export function LinkGenerusHeader({
 }: LinkGenerusHeaderProps) {
     return (
         <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
+            <div className="flex items-center -ml-2 sm:-ml-4 animate-in fade-in slide-in-from-top-2 duration-500 delay-0">
+                <BackButton href="/admin-restricted" label="Kembali ke Admin Dashboard" className="hover:bg-transparent" />
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-500 delay-100">
                 <div className="flex items-center gap-3">
-                    <BackButton href="/admin-restricted" label="Kembali" />
                     <div className="min-w-0">
                         <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3 truncate">
                             <div className="p-1.5 sm:p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg sm:rounded-xl shrink-0">

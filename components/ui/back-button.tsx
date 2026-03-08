@@ -26,12 +26,12 @@ export function BackButton({ href, label = "Kembali", className, onClick, varian
 
     const content = (
         <>
-            <ArrowLeft className="w-5 h-5 sm:w-4 sm:h-4 sm:mr-2 shrink-0" />
-            <span className="hidden sm:inline font-medium">{label}</span>
+            <ArrowLeft className="w-4 h-4 mr-2 shrink-0" />
+            <span className="font-medium text-sm">{label}</span>
         </>
     );
 
-    const baseClassName = `rounded-xl h-10 px-2.5 sm:px-4 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors ${className || ""}`;
+    const baseClassName = `rounded-xl h-10 px-3 sm:px-4 text-slate-500 hover:text-indigo-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${className || ""}`;
 
     if (href) {
         return (

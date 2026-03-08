@@ -127,7 +127,11 @@ export function TalentAnalyticsClient({
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="space-y-4 animate-in fade-in duration-500">
+            <div className="flex items-center -ml-2 sm:-ml-4">
+                <BackButton href={mode === "config-only" ? "/admin-restricted" : "/"} label="Kembali ke Dashboard" className="hover:bg-transparent" />
+            </div>
+
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-6 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
@@ -143,10 +147,6 @@ export function TalentAnalyticsClient({
                         <p className="text-sm text-slate-500 dark:text-slate-400">
                             Detail Analisis Terkait Hobi dan Skill Generus
                         </p>
-                    </div>
-
-                    <div className="flex gap-3 items-center">
-                        <BackButton href={mode === "config-only" ? "/admin-restricted" : "/"} label="Kembali ke Dashboard" />
                     </div>
                 </div>
 

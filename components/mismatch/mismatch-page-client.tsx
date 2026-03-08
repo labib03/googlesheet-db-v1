@@ -99,10 +99,13 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
       variants={staggerContainer}
       className="space-y-8 font-outfit px-1"
     >
+      <motion.div variants={itemVariants} className="flex -ml-2 sm:-ml-4 mb-2">
+        <BackButton href="/admin-restricted" label="Kembali ke Admin Dashboard" className="hover:bg-transparent" />
+      </motion.div>
+
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-3">
-            <BackButton href="/admin-restricted" label="Admin" />
             <div className="p-2 bg-amber-500 rounded-xl text-white shadow-lg shadow-amber-200 dark:shadow-none transition-transform hover:scale-110">
               <AlertTriangle className="w-6 h-6" />
             </div>
