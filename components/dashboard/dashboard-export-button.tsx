@@ -13,22 +13,28 @@ interface DashboardExportButtonProps {
 export function DashboardExportButton({ data, headers }: DashboardExportButtonProps) {
   const { config, isCustomized } = useViewConfig();
 
-  // Calculate which headers to export based on table view settings
-  // If use has customized table columns, use only those.
-  // Otherwise, use all headers + Umur (default view behavior).
-
   const hasCustomTableCols = isCustomized("tableColumns");
 
+  // Master data headers: filter by config if customized
   const exportHeaders = hasCustomTableCols
     ? [...headers, COLUMNS.UMUR].filter(h => config.tableColumns.includes(h))
     : [...headers, COLUMNS.UMUR];
+
+  // AdditionalInfo columns: extract _ai_ prefixed entries from config, strip prefix for export
+  const exportAiColumns = hasCustomTableCols
+    ? config.tableColumns
+      .filter(col => col.startsWith("_ai_"))
+      .map(col => col.replace("_ai_", ""))
+    : [];
 
   return (
     <ExportButton
       data={data}
       headers={exportHeaders}
+      aiColumns={exportAiColumns}
       filename={`export-generus`}
       includeNo={false}
     />
   );
 }
+

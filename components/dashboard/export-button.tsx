@@ -15,6 +15,7 @@ import * as XLSX from "xlsx";
 interface ExportButtonProps {
   data: SheetRow[];
   headers: string[];
+  aiColumns?: string[];
   filename?: string;
   includeNo?: boolean;
 }
@@ -24,19 +25,23 @@ type ExportFormat = "csv" | "xlsx";
 export function ExportButton({
   data,
   headers,
+  aiColumns = [],
   filename = "generus-data",
   includeNo = true,
 }: ExportButtonProps) {
   const [open, setOpen] = useState(false);
 
   const getExportData = () => {
-    const finalHeaders = includeNo ? ["No", ...headers] : headers;
+    const masterHeaders = includeNo ? ["No", ...headers] : [...headers];
+    const finalHeaders = [...masterHeaders, ...aiColumns];
 
     const rows = data.map((row, index) => {
       const obj: Record<string, string | number> = {};
       finalHeaders.forEach((header) => {
         if (header === "No" && includeNo) {
           obj[header] = index + 1;
+        } else if (aiColumns.includes(header)) {
+          obj[header] = String(row[`_ai_${header}`] || "-");
         } else {
           obj[header] = getCellValue(row, header) || "-";
         }

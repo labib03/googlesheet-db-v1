@@ -15,7 +15,7 @@ import { ShieldCheck, AlertCircle, History, Settings, Check, Trash, AlertTriangl
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExportButton } from "./dashboard/export-button";
-import { COLUMNS } from "@/lib/constants";
+import { COLUMNS, ADDITIONAL_INFO_COLUMNS } from "@/lib/constants";
 import { BulkDeleteDialog } from "./bulk-delete-dialog";
 import { isMappingCorrect } from "@/lib/helper";
 
@@ -225,7 +225,12 @@ export function AdminDashboardClient({
         {/* Right Group: Data Operations */}
         <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
           <div className="shrink-0">
-            <ExportButton data={data.filteredData} headers={headers} />
+            <ExportButton
+              data={data.filteredData}
+              headers={[...headers, COLUMNS.UMUR]}
+              aiColumns={[...ADDITIONAL_INFO_COLUMNS]}
+              includeNo={false}
+            />
           </div>
 
           {isEnableAdd && (
