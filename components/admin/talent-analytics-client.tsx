@@ -13,6 +13,7 @@ import { TalentConfigCard } from "@/components/admin/talent-config-card";
 import { getTopTerms } from "@/lib/helper";
 import { toast } from "sonner";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { BackButton } from "@/components/ui/back-button";
 
 interface TalentAnalyticsClientProps {
     initialData: SheetRow[];
@@ -145,16 +146,7 @@ export function TalentAnalyticsClient({
                     </div>
 
                     <div className="flex gap-3 items-center">
-                        <Button
-                            asChild
-                            variant="ghost"
-                            className="rounded-xl px-4 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
-                        >
-                            <Link href={mode === "config-only" ? "/admin-restricted" : "/"}>
-                                <ArrowLeft className="h-4 w-4 mr-2" />
-                                Kembali ke Dashboard
-                            </Link>
-                        </Button>
+                        <BackButton href={mode === "config-only" ? "/admin-restricted" : "/"} label="Kembali ke Dashboard" />
                     </div>
                 </div>
 

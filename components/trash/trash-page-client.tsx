@@ -13,6 +13,7 @@ import { DashboardFilters } from "../dashboard/dashboard-filters";
 import { DashboardPagination } from "../dashboard/dashboard-pagination";
 import { ListSkeleton } from "../skeletons";
 import { motion, AnimatePresence } from "framer-motion";
+import { BackButton } from "@/components/ui/back-button";
 
 interface TrashPageClientProps {
   initialTrashData: SheetRow[];
@@ -55,7 +56,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
 
   if (error) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="mx-auto max-w-2xl"
@@ -70,9 +71,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent>
-               <Button variant="outline" onClick={navigateBack} className="rounded-xl">
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Back to Admin
-               </Button>
+            <BackButton href="/admin-restricted" label="Back to Admin" variant="outline" className="border-slate-300 dark:border-slate-700 shadow-sm" />
           </CardContent>
         </Card>
       </motion.div>
@@ -80,7 +79,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="show"
       variants={staggerContainer}
@@ -90,14 +89,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-3">
-             <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={navigateBack}
-                className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
-             >
-                <ArrowLeft className="w-5 h-5" />
-             </Button>
+            <BackButton href="/admin-restricted" label="Admin" />
             <div className="p-2 bg-rose-500 rounded-xl text-white shadow-lg shadow-rose-200 dark:shadow-none transition-transform hover:scale-110">
               <Trash2 className="w-6 h-6" />
             </div>
@@ -111,8 +103,8 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
         </div>
 
         <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/20 text-indigo-600 dark:text-indigo-400 rounded-2xl border border-indigo-100 dark:border-indigo-900/50 text-xs font-bold uppercase tracking-wider">
-            <History className="w-4 h-4" />
-            Total Archive: {initialTrashData.length} Data
+          <History className="w-4 h-4" />
+          Total Archive: {initialTrashData.length} Data
         </div>
       </motion.div>
 
@@ -137,22 +129,22 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
       <motion.div variants={itemVariants}>
         <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 py-0 gap-0">
           <CardHeader className="border-b border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/30 p-5 md:p-6">
-              <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-0.5">
-                      <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Archive Records</CardTitle>
-                      <CardDescription className="text-xs">
-                          {status.isFiltered ? `Found ${data.filteredData.length} records matching filters` : "Displaying chronological archive of deleted data"}
-                      </CardDescription>
-                  </div>
-                  <div className="text-[10px] hidden sm:block font-black uppercase tracking-widest text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                      Trash Bin
-                  </div>
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
+                <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Archive Records</CardTitle>
+                <CardDescription className="text-xs">
+                  {status.isFiltered ? `Found ${data.filteredData.length} records matching filters` : "Displaying chronological archive of deleted data"}
+                </CardDescription>
               </div>
+              <div className="text-[10px] hidden sm:block font-black uppercase tracking-widest text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full border border-slate-200 dark:border-slate-700">
+                Trash Bin
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <AnimatePresence mode="wait">
               {status.isVisualPending ? (
-                <motion.div 
+                <motion.div
                   key="skeleton-trash"
                   variants={fadeVariants}
                   initial="initial"
@@ -163,7 +155,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
                   <ListSkeleton />
                 </motion.div>
               ) : data.filteredData.length === 0 ? (
-                <motion.div 
+                <motion.div
                   key="empty-trash"
                   variants={fadeVariants}
                   initial="initial"
@@ -171,18 +163,18 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
                   exit="exit"
                   className="p-20 text-center space-y-4"
                 >
-                   <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center">
-                      <Trash2 className="w-8 h-8 text-slate-300" />
-                   </div>
-                   <p className="text-slate-400 font-medium">{status.isFiltered ? "No records found matching your current filters." : "Your trash bin is currently empty."}</p>
-                   {status.isFiltered && (
-                       <Button variant="outline" onClick={actions.resetFilters} className="rounded-xl h-10 px-6">
-                          Clear Filters
-                       </Button>
-                   )}
+                  <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center">
+                    <Trash2 className="w-8 h-8 text-slate-300" />
+                  </div>
+                  <p className="text-slate-400 font-medium">{status.isFiltered ? "No records found matching your current filters." : "Your trash bin is currently empty."}</p>
+                  {status.isFiltered && (
+                    <Button variant="outline" onClick={actions.resetFilters} className="rounded-xl h-10 px-6">
+                      Clear Filters
+                    </Button>
+                  )}
                 </motion.div>
               ) : (
-                <motion.div 
+                <motion.div
                   key="data-trash"
                   variants={fadeVariants}
                   initial="initial"
@@ -224,17 +216,17 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
                             <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-slate-200 dark:border-slate-700 shadow-sm">
                               <UserX className="w-7 h-7 text-slate-400 group-hover:text-rose-500 transition-colors" />
                             </div>
-                            
+
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                 <h4 className="font-bold text-xl text-slate-900 dark:text-white truncate tracking-tight leading-tight">
-                                    {capitalizeWords(name) || "Unnamed Record"}
-                                 </h4>
-                                 {jenjang && (
-                                    <span className={`hidden sm:inline-block px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-wider ${getJenjangStyle(jenjang)}`}>
-                                        {jenjang}
-                                    </span>
-                                 )}
+                                <h4 className="font-bold text-xl text-slate-900 dark:text-white truncate tracking-tight leading-tight">
+                                  {capitalizeWords(name) || "Unnamed Record"}
+                                </h4>
+                                {jenjang && (
+                                  <span className={`hidden sm:inline-block px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-wider ${getJenjangStyle(jenjang)}`}>
+                                    {jenjang}
+                                  </span>
+                                )}
                               </div>
                               <div className="flex flex-col gap-2">
                                 <div className="flex flex-wrap gap-x-5 gap-y-1.5">
@@ -247,14 +239,14 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
                                     Dipindahkan: {String(deletedDate)}
                                   </div>
                                   <div className="flex items-center gap-3">
-                                      <div className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
-                                          {gender}
-                                      </div>
-                                      {umur && (
-                                          <span className="text-[11px] font-bold text-slate-400">
-                                              {umur} Tahun
-                                          </span>
-                                      )}
+                                    <div className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                                      {gender}
+                                    </div>
+                                    {umur && (
+                                      <span className="text-[11px] font-bold text-slate-400">
+                                        {umur} Tahun
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
 
@@ -262,17 +254,17 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
                                 <div className="flex flex-wrap gap-2 items-center">
                                   {isMarried && (
                                     <div className="flex items-center gap-1 px-2 py-0.5 bg-pink-50 dark:bg-pink-950/30 text-pink-600 dark:text-pink-400 rounded-md border border-pink-100 dark:border-pink-900/50 text-[10px] font-bold uppercase tracking-wider">
-                                       Sudah Menikah
+                                      Sudah Menikah
                                     </div>
                                   )}
                                   {isPindah && (
                                     <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 rounded-md border border-amber-100 dark:border-amber-900/50 text-[10px] font-bold uppercase tracking-wider">
-                                       Pindah Sambung
+                                      Pindah Sambung
                                     </div>
                                   )}
                                   {ket && (
                                     <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-md border border-slate-200 dark:border-slate-700 text-[10px] font-medium italic truncate max-w-[250px]">
-                                       &ldquo;{ket}&rdquo;
+                                      &ldquo;{ket}&rdquo;
                                     </div>
                                   )}
                                 </div>
@@ -280,9 +272,9 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
                             </div>
 
                             <div className="hidden sm:flex flex-col items-end gap-2 pr-2">
-                               <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-full border border-indigo-100 dark:border-indigo-900/50 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 shadow-sm active:scale-95">
-                                 VIEW DETAILS
-                               </span>
+                              <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-full border border-indigo-100 dark:border-indigo-900/50 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 shadow-sm active:scale-95">
+                                VIEW DETAILS
+                              </span>
                             </div>
                           </div>
                         </DataDetailDialog>
@@ -293,14 +285,14 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
                   {/* Pagination Section */}
                   <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 border-t border-slate-100 dark:border-slate-800">
                     <DashboardPagination
-                        currentPage={pagination.currentPage}
-                        totalPages={pagination.totalPages}
-                        pageSize={pagination.pageSize}
-                        onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
-                        onPageSizeChange={(s) => actions.handleStartTransition(() => {
-                            pagination.setPageSize(s);
-                            pagination.setCurrentPage(1);
-                        })}
+                      currentPage={pagination.currentPage}
+                      totalPages={pagination.totalPages}
+                      pageSize={pagination.pageSize}
+                      onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
+                      onPageSizeChange={(s) => actions.handleStartTransition(() => {
+                        pagination.setPageSize(s);
+                        pagination.setCurrentPage(1);
+                      })}
                     />
                   </div>
                 </motion.div>

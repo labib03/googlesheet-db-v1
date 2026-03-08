@@ -14,6 +14,7 @@ import { DashboardFilters } from "../dashboard/dashboard-filters";
 import { DashboardPagination } from "../dashboard/dashboard-pagination";
 import { ListSkeleton } from "../skeletons";
 import { motion, AnimatePresence } from "framer-motion";
+import { BackButton } from "@/components/ui/back-button";
 
 interface MismatchPageClientProps {
   initialData: SheetRow[];
@@ -56,7 +57,7 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
 
   if (error) {
     return (
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="mx-auto max-w-2xl"
@@ -71,9 +72,7 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
             <CardDescription>{error}</CardDescription>
           </CardHeader>
           <CardContent>
-               <Button variant="outline" onClick={navigateBack} className="rounded-xl">
-                  <ArrowLeft className="w-4 h-4 mr-2" /> Back to Admin
-               </Button>
+            <BackButton href="/admin-restricted" label="Back to Admin" variant="outline" className="border-slate-300 dark:border-slate-700 shadow-sm" />
           </CardContent>
         </Card>
       </motion.div>
@@ -94,7 +93,7 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial="hidden"
       animate="show"
       variants={staggerContainer}
@@ -103,14 +102,7 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
       <motion.div variants={itemVariants} className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-1">
         <div className="flex flex-col space-y-2">
           <div className="flex items-center gap-3">
-             <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={navigateBack}
-                className="h-10 w-10 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 shrink-0"
-             >
-                <ArrowLeft className="w-5 h-5" />
-             </Button>
+            <BackButton href="/admin-restricted" label="Admin" />
             <div className="p-2 bg-amber-500 rounded-xl text-white shadow-lg shadow-amber-200 dark:shadow-none transition-transform hover:scale-110">
               <AlertTriangle className="w-6 h-6" />
             </div>
@@ -124,8 +116,8 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
         </div>
 
         <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-amber-50 dark:bg-amber-950/20 text-amber-600 dark:text-amber-400 rounded-2xl border border-amber-100 dark:border-amber-900/50 text-xs font-bold uppercase tracking-wider">
-            <ShieldCheck className="w-4 h-4" />
-            Total Mismatch: {initialData.length} Data
+          <ShieldCheck className="w-4 h-4" />
+          Total Mismatch: {initialData.length} Data
         </div>
       </motion.div>
 
@@ -149,22 +141,22 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
       <motion.div variants={itemVariants}>
         <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800 py-0 gap-0">
           <CardHeader className="border-b border-slate-50 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-900/30 p-5 md:p-6">
-              <div className="flex items-center justify-between">
-                  <div className="flex flex-col gap-0.5">
-                      <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Mismatch Records</CardTitle>
-                      <CardDescription className="text-xs">
-                          {status.isFiltered ? `Found ${data.filteredData.length} records matching filters` : "Displaying records with inconsistent location mapping"}
-                      </CardDescription>
-                  </div>
-                  <div className="text-[10px] hidden sm:block font-black uppercase tracking-widest text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-3 py-1 rounded-full border border-amber-100 dark:border-amber-800">
-                      Audit Mode
-                  </div>
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-0.5">
+                <CardTitle className="text-lg font-bold text-slate-800 dark:text-white">Mismatch Records</CardTitle>
+                <CardDescription className="text-xs">
+                  {status.isFiltered ? `Found ${data.filteredData.length} records matching filters` : "Displaying records with inconsistent location mapping"}
+                </CardDescription>
               </div>
+              <div className="text-[10px] hidden sm:block font-black uppercase tracking-widest text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-3 py-1 rounded-full border border-amber-100 dark:border-amber-800">
+                Audit Mode
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-0">
             <AnimatePresence mode="wait">
               {status.isVisualPending ? (
-                <motion.div 
+                <motion.div
                   key="skeleton"
                   variants={fadeVariants}
                   initial="initial"
@@ -175,7 +167,7 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
                   <ListSkeleton />
                 </motion.div>
               ) : data.filteredData.length === 0 ? (
-                <motion.div 
+                <motion.div
                   key="empty"
                   variants={fadeVariants}
                   initial="initial"
@@ -183,13 +175,13 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
                   exit="exit"
                   className="p-20 text-center space-y-4"
                 >
-                   <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center">
-                      <ShieldCheck className="w-8 h-8 text-emerald-500" />
-                   </div>
-                   <p className="text-slate-400 font-medium">{status.isFiltered ? "No records found matching your current filters." : "All data looks correctly mapped! Great job."}</p>
+                  <div className="mx-auto w-16 h-16 bg-slate-50 dark:bg-slate-800/50 rounded-full flex items-center justify-center">
+                    <ShieldCheck className="w-8 h-8 text-emerald-500" />
+                  </div>
+                  <p className="text-slate-400 font-medium">{status.isFiltered ? "No records found matching your current filters." : "All data looks correctly mapped! Great job."}</p>
                 </motion.div>
               ) : (
-                <motion.div 
+                <motion.div
                   key="data"
                   variants={fadeVariants}
                   initial="initial"
@@ -212,17 +204,17 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
                             <div className="h-14 w-14 rounded-2xl bg-slate-100 dark:bg-slate-800/50 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-slate-200 dark:border-slate-700 shadow-sm">
                               <UserX className="w-7 h-7 text-slate-400 group-hover:text-amber-500 transition-colors" />
                             </div>
-                            
+
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                 <h4 className="font-bold text-xl text-slate-900 dark:text-white truncate tracking-tight leading-tight">
-                                    {capitalizeWords(name) || "Unnamed Record"}
-                                 </h4>
-                                 {jenjang && (
-                                    <span className={`hidden sm:inline-block px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-wider ${getJenjangStyle(jenjang)}`}>
-                                        {jenjang}
-                                    </span>
-                                 )}
+                                <h4 className="font-bold text-xl text-slate-900 dark:text-white truncate tracking-tight leading-tight">
+                                  {capitalizeWords(name) || "Unnamed Record"}
+                                </h4>
+                                {jenjang && (
+                                  <span className={`hidden sm:inline-block px-2 py-0.5 rounded-lg border text-[10px] font-black uppercase tracking-wider ${getJenjangStyle(jenjang)}`}>
+                                    {jenjang}
+                                  </span>
+                                )}
                               </div>
                               <div className="flex flex-wrap gap-x-5 gap-y-1.5">
                                 <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-500 bg-rose-50 dark:bg-rose-950/30 px-2 py-0.5 rounded-md border border-rose-100 dark:border-rose-900/50">
@@ -230,24 +222,24 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
                                   Kelompok: {kelompok} • Desa: {desa}
                                 </div>
                                 <div className="flex items-center gap-3">
-                                    <div className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
-                                        {gender}
-                                    </div>
-                                    {umur && (
-                                        <span className="text-[11px] font-bold text-slate-400">
-                                            {umur} Tahun
-                                        </span>
-                                    )}
+                                  <div className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] font-bold text-slate-500 uppercase tracking-tighter">
+                                    {gender}
+                                  </div>
+                                  {umur && (
+                                    <span className="text-[11px] font-bold text-slate-400">
+                                      {umur} Tahun
+                                    </span>
+                                  )}
                                 </div>
                               </div>
                             </div>
 
                             <div className="hidden sm:flex flex-col items-end gap-2 pr-2">
-                               <EditDataDialog row={row} rowIndex={Number(row._index)}>
-                                  <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-full border border-indigo-100 dark:border-indigo-900/50 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 shadow-sm active:scale-95">
-                                    EDIT & FIX
-                                  </span>
-                               </EditDataDialog>
+                              <EditDataDialog row={row} rowIndex={Number(row._index)}>
+                                <span className="text-[10px] font-black text-indigo-600 dark:text-indigo-400 px-4 py-2 bg-indigo-50 dark:bg-indigo-950/40 rounded-full border border-indigo-100 dark:border-indigo-900/50 opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0 shadow-sm active:scale-95">
+                                  EDIT & FIX
+                                </span>
+                              </EditDataDialog>
                             </div>
                           </div>
                         </DataDetailDialog>
@@ -257,14 +249,14 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
 
                   <div className="bg-slate-50/50 dark:bg-slate-900/30 p-4 border-t border-slate-100 dark:border-slate-800">
                     <DashboardPagination
-                        currentPage={pagination.currentPage}
-                        totalPages={pagination.totalPages}
-                        pageSize={pagination.pageSize}
-                        onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
-                        onPageSizeChange={(s) => actions.handleStartTransition(() => {
-                            pagination.setPageSize(s);
-                            pagination.setCurrentPage(1);
-                        })}
+                      currentPage={pagination.currentPage}
+                      totalPages={pagination.totalPages}
+                      pageSize={pagination.pageSize}
+                      onPageChange={(p) => actions.handleStartTransition(() => pagination.setCurrentPage(p))}
+                      onPageSizeChange={(s) => actions.handleStartTransition(() => {
+                        pagination.setPageSize(s);
+                        pagination.setCurrentPage(1);
+                      })}
                     />
                   </div>
                 </motion.div>

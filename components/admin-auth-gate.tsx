@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Lock, ArrowLeft, Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { loginAdminAction, verifySessionAction } from "@/app/actions";
+import { BackButton } from "@/components/ui/back-button";
 
 interface AdminAuthGateProps {
   children: React.ReactNode;
@@ -120,15 +121,7 @@ export function AdminAuthGate({ children }: AdminAuthGateProps) {
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : "Unlock"}
             </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              className="w-full rounded-xl"
-              onClick={() => router.push("/")}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Home
-            </Button>
+            <BackButton href="/" label="Back to Home" className="w-full" />
           </CardFooter>
         </form>
       </Card>

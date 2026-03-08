@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Link2, Search, UserCheck, UserX, Users, Wand2, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, SetStateAction } from "react";
+import { BackButton } from "@/components/ui/back-button";
 
 type FilterMode = "unlinked" | "linked" | "all";
 
@@ -37,16 +38,7 @@ export function LinkGenerusHeader({
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 animate-in fade-in slide-in-from-top-2 duration-500">
                 <div className="flex items-center gap-3">
-                    <Button
-                        asChild
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-xl h-9 w-9 shrink-0 hover:bg-slate-100 dark:hover:bg-slate-800"
-                    >
-                        <Link href="/admin-restricted">
-                            <ArrowLeft className="h-4 w-4 text-slate-500" />
-                        </Link>
-                    </Button>
+                    <BackButton href="/admin-restricted" label="Kembali" />
                     <div className="min-w-0">
                         <h1 className="text-xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2 sm:gap-3 truncate">
                             <div className="p-1.5 sm:p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg sm:rounded-xl shrink-0">

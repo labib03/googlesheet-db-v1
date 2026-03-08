@@ -28,6 +28,7 @@ import { SummaryTabContent } from "@/components/summary-tab-content";
 import { AnalyticsDetailDashboard } from "@/components/analytics-detail-dashboard";
 import { SummaryAdditionalInsights } from "@/components/summary-additional-insights";
 import { fetchAndProcessData } from "@/lib/process-sheet-data";
+import { BackButton } from "@/components/ui/back-button";
 
 
 export const dynamic = "force-dynamic";
@@ -135,16 +136,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
 
               <div className="flex flex-col sm:flex-row gap-3 items-center">
                 <SummaryTabs activeView={activeView} />
-                <Button
-                  asChild
-                  variant="ghost"
-                  className="rounded-xl px-4 text-slate-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/30 transition-colors"
-                >
-                  <Link href="/">
-                    <ArrowLeft className="h-4 w-4 mr-2" />
-                    Kembali ke Dashboard
-                  </Link>
-                </Button>
+                <BackButton href="/" label="Kembali ke Dashboard" />
               </div>
             </div>
           </SummarySection>
@@ -250,17 +242,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
                     {showKelompokView ? (
                       <div className="space-y-6 relative">
                         <div className="flex justify-start">
-                          <Button
-                            asChild
-                            variant="ghost"
-                            size="sm"
-                            className="rounded-xl text-slate-500 hover:text-indigo-600 transition-colors"
-                          >
-                            <Link href={selectedJenjang ? `/summary?jenjang=${selectedJenjang}` : "/summary"}>
-                              <ArrowLeft className="h-4 w-4 mr-2" />
-                              Kembali Pilih Desa
-                            </Link>
-                          </Button>
+                          <BackButton href={selectedJenjang ? `/summary?jenjang=${selectedJenjang}` : "/summary"} label="Kembali Pilih Desa" />
                         </div>
                         <SummaryList
                           title={`Distribution [Kelompok] ${selectedJenjang ? `— ${selectedJenjang}` : ""}`}
