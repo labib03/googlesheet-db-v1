@@ -31,7 +31,16 @@ export function GenerusPickerDialog({
 }: GenerusPickerDialogProps) {
     const [search, setSearch] = useState("");
     const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
+    const [selectingId, setSelectingId] = useState<number | null>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const handleSelect = (row: SheetRow) => {
+        setSelectingId(row._index as number);
+        setTimeout(() => {
+            onSelect(row);
+            setSelectingId(null);
+        }, 50);
+    };
 
     useEffect(() => {
         if (open) {
@@ -101,11 +110,16 @@ export function GenerusPickerDialog({
                                         key={row._index as number}
                                         variant="ghost"
                                         className="w-full justify-start h-auto py-3 px-4 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 group transition-colors"
-                                        onClick={() => onSelect(row)}
+                                        onClick={() => handleSelect(row)}
+                                        disabled={selectingId === (row._index as number)}
                                     >
                                         <div className="flex items-start gap-3 w-full">
                                             <div className="p-1.5 bg-slate-100 dark:bg-slate-800 rounded-lg group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-colors shrink-0 mt-0.5">
-                                                <User className="h-4 w-4 text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                                                {selectingId === (row._index as number) ? (
+                                                    <Loader2 className="h-4 w-4 text-indigo-600 dark:text-indigo-400 animate-spin" />
+                                                ) : (
+                                                    <User className="h-4 w-4 text-slate-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
+                                                )}
                                             </div>
                                             <div className="flex flex-col items-start text-left flex-1 min-w-0">
                                                 <span className="text-sm font-medium text-slate-900 dark:text-white truncate w-full">

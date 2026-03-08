@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SheetRow } from "@/lib/google-sheets";
@@ -26,6 +27,25 @@ export function LinkGenerusTable({
     handleOpenPicker,
     handleRowAutoMatch
 }: LinkGenerusTableProps) {
+    const [openingRow, setOpeningRow] = useState<number | null>(null);
+    const [autoMatchRow, setAutoMatchRow] = useState<number | null>(null);
+
+    const onOpenPicker = (idx: number) => {
+        setOpeningRow(idx);
+        setTimeout(() => {
+            handleOpenPicker(idx);
+            setOpeningRow(null);
+        }, 50);
+    };
+
+    const onAutoMatch = (idx: number) => {
+        setAutoMatchRow(idx);
+        setTimeout(() => {
+            handleRowAutoMatch(idx);
+            setAutoMatchRow(null);
+        }, 50);
+    };
+
     if (filteredData.length === 0) {
         return (
             <Card className="border-none shadow-sm bg-white dark:bg-slate-900 overflow-hidden ring-1 ring-slate-200 dark:ring-slate-800">
@@ -93,6 +113,9 @@ export function LinkGenerusTable({
                                     String(g["NAMA LENGKAP"] || "").trim().toLowerCase() === aiName
                                 );
 
+                                const isOpening = openingRow === idx;
+                                const isAuto = autoMatchRow === idx;
+
                                 return (
                                     <tr
                                         key={idx}
@@ -143,24 +166,24 @@ export function LinkGenerusTable({
                                                         <Button
                                                             size="sm"
                                                             variant="ghost"
-                                                            onClick={() => handleRowAutoMatch(idx)}
-                                                            disabled={isPending}
+                                                            onClick={() => onAutoMatch(idx)}
+                                                            disabled={isPending || isAuto}
                                                             className="h-8 w-8 p-0 text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 animate-in zoom-in duration-300"
                                                             title="Auto Match Baris Ini"
                                                         >
-                                                            <Wand2 className="h-4 w-4" />
+                                                            {isAuto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
                                                         </Button>
                                                     )}
                                                     <Button
                                                         size="sm"
-                                                        onClick={() => handleOpenPicker(idx)}
-                                                        disabled={isPending}
-                                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-8 rounded-lg"
+                                                        onClick={() => onOpenPicker(idx)}
+                                                        disabled={isPending || isOpening}
+                                                        className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs h-8 min-w-16 rounded-lg"
                                                     >
-                                                        {isLinking ? (
+                                                        {isLinking || isOpening ? (
                                                             <Loader2 className="h-3 w-3 animate-spin" />
                                                         ) : (
-                                                            <div className="flex items-center gap-1.5 px-1">
+                                                            <div className="flex items-center justify-center gap-1.5 px-1">
                                                                 <Link2 className="h-3 w-3" />
                                                                 <span>Link</span>
                                                             </div>
@@ -190,6 +213,9 @@ export function LinkGenerusTable({
                             !linkedGenerusIndices.has(g._index as number) &&
                             String(g["NAMA LENGKAP"] || "").trim().toLowerCase() === aiName
                         );
+
+                        const isOpening = openingRow === idx;
+                        const isAuto = autoMatchRow === idx;
 
                         return (
                             <div key={idx} className="p-4 space-y-4 animate-in fade-in duration-300">
@@ -235,13 +261,13 @@ export function LinkGenerusTable({
                                 {!isLinked && (
                                     <div className="flex gap-2 pt-1">
                                         <Button
-                                            onClick={() => handleOpenPicker(idx)}
-                                            disabled={isPending}
+                                            onClick={() => onOpenPicker(idx)}
+                                            disabled={isPending || isOpening}
                                             variant="default"
                                             className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white h-9 text-xs rounded-xl shadow-sm"
                                         >
-                                            {isLinking ? (
-                                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            {isLinking || isOpening ? (
+                                                <Loader2 className="h-3.5 w-3.5 animate-spin mx-auto" />
                                             ) : (
                                                 <>
                                                     <Link2 className="h-3.5 w-3.5 mr-2" />
@@ -251,12 +277,12 @@ export function LinkGenerusTable({
                                         </Button>
                                         {hasAutoMatch && (
                                             <Button
-                                                onClick={() => handleRowAutoMatch(idx)}
-                                                disabled={isPending}
+                                                onClick={() => onAutoMatch(idx)}
+                                                disabled={isPending || isAuto}
                                                 variant="outline"
                                                 className="w-12 h-9 border-indigo-200 dark:border-indigo-800 text-indigo-600 dark:text-indigo-400 rounded-xl"
                                             >
-                                                <Wand2 className="h-4 w-4" />
+                                                {isAuto ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4" />}
                                             </Button>
                                         )}
                                     </div>
