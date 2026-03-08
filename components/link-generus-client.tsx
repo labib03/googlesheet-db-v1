@@ -37,6 +37,7 @@ export function LinkGenerusClient({
     const [matchCategory, setMatchCategory] = useState<"all" | "matchable" | "unmatchable">("all");
     const [pendingLink, setPendingLink] = useState<PendingLinkType>(null);
     const [isLinkingInDialog, setIsLinkingInDialog] = useState(false);
+    const [isPickerLoading, setIsPickerLoading] = useState(false);
 
     const filteredData = useMemo(() => {
         let filtered = additionalInfoData;
@@ -118,12 +119,13 @@ export function LinkGenerusClient({
     }, [additionalInfoData, linkedRows, unlinkedGenerus, linkedGenerusIndices]);
 
     function handleOpenPicker(additionalInfoIndex: number) {
-        setIsLinkingInDialog(true);
-        startTransition(() => {
-            setPickerTargetRow(additionalInfoIndex);
-            setPickerOpen(true);
-            setIsLinkingInDialog(false);
-        });
+        setPickerTargetRow(additionalInfoIndex);
+        setPickerOpen(true);
+        setIsPickerLoading(true);
+
+        setTimeout(() => {
+            setIsPickerLoading(false);
+        }, 150); // Give time for modal to fully animate open
     }
 
     function handlePickerSelect(generusRow: SheetRow) {
@@ -140,18 +142,27 @@ export function LinkGenerusClient({
     }
 
     function handleRowAutoMatch(idx: number) {
-        setIsLinkingInDialog(true);
-        startTransition(() => {
+        // Open shell immediately
+        setPendingLink({
+            additionalInfoIdx: idx,
+            generusRow: {} as any, // Placeholder 
+            isAutoMatch: true,
+            isLoading: true,
+        });
+        setConfirmOpen(true);
+
+        // Process data after shell animation
+        setTimeout(() => {
             const aiRow = additionalInfoData.find(r => (r._index as number) === idx);
             if (!aiRow) {
-                setIsLinkingInDialog(false);
+                setConfirmOpen(false);
+                setPendingLink(null);
                 return;
             }
 
             const aiNameRaw = String(aiRow["Nama Lengkap"] || "").trim();
             if (!aiNameRaw) {
-                toast.error("Nama Lengkap kosong, tidak bisa auto-match.");
-                setIsLinkingInDialog(false);
+                setPendingLink(prev => prev ? { ...prev, isLoading: false, isError: true, errorMessage: "Nama Lengkap kosong, tidak bisa auto-match." } : null);
                 return;
             }
 
@@ -164,40 +175,51 @@ export function LinkGenerusClient({
             });
 
             if (match) {
-                setPendingLink({
-                    additionalInfoIdx: idx,
+                setPendingLink(prev => prev ? {
+                    ...prev,
                     generusRow: match,
-                    isAutoMatch: true,
-                });
-                setConfirmOpen(true);
+                    isLoading: false,
+                } : null);
             } else {
-                toast.info(`Tidak ditemukan kecocokan untuk "${aiNameRaw}"`);
+                setPendingLink(prev => prev ? {
+                    ...prev,
+                    isLoading: false,
+                    isNotFound: true,
+                    errorMessage: `Tidak ditemukan kecocokan untuk "${aiNameRaw}"`
+                } : null);
             }
-            setIsLinkingInDialog(false);
-        });
+        }, 300); // Wait for modal slide animation to end before executing heavy filter
     }
 
     function handleAutoMatch() {
-        setIsLinkingInDialog(true);
-        startTransition(() => {
-            const unlinkedAI = additionalInfoData.filter(
-                (row) => !String(row["UserId"] || "").trim() && !linkedRows.has(row._index as number)
-            );
+        const unlinkedAI = additionalInfoData.filter(
+            (row) => !String(row["UserId"] || "").trim() && !linkedRows.has(row._index as number)
+        );
 
-            if (unlinkedAI.length === 0) {
-                toast.info("Tidak ada data AdditionalInfo yang perlu di-link.");
-                setIsLinkingInDialog(false);
-                return;
-            }
+        if (unlinkedAI.length === 0) {
+            toast.info("Tidak ada data AdditionalInfo yang perlu di-link.");
+            return;
+        }
 
-            const availableGenerus = unlinkedGenerus.filter(g => !linkedGenerusIndices.has(g._index as number));
+        const availableGenerus = unlinkedGenerus.filter(g => !linkedGenerusIndices.has(g._index as number));
 
-            if (availableGenerus.length === 0) {
-                toast.info("Tidak ada data Generus master yang tersedia.");
-                setIsLinkingInDialog(false);
-                return;
-            }
+        if (availableGenerus.length === 0) {
+            toast.info("Tidak ada data Generus master yang tersedia.");
+            return;
+        }
 
+        // Just take the first one found for auto match feature to process
+        // since handleAutoMatch is a bulk-search action, we can wrap it in modal too 
+        // using the first row index to trigger modal loading, then execute find
+        setPendingLink({
+            additionalInfoIdx: unlinkedAI[0]._index as number,
+            generusRow: {} as any,
+            isAutoMatch: true,
+            isLoading: true,
+        });
+        setConfirmOpen(true);
+
+        setTimeout(() => {
             for (const aiRow of unlinkedAI) {
                 const aiNameRaw = String(aiRow["Nama Lengkap"] || "").trim();
                 if (!aiNameRaw) continue;
@@ -210,20 +232,23 @@ export function LinkGenerusClient({
                 });
 
                 if (match) {
-                    setPendingLink({
-                        additionalInfoIdx: aiRow._index as number,
+                    setPendingLink(prev => prev ? {
+                        additionalInfoIdx: aiRow._index as number, // Update with the one that matched
                         generusRow: match,
                         isAutoMatch: true,
-                    });
-                    setConfirmOpen(true);
-                    setIsLinkingInDialog(false);
+                        isLoading: false,
+                    } : null);
                     return;
                 }
             }
 
-            toast.info("Tidak ditemukan kecocokan otomatis berdasarkan Nama Lengkap.");
-            setIsLinkingInDialog(false);
-        });
+            setPendingLink(prev => prev ? {
+                ...prev,
+                isLoading: false,
+                isNotFound: true,
+                errorMessage: "Tidak ditemukan kecocokan otomatis berdasarkan Nama Lengkap."
+            } : null);
+        }, 300);
     }
 
     function handleConfirmLink() {
@@ -305,6 +330,7 @@ export function LinkGenerusClient({
                     const row = additionalInfoData.find(r => (r._index as number) === pickerTargetRow);
                     return row ? String(row["Nama Lengkap"] || "").trim() : "";
                 })()}
+                isLoading={isPickerLoading}
             />
 
             <LinkConfirmationDialog
