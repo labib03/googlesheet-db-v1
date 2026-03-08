@@ -20,7 +20,6 @@ interface GenerusPickerDialogProps {
     generusList: SheetRow[];
     onSelect: (row: SheetRow) => void;
     initialSearch?: string;
-    isLoading?: boolean;
 }
 
 export function GenerusPickerDialog({
@@ -29,7 +28,6 @@ export function GenerusPickerDialog({
     generusList,
     onSelect,
     initialSearch = "",
-    isLoading = false,
 }: GenerusPickerDialogProps) {
     const [search, setSearch] = useState("");
     const [visibleCount, setVisibleCount] = useState(ITEMS_PER_PAGE);
@@ -101,19 +99,7 @@ export function GenerusPickerDialog({
 
                 <div className="flex-1 min-h-0 overflow-y-auto">
                     <div className="px-2 py-2 space-y-1">
-                        {isLoading ? (
-                            <div className="space-y-1 px-2">
-                                {[1, 2, 3, 4, 5, 6].map((i) => (
-                                    <div key={i} className="flex items-center gap-3 py-3 px-4 animate-pulse">
-                                        <div className="h-8 w-8 bg-slate-100 dark:bg-slate-800 rounded-lg shrink-0" />
-                                        <div className="flex-1 space-y-2">
-                                            <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded w-3/4" />
-                                            <div className="h-3 bg-slate-50 dark:bg-slate-900 rounded w-1/2" />
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        ) : filtered.length === 0 ? (
+                        {filtered.length === 0 ? (
                             <div className="text-center py-8">
                                 <p className="text-sm text-slate-400">Tidak ditemukan</p>
                             </div>

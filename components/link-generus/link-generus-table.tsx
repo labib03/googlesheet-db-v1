@@ -32,14 +32,18 @@ export function LinkGenerusTable({
 
     const onOpenPicker = (idx: number) => {
         setOpeningRow(idx);
-        handleOpenPicker(idx);
-        setOpeningRow(null);
+        setTimeout(() => {
+            handleOpenPicker(idx);
+            setOpeningRow(null);
+        }, 50);
     };
 
     const onAutoMatch = (idx: number) => {
         setAutoMatchRow(idx);
-        handleRowAutoMatch(idx);
-        setAutoMatchRow(null);
+        setTimeout(() => {
+            handleRowAutoMatch(idx);
+            setAutoMatchRow(null);
+        }, 50);
     };
 
     if (filteredData.length === 0) {
