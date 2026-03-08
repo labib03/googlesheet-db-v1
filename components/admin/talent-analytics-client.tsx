@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { SheetRow } from "@/lib/google-sheets";
 import { COLUMNS, CONFIG_KEYS } from "@/lib/constants";
 import { categorizeByKeywords } from "@/lib/helper";
-import { ShieldCheck, LayoutDashboard, Settings2, ArrowLeft, Sparkles, Plus, Check } from "lucide-react";
+import { ShieldCheck, LayoutDashboard, Settings2, Sparkles, Plus, Clipboard } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -250,7 +250,7 @@ export function TalentAnalyticsClient({
                                             Potential Keywords Found
                                         </h3>
                                         <p className="text-[10px] text-slate-500 font-medium">
-                                            Banyak data di kategori 'Lainnya' mengandung kata-kata di bawah ini.
+                                            Banyak data di kategori &apos;Lainnya&apos; mengandung kata-kata di bawah ini.
                                         </p>
                                     </div>
 
@@ -260,7 +260,7 @@ export function TalentAnalyticsClient({
                                         onClick={handleCopy}
                                         className="rounded-xl border-dashed border-slate-300 dark:border-slate-700 h-9 px-4 text-[10px] font-bold text-slate-500 hover:text-indigo-600 transition-all bg-white dark:bg-slate-900"
                                     >
-                                        <Plus className="w-3 h-3 mr-2 rotate-45" />
+                                        <Clipboard className="w-3 h-3 mr-2" />
                                         COPY DISCOVERY
                                     </Button>
                                 </div>
@@ -300,7 +300,28 @@ export function TalentAnalyticsClient({
                                                                 <Plus className="w-3 h-3 text-slate-400 group-hover:text-indigo-600 transition-colors" />
                                                             </button>
                                                         </PopoverTrigger>
-                                                        {/* ... PopoverContent ... */}
+                                                        <PopoverContent className="w-64 p-3 rounded-2xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 shadow-xl z-50">
+                                                            <div className="flex flex-col gap-2">
+                                                                <div className="mb-1 border-b border-slate-100 dark:border-slate-800 pb-2">
+                                                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300 leading-snug">
+                                                                        Tambahkan <span className="text-indigo-600 dark:text-indigo-400">{term}</span> ke:
+                                                                    </p>
+                                                                </div>
+                                                                <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
+                                                                    {(contentType === 'hobi' ? hobiCategories : skillCategories).map(cat => (
+                                                                        <button
+                                                                            key={cat}
+                                                                            onClick={() => handleQuickAdd(term, cat)}
+                                                                            className="px-2 py-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 transition-colors text-left truncate flex items-center justify-between group/btn border border-transparent hover:border-slate-200 dark:hover:border-slate-600"
+                                                                            title={cat}
+                                                                        >
+                                                                            <span className="truncate">{cat}</span>
+                                                                            <Plus className="w-3 h-3 text-slate-400 opacity-0 group-hover/btn:opacity-100 transition-opacity shrink-0" />
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </PopoverContent>
                                                     </Popover>
                                                 </motion.div>
                                             ))
