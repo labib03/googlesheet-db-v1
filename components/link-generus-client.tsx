@@ -29,7 +29,9 @@ import {
     ArrowRightCircle,
     Copy,
     AlertCircle,
-    MapPin
+    MapPin,
+    Calendar,
+    Phone
 } from "lucide-react";
 import { linkGenerusAction } from "@/app/actions";
 import { toast } from "sonner";
@@ -732,6 +734,49 @@ export function LinkGenerusClient({
                                                                 </p>
                                                             </div>
                                                         </div>
+                                                        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200/50 dark:border-slate-800/50">
+                                                            <div className="space-y-0.5">
+                                                                <p className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                                    <Calendar className="h-2.5 w-2.5" /> Tgl Lahir
+                                                                </p>
+                                                                {(() => {
+                                                                    const aiTgl = String(row["Tanggal Lahir"] || "").trim();
+                                                                    const masterTgl = String(pendingLink?.generusRow["TANGGAL LAHIR"] || "").trim();
+                                                                    const isMatch = aiTgl && masterTgl && aiTgl.toLowerCase() === masterTgl.toLowerCase();
+                                                                    return (
+                                                                        <p className={`text-xs font-semibold ${isMatch ? "text-emerald-600 dark:text-emerald-400" : aiTgl && masterTgl ? "text-amber-600 dark:text-amber-400" : "text-slate-700 dark:text-slate-300"}`}>
+                                                                            {aiTgl || "-"}
+                                                                            {aiTgl && masterTgl && (
+                                                                                <span className={`ml-1.5 inline-flex items-center text-[8px] font-bold px-1 py-0.5 rounded ${isMatch ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600"}`}>
+                                                                                    {isMatch ? "✓" : "≠"}
+                                                                                </span>
+                                                                            )}
+                                                                        </p>
+                                                                    );
+                                                                })()}
+                                                            </div>
+                                                            <div className="space-y-0.5">
+                                                                <p className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                                    <Phone className="h-2.5 w-2.5" /> No. Whatsapp
+                                                                </p>
+                                                                {(() => {
+                                                                    const aiWa = String(row["Nomor Whatsapp"] || "").trim();
+                                                                    const masterHp = String(pendingLink?.generusRow["NOMOR HP"] || "").trim();
+                                                                    const normalizePhone = (p: string) => p.replace(/[^0-9]/g, "");
+                                                                    const isMatch = aiWa && masterHp && normalizePhone(aiWa) === normalizePhone(masterHp);
+                                                                    return (
+                                                                        <p className={`text-xs font-semibold ${isMatch ? "text-emerald-600 dark:text-emerald-400" : aiWa && masterHp ? "text-amber-600 dark:text-amber-400" : "text-slate-700 dark:text-slate-300"}`}>
+                                                                            {aiWa || "-"}
+                                                                            {aiWa && masterHp && (
+                                                                                <span className={`ml-1.5 inline-flex items-center text-[8px] font-bold px-1 py-0.5 rounded ${isMatch ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600"}`}>
+                                                                                    {isMatch ? "✓" : "≠"}
+                                                                                </span>
+                                                                            )}
+                                                                        </p>
+                                                                    );
+                                                                })()}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 );
                                             })()}
@@ -774,6 +819,51 @@ export function LinkGenerusClient({
                                                         <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
                                                             {String(pendingLink.generusRow["JENIS KELAMIN"] || "-")}
                                                         </p>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-3 pt-1 border-t border-slate-200/50 dark:border-slate-800/50">
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                            <Calendar className="h-2.5 w-2.5" /> Tgl Lahir
+                                                        </p>
+                                                        {(() => {
+                                                            const aiRow = additionalInfoData.find(r => (r._index as number) === pendingLink?.additionalInfoIdx);
+                                                            const aiTgl = String(aiRow?.["Tanggal Lahir"] || "").trim();
+                                                            const masterTgl = String(pendingLink.generusRow["TANGGAL LAHIR"] || "").trim();
+                                                            const isMatch = aiTgl && masterTgl && aiTgl.toLowerCase() === masterTgl.toLowerCase();
+                                                            return (
+                                                                <p className={`text-xs font-semibold ${isMatch ? "text-emerald-600 dark:text-emerald-400" : aiTgl && masterTgl ? "text-amber-600 dark:text-amber-400" : "text-slate-700 dark:text-slate-300"}`}>
+                                                                    {masterTgl || "-"}
+                                                                    {aiTgl && masterTgl && (
+                                                                        <span className={`ml-1.5 inline-flex items-center text-[8px] font-bold px-1 py-0.5 rounded ${isMatch ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600"}`}>
+                                                                            {isMatch ? "✓" : "≠"}
+                                                                        </span>
+                                                                    )}
+                                                                </p>
+                                                            );
+                                                        })()}
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase flex items-center gap-1">
+                                                            <Phone className="h-2.5 w-2.5" /> No. HP
+                                                        </p>
+                                                        {(() => {
+                                                            const aiRow = additionalInfoData.find(r => (r._index as number) === pendingLink?.additionalInfoIdx);
+                                                            const aiWa = String(aiRow?.["Nomor Whatsapp"] || "").trim();
+                                                            const masterHp = String(pendingLink.generusRow["NOMOR HP"] || "").trim();
+                                                            const normalizePhone = (p: string) => p.replace(/[^0-9]/g, "");
+                                                            const isMatch = aiWa && masterHp && normalizePhone(aiWa) === normalizePhone(masterHp);
+                                                            return (
+                                                                <p className={`text-xs font-semibold ${isMatch ? "text-emerald-600 dark:text-emerald-400" : aiWa && masterHp ? "text-amber-600 dark:text-amber-400" : "text-slate-700 dark:text-slate-300"}`}>
+                                                                    {masterHp || "-"}
+                                                                    {aiWa && masterHp && (
+                                                                        <span className={`ml-1.5 inline-flex items-center text-[8px] font-bold px-1 py-0.5 rounded ${isMatch ? "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600"}`}>
+                                                                            {isMatch ? "✓" : "≠"}
+                                                                        </span>
+                                                                    )}
+                                                                </p>
+                                                            );
+                                                        })()}
                                                     </div>
                                                 </div>
                                             </div>
