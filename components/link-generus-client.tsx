@@ -118,8 +118,12 @@ export function LinkGenerusClient({
     }, [additionalInfoData, linkedRows, unlinkedGenerus, linkedGenerusIndices]);
 
     function handleOpenPicker(additionalInfoIndex: number) {
-        setPickerTargetRow(additionalInfoIndex);
-        setPickerOpen(true);
+        setIsLinkingInDialog(true);
+        startTransition(() => {
+            setPickerTargetRow(additionalInfoIndex);
+            setPickerOpen(true);
+            setIsLinkingInDialog(false);
+        });
     }
 
     function handlePickerSelect(generusRow: SheetRow) {
@@ -136,57 +140,23 @@ export function LinkGenerusClient({
     }
 
     function handleRowAutoMatch(idx: number) {
-        const aiRow = additionalInfoData.find(r => (r._index as number) === idx);
-        if (!aiRow) return;
+        setIsLinkingInDialog(true);
+        startTransition(() => {
+            const aiRow = additionalInfoData.find(r => (r._index as number) === idx);
+            if (!aiRow) {
+                setIsLinkingInDialog(false);
+                return;
+            }
 
-        const aiNameRaw = String(aiRow["Nama Lengkap"] || "").trim();
-        if (!aiNameRaw) {
-            toast.error("Nama Lengkap kosong, tidak bisa auto-match.");
-            return;
-        }
-
-        const aiName = aiNameRaw.toLowerCase();
-        const availableGenerus = unlinkedGenerus.filter(g => !linkedGenerusIndices.has(g._index as number));
-
-        const match = availableGenerus.find(g => {
-            const gName = String(g["NAMA LENGKAP"] || "").trim().toLowerCase();
-            return gName === aiName;
-        });
-
-        if (match) {
-            setPendingLink({
-                additionalInfoIdx: idx,
-                generusRow: match,
-                isAutoMatch: true,
-            });
-            setConfirmOpen(true);
-        } else {
-            toast.info(`Tidak ditemukan kecocokan untuk "${aiNameRaw}"`);
-        }
-    }
-
-    function handleAutoMatch() {
-        const unlinkedAI = additionalInfoData.filter(
-            (row) => !String(row["UserId"] || "").trim() && !linkedRows.has(row._index as number)
-        );
-
-        if (unlinkedAI.length === 0) {
-            toast.info("Tidak ada data AdditionalInfo yang perlu di-link.");
-            return;
-        }
-
-        const availableGenerus = unlinkedGenerus.filter(g => !linkedGenerusIndices.has(g._index as number));
-
-        if (availableGenerus.length === 0) {
-            toast.info("Tidak ada data Generus master yang tersedia.");
-            return;
-        }
-
-        for (const aiRow of unlinkedAI) {
             const aiNameRaw = String(aiRow["Nama Lengkap"] || "").trim();
-            if (!aiNameRaw) continue;
+            if (!aiNameRaw) {
+                toast.error("Nama Lengkap kosong, tidak bisa auto-match.");
+                setIsLinkingInDialog(false);
+                return;
+            }
 
             const aiName = aiNameRaw.toLowerCase();
+            const availableGenerus = unlinkedGenerus.filter(g => !linkedGenerusIndices.has(g._index as number));
 
             const match = availableGenerus.find(g => {
                 const gName = String(g["NAMA LENGKAP"] || "").trim().toLowerCase();
@@ -195,20 +165,69 @@ export function LinkGenerusClient({
 
             if (match) {
                 setPendingLink({
-                    additionalInfoIdx: aiRow._index as number,
+                    additionalInfoIdx: idx,
                     generusRow: match,
                     isAutoMatch: true,
                 });
                 setConfirmOpen(true);
+            } else {
+                toast.info(`Tidak ditemukan kecocokan untuk "${aiNameRaw}"`);
+            }
+            setIsLinkingInDialog(false);
+        });
+    }
+
+    function handleAutoMatch() {
+        setIsLinkingInDialog(true);
+        startTransition(() => {
+            const unlinkedAI = additionalInfoData.filter(
+                (row) => !String(row["UserId"] || "").trim() && !linkedRows.has(row._index as number)
+            );
+
+            if (unlinkedAI.length === 0) {
+                toast.info("Tidak ada data AdditionalInfo yang perlu di-link.");
+                setIsLinkingInDialog(false);
                 return;
             }
-        }
 
-        toast.info("Tidak ditemukan kecocokan otomatis berdasarkan Nama Lengkap.");
+            const availableGenerus = unlinkedGenerus.filter(g => !linkedGenerusIndices.has(g._index as number));
+
+            if (availableGenerus.length === 0) {
+                toast.info("Tidak ada data Generus master yang tersedia.");
+                setIsLinkingInDialog(false);
+                return;
+            }
+
+            for (const aiRow of unlinkedAI) {
+                const aiNameRaw = String(aiRow["Nama Lengkap"] || "").trim();
+                if (!aiNameRaw) continue;
+
+                const aiName = aiNameRaw.toLowerCase();
+
+                const match = availableGenerus.find(g => {
+                    const gName = String(g["NAMA LENGKAP"] || "").trim().toLowerCase();
+                    return gName === aiName;
+                });
+
+                if (match) {
+                    setPendingLink({
+                        additionalInfoIdx: aiRow._index as number,
+                        generusRow: match,
+                        isAutoMatch: true,
+                    });
+                    setConfirmOpen(true);
+                    setIsLinkingInDialog(false);
+                    return;
+                }
+            }
+
+            toast.info("Tidak ditemukan kecocokan otomatis berdasarkan Nama Lengkap.");
+            setIsLinkingInDialog(false);
+        });
     }
 
     function handleConfirmLink() {
-        if (!pendingLink || isLinkingInDialog) return;
+        if (!pendingLink) return;
 
         const { additionalInfoIdx, generusRow } = pendingLink;
         setIsLinkingInDialog(true);
@@ -234,7 +253,6 @@ export function LinkGenerusClient({
     }
 
     function handleCancelLink() {
-        if (isLinkingInDialog) return;
         setConfirmOpen(false);
         setPendingLink(null);
     }
