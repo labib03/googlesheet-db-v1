@@ -120,7 +120,7 @@ export default async function SummaryPage({ searchParams }: SummaryPageProps) {
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
         <SummaryLayout>
           <SummarySection>
-            <div className="flex mb-2 -ml-2 sm:-ml-4">
+            <div className="flex mb-2 sm:mb-4 -ml-3 sm:-ml-4">
               <BackButton href="/" label="Kembali ke Dashboard" className="hover:bg-transparent" />
             </div>
 

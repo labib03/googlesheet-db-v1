@@ -36,7 +36,7 @@ export function LinkGenerusHeader({
 }: LinkGenerusHeaderProps) {
     return (
         <div className="space-y-6">
-            <div className="flex items-center -ml-2 sm:-ml-4 animate-in fade-in slide-in-from-top-2 duration-500 delay-0">
+            <div className="flex items-center -ml-3 sm:-ml-4 animate-in fade-in slide-in-from-top-2 duration-500 delay-0">
                 <BackButton href="/admin-restricted" label="Kembali ke Admin Dashboard" className="hover:bg-transparent" />
             </div>
 

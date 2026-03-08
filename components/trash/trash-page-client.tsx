@@ -85,7 +85,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
       variants={staggerContainer}
       className="space-y-8 font-outfit px-1"
     >
-      <motion.div variants={itemVariants} className="flex -ml-2 sm:-ml-4 mb-2">
+      <motion.div variants={itemVariants} className="flex -ml-3 sm:-ml-4 mb-2 sm:mb-4">
         <BackButton href="/admin-restricted" label="Kembali ke Admin Dashboard" className="hover:bg-transparent" />
       </motion.div>
 
@@ -100,7 +100,7 @@ export function TrashPageClient({ initialTrashData, error }: TrashPageClientProp
               Recently Deleted
             </h1>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl pl-0">
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-xl pl-0 sm:pl-0 pr-4 sm:pr-0">
             Viewing items that have been soft-deleted from the main database. These records are stored in the &ldquo;Trash&rdquo; sheet as a safety archive.
           </p>
         </div>

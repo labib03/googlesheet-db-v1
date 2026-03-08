@@ -128,14 +128,14 @@ export function TalentAnalyticsClient({
 
     return (
         <div className="space-y-4 animate-in fade-in duration-500">
-            <div className="flex items-center -ml-2 sm:-ml-4">
+            <div className="flex items-center -ml-3 sm:-ml-4">
                 <BackButton href={mode === "config-only" ? "/admin-restricted" : "/"} label="Kembali ke Dashboard" className="hover:bg-transparent" />
             </div>
 
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="w-full flex flex-col lg:flex-row items-center justify-between gap-6 pb-2 border-b border-slate-200/60 dark:border-slate-800/60">
-                    <div className="space-y-2">
+                    <div className="space-y-2 w-full">
                         <div className="flex items-center gap-3 px-1">
                             <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
                                 {mode === "config-only" ? <Settings2 className="w-6 h-6" /> : <ShieldCheck className="w-6 h-6" />}
@@ -144,7 +144,7 @@ export function TalentAnalyticsClient({
                                 {mode === "config-only" ? "Talent Configuration" : "Talent Analytics"}
                             </h1>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
+                        <p className="text-sm text-slate-500 dark:text-slate-400 pl-1 sm:pl-0 pr-4 sm:pr-0">
                             Detail Analisis Terkait Hobi dan Skill Generus
                         </p>
                     </div>
@@ -179,10 +179,10 @@ export function TalentAnalyticsClient({
 
             {/* Discovery Section & Sub-Tabs */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-2 p-1.5 bg-slate-200/50 dark:bg-slate-900/50 rounded-2xl w-fit border border-slate-200/60 dark:border-slate-800/60">
+                <div className="flex items-center gap-2 p-1.5 bg-slate-200/50 dark:bg-slate-900/50 rounded-2xl w-full lg:w-fit border border-slate-200/60 dark:border-slate-800/60">
                     <button
                         onClick={() => setContentType("hobi")}
-                        className={`px-6 py-2 rounded-xl text-sm font-bold transition-all ${contentType === "hobi"
+                        className={`px-6 flex-auto py-2 rounded-xl text-sm font-bold transition-all ${contentType === "hobi"
                             ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-none"
                             : "text-slate-500 hover:bg-white/50 dark:hover:bg-white/5"
                             }`}
