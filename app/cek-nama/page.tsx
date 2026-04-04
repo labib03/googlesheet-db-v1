@@ -40,12 +40,14 @@ export default function CheckNamaPage() {
         const q = search.trim().toLowerCase();
         if (q.length < 3) return [];
 
-        console.log("cek isi data", data);
-
-        return data.filter(row => {
+        const result = data.filter(row => {
             const nama = String(row[COLUMNS.NAMA] || "").toLowerCase();
             return nama.includes(q);
         });
+
+        console.log("cek isi data", result);
+
+        return result;
     }, [data, search]);
 
     const hasTypedEnough = search.trim().length >= 3;
