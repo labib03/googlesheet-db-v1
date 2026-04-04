@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Menu, X, Home, BarChart3, Sparkles, ShieldCheck } from 'lucide-react';
+import { Menu, X, Home, BarChart3, Sparkles, ShieldCheck, UserCheck } from 'lucide-react';
 import Link from 'next/link';
 
 export function Navbar() {
@@ -41,7 +41,7 @@ export function Navbar() {
             {/* Desktop Menu */}
             <div className="hidden md:block">
               <div className="flex items-center space-x-1">
-                <Link
+                 <Link
                   href="/"
                   className="px-4 py-2 text-sm font-medium transition-colors hover:text-indigo-600 dark:hover:text-indigo-400"
                 >
@@ -58,6 +58,12 @@ export function Navbar() {
                   className="px-4 py-2 text-sm font-medium transition-colors hover:text-indigo-600 dark:hover:text-indigo-400"
                 >
                   Talent
+                </Link>
+                <Link
+                  href="/cek-nama"
+                  className="px-4 py-2 text-sm font-medium transition-colors hover:text-indigo-600 dark:hover:text-indigo-400"
+                >
+                  Cek Nama
                 </Link>
                 <Link
                   href="/admin-restricted"
@@ -122,6 +128,14 @@ export function Navbar() {
             >
               <Sparkles className="h-4 w-4 text-emerald-500" />
               Talent Analytics
+            </Link>
+            <Link
+              href="/cek-nama"
+              onClick={toggleMenu}
+              className="flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-200 font-medium transition-colors"
+            >
+              <UserCheck className="h-4 w-4 text-indigo-500" />
+              Cek Nama
             </Link>
             <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
               <span className="px-4 text-[10px] font-bold uppercase tracking-wider text-slate-400">Admin Area</span>
