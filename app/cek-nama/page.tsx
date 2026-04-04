@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, UserCheck, UserX, User, MapPin, Building2, Loader2 } from "lucide-react";
-import { Navbar } from "@/components/navbar";
 import { COLUMNS } from "@/lib/constants";
 
 export default function CheckNamaPage() {
@@ -45,8 +44,6 @@ export default function CheckNamaPage() {
             return nama.includes(q);
         });
 
-        console.log("cek isi data", result);
-
         return result;
     }, [data, search]);
 
@@ -54,8 +51,6 @@ export default function CheckNamaPage() {
 
     return (
         <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 font-sans selection:bg-indigo-100 selection:text-indigo-900">
-            <Navbar />
-
             <main className="max-w-4xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
                 <div className="text-center mb-10 space-y-4">
                     <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
