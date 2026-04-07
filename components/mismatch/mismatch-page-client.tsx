@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { DashboardFilters } from "../dashboard/dashboard-filters";
+import { DashboardSearch } from "../dashboard/dashboard-search";
 import { DashboardPagination } from "../dashboard/dashboard-pagination";
 import { ListSkeleton } from "../skeletons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -135,6 +136,18 @@ export function MismatchPageClient({ initialData, error }: MismatchPageClientPro
           filteredCount={data.filteredData.length}
           actions={{
             ...actions,
+            setCurrentPage: pagination.setCurrentPage,
+          }}
+        />
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <DashboardSearch
+          filterNama={filters.filterNama}
+          setFilterNama={filters.setFilterNama}
+          showDuplicates={filters.showDuplicates}
+          actions={{
+            handleStartTransition: actions.handleStartTransition,
             setCurrentPage: pagination.setCurrentPage,
           }}
         />

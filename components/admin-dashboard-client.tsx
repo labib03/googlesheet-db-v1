@@ -5,6 +5,7 @@ import { AddDataDialog } from "@/components/add-data-dialog";
 import { SheetRow } from "@/lib/google-sheets";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { DashboardFilters } from "./dashboard/dashboard-filters";
+import { DashboardSearch } from "./dashboard/dashboard-search";
 import { DashboardTable } from "./dashboard/dashboard-table";
 import { DashboardCards } from "./dashboard/dashboard-cards";
 import { DashboardPagination } from "./dashboard/dashboard-pagination";
@@ -252,6 +253,18 @@ export function AdminDashboardClient({
           filteredCount={data.filteredData.length}
           actions={{
             ...actions,
+            setCurrentPage: pagination.setCurrentPage,
+          }}
+        />
+      </motion.div>
+
+      <motion.div variants={itemVariants}>
+        <DashboardSearch
+          filterNama={filters.filterNama}
+          setFilterNama={filters.setFilterNama}
+          showDuplicates={filters.showDuplicates}
+          actions={{
+            handleStartTransition: actions.handleStartTransition,
             setCurrentPage: pagination.setCurrentPage,
           }}
         />

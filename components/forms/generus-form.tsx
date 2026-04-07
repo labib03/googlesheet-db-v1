@@ -51,7 +51,7 @@ export function GenerusForm({
     return () => clearTimeout(timer);
   }, [checkScroll, headers]);
 
-  const ignoredKeys = ["_index", "timestamp", "umur", "jenjang kelas"];
+  const ignoredKeys = ["_index", "timestamp", "umur", "jenjang kelas", "id generus"];
 
   const renderInput = (header: string, isRequired: boolean) => {
     const selectBaseClass = "flex h-11 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 px-3 py-2 text-sm ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:border-indigo-500 disabled:cursor-not-allowed disabled:opacity-50 appearance-none";
