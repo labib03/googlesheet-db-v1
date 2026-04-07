@@ -3,7 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { RefreshButton } from "@/components/refresh-button";
-import { Eraser, X, Copy, Info } from "lucide-react";
+import { Eraser, X, Copy, Info, Search } from "lucide-react";
 import { Gender, kelas } from "@/lib/constants";
 import { MultiSelectCustom } from "./components/multi-select-custom";
 import {
@@ -98,9 +98,9 @@ export const DashboardFilters = memo(function DashboardFilters({
   return (
     <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
       <div className="flex items-center gap-3">
-        <div className="h-5 w-1 bg-indigo-600 rounded-full" />
+        <div className="h-5 w-1 bg-slate-400 dark:bg-slate-600 rounded-full" />
         <h2 className="text-sm font-extrabold text-slate-800 dark:text-slate-100 uppercase tracking-tight">
-          Filter Data
+          Penyaringan Spesifik
         </h2>
       </div>
 
@@ -320,46 +320,6 @@ export const DashboardFilters = memo(function DashboardFilters({
             </div>
           )}
 
-          {/* Nama */}
-          <div className="space-y-1.5 flex flex-col">
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider px-1 inline-flex items-center gap-1">
-              Cari Nama
-              {showDuplicates && <Info className="w-3 h-3 text-indigo-400" />}
-            </label>
-            <Tooltip delayDuration={300}>
-              <TooltipTrigger asChild>
-                <div className="relative w-full">
-                  <input
-                    type="text"
-                    disabled={showDuplicates}
-                    placeholder="Ex: Fulan..."
-                    className={`w-full h-11 border rounded-xl text-sm px-3 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed ${filterNama
-                      ? "bg-indigo-50/30 dark:bg-indigo-950/20 border-indigo-200/60 dark:border-indigo-800/60 text-indigo-700 dark:text-indigo-300 font-semibold shadow-sm shadow-indigo-100/10"
-                      : "bg-white dark:bg-slate-900/50 border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-400 dark:hover:border-slate-600"
-                      }`}
-                    value={filterNama}
-                    onChange={(e) => {
-                      setFilterNama(e.target.value);
-                      actions.setCurrentPage(1);
-                    }}
-                  />
-                  {filterNama && !showDuplicates && (
-                    <button
-                      onClick={() => setFilterNama("")}
-                      className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              </TooltipTrigger>
-              {showDuplicates && (
-                <TooltipContent side="bottom" className="max-w-[200px] text-xs">
-                  Field bisa diklik ketika tombol show duplicate tidak aktif
-                </TooltipContent>
-              )}
-            </Tooltip>
-          </div>
         </div>
 
         {/* Action Sections */}

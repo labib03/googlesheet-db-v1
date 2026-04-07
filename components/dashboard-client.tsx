@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
 import { DashboardFilters } from "./dashboard/dashboard-filters";
+import { DashboardSearch } from "./dashboard/dashboard-search";
 import { DashboardTable } from "./dashboard/dashboard-table";
 import { DashboardCards } from "./dashboard/dashboard-cards";
 import { DashboardPagination } from "./dashboard/dashboard-pagination";
@@ -151,6 +152,18 @@ export function DashboardClient({
       </motion.div>
 
       <div ref={dataTopRef} className="scroll-mt-16" />
+
+      <motion.div variants={itemVariants}>
+        <DashboardSearch
+          filterNama={filters.filterNama}
+          setFilterNama={filters.setFilterNama}
+          showDuplicates={filters.showDuplicates}
+          actions={{
+            handleStartTransition: actions.handleStartTransition,
+            setCurrentPage: pagination.setCurrentPage,
+          }}
+        />
+      </motion.div>
 
       <motion.div variants={itemVariants}>
         <Card className="border-none shadow-none bg-transparent">

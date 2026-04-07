@@ -68,10 +68,24 @@ export function useDashboardData({
   const desaOptions = useMemo(() => Object.keys(desaData).sort(), []);
 
   const kelompokOptions = useMemo(() => {
-    return Object.values(desaData)
-      .flat()
-      .sort((a, b) => a.localeCompare(b, "id", { sensitivity: "base" }));
-  }, []);
+    let rawKelompok: string[] = [];
+
+    if (filterDesa.length > 0) {
+      filterDesa.forEach((desa) => {
+        // Cari kunci yang cocok tanpa memedulikan huruf besar/kecil
+        const key = Object.keys(desaData).find(
+          (k) => k.toLowerCase() === desa.toLowerCase()
+        );
+        if (key) {
+          rawKelompok.push(...desaData[key]);
+        }
+      });
+    } else {
+      rawKelompok = Object.values(desaData).flat();
+    }
+
+    return rawKelompok.sort((a, b) => a.localeCompare(b, "id", { sensitivity: "base" }));
+  }, [filterDesa]);
 
   // Filter Data
   const filteredData = useMemo(() => {
