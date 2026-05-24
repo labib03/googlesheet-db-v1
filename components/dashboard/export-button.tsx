@@ -137,7 +137,7 @@ export function ExportButton({
             className="gap-2 rounded-xl h-10 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shadow-sm"
           >
             <Download className="w-4 h-4 text-emerald-500" />
-            Export
+            Download Data
             <ChevronDown className="w-3.5 h-3.5 text-slate-400 ml-0.5" />
           </Button>
         </PopoverTrigger>

@@ -69,6 +69,17 @@ function getDesaColor(desaName: string): string | undefined {
 }
 
 /**
+ * Formats filter value by prepending the prefix if it's not already present.
+ */
+function formatFilterValue(value: string, prefix: string): string {
+  const trimmed = value.trim();
+  if (trimmed.toLowerCase().startsWith(prefix.toLowerCase())) {
+    return trimmed;
+  }
+  return `${prefix} ${trimmed}`;
+}
+
+/**
  * Builds dynamic filename based on active filters.
  * Only appends filter label if exactly 1 item is selected.
  */
@@ -76,13 +87,13 @@ export function buildFilename(activeFilters: ActiveFilters): string {
   const parts: string[] = ["Data Generus"];
 
   if (activeFilters.desa.length === 1) {
-    parts.push(activeFilters.desa[0]);
+    parts.push(formatFilterValue(activeFilters.desa[0], "Desa"));
   }
   if (activeFilters.kelompok.length === 1) {
-    parts.push(activeFilters.kelompok[0]);
+    parts.push(formatFilterValue(activeFilters.kelompok[0], "Kelompok"));
   }
   if (activeFilters.jenjang.length === 1) {
-    parts.push(activeFilters.jenjang[0]);
+    parts.push(formatFilterValue(activeFilters.jenjang[0], "Kelas"));
   }
 
   const now = new Date();
@@ -257,6 +268,7 @@ export async function generateExcelFile(
   const { mode, data, headers, aiColumns, activeFilters, includeNo = false } = config;
 
   const exceljs = await import("exceljs");
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const WorkbookClass = exceljs.Workbook || (exceljs as any).default?.Workbook;
   if (!WorkbookClass) {
     throw new Error("Failed to load ExcelJS Workbook class");
