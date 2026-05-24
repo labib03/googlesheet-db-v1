@@ -6,6 +6,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { DashboardProvider } from "@/context/dashboard-context";
 import { InitialTransition } from "@/components/providers/initial-transition";
 import { ViewConfigProvider } from "@/context/view-config-context";
+import { BackToTop } from "@/components/back-to-top";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -45,6 +46,7 @@ export default function RootLayout({
           </DashboardProvider>
         </NuqsAdapter>
         <Toaster />
+        <BackToTop />
       </body>
     </html>
   );

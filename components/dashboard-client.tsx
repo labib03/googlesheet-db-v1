@@ -13,7 +13,7 @@ import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useDashboard } from "@/context/dashboard-context";
 import Link from "next/link";
-import { ArrowUp, BarChart3, Download } from "lucide-react";
+import { BarChart3, Download } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { DashboardExportButton } from "./dashboard/dashboard-export-button";
 
@@ -51,16 +51,7 @@ export function DashboardClient({
   const { filters, pagination, status, data, options, actions } =
     useDashboardData({ initialData });
 
-  const [showBackToTop, setShowBackToTop] = useState(false);
   const dataTopRef = useRef<HTMLDivElement | null>(null);
-  // Handle Scroll to Top Button Visibility
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY >= window.innerHeight * 2);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Restore scroll position on mount
   useEffect(() => {
@@ -268,26 +259,7 @@ export function DashboardClient({
         </Card>
       </motion.div>
 
-      {/* Back to Top */}
-      <AnimatePresence>
-        {showBackToTop && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Button
-              onClick={scrollToTop}
-              size="icon"
-              className="fixed bottom-8 right-8 h-12 w-12 rounded-full shadow-2xl bg-indigo-600 hover:bg-indigo-700 text-white z-50"
-              aria-label="Kembali ke atas"
-            >
-              <ArrowUp className="h-5 w-5" />
-            </Button>
-          </motion.div>
-        )}
-      </AnimatePresence>
+
     </motion.div>
   );
 }
