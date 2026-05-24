@@ -960,13 +960,51 @@ export function GenerusForm({
                             <Label htmlFor="pendidikan" className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                               Pendidikan Terakhir <span className="text-slate-400 text-[10px] lowercase normal-case font-normal">(opsional)</span>
                             </Label>
-                            <Input
-                              id="pendidikan"
-                              placeholder="D3/D4/S1/S2/dsb..."
-                              className={`h-12 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 focus-visible:ring-2 ${focusRing}`}
-                              value={pendidikan}
-                              onChange={(e) => setPendidikan(e.target.value)}
-                            />
+                            <div className="space-y-3">
+                              <select
+                                id="pendidikan"
+                                className={`flex h-12 w-full rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 ${focusRing}`}
+                                value={
+                                  !pendidikan || ["D-III", "D-IV", "S-I", "S-II", "S-III"].includes(pendidikan)
+                                    ? pendidikan
+                                    : "Lainnya"
+                                }
+                                onChange={(e) => {
+                                  const val = e.target.value;
+                                  setPendidikan(val);
+                                }}
+                              >
+                                <option value="">Pilih Pendidikan Terakhir</option>
+                                <option value="D-III">D-III</option>
+                                <option value="D-IV">D-IV</option>
+                                <option value="S-I">S-I</option>
+                                <option value="S-II">S-II</option>
+                                <option value="S-III">S-III</option>
+                                <option value="Lainnya">Lainnya</option>
+                              </select>
+
+                              {/* Input text for "Lainnya" or custom existing values */}
+                              <AnimatePresence mode="wait">
+                                {(pendidikan === "Lainnya" || (pendidikan && !["D-III", "D-IV", "S-I", "S-II", "S-III"].includes(pendidikan))) && (
+                                  <motion.div
+                                    key="custom-pendidikan"
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height: "auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    transition={{ duration: 0.2, ease: "easeInOut" }}
+                                    className="overflow-hidden space-y-1.5"
+                                  >
+                                    <Input
+                                      type="text"
+                                      placeholder="Tuliskan pendidikan terakhir lainnya..."
+                                      className={`h-12 rounded-xl border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/50 focus-visible:ring-2 ${focusRing}`}
+                                      value={pendidikan === "Lainnya" ? "" : pendidikan}
+                                      onChange={(e) => setPendidikan(e.target.value)}
+                                    />
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
                           </div>
 
                           <div className="space-y-1.5">
@@ -1027,7 +1065,7 @@ export function GenerusForm({
                         <option value="Kuliah">Kuliah</option>
                         <option value="Bekerja">Bekerja</option>
                         <option value="Mencari Kerja">Mencari Kerja</option>
-                        <option value="MT / Khidmat">MT / Khidmat</option>
+                        <option value="MT">MT</option>
                         <option value="Usaha/Wirausaha">Usaha/Wirausaha</option>
                         <option value="Lainnya">Lainnya</option>
                       </select>
