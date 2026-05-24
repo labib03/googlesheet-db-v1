@@ -17,6 +17,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExportButton } from "./dashboard/export-button";
 import { COLUMNS, ADDITIONAL_INFO_COLUMNS } from "@/lib/constants";
+import { ActiveFilters } from "@/lib/excel-generator";
 import { BulkDeleteDialog } from "./bulk-delete-dialog";
 import { isMappingCorrect } from "@/lib/helper";
 
@@ -231,6 +232,11 @@ export function AdminDashboardClient({
               headers={[...headers, COLUMNS.UMUR]}
               aiColumns={[...ADDITIONAL_INFO_COLUMNS]}
               includeNo={false}
+              activeFilters={{
+                desa: filters.filterDesa,
+                kelompok: filters.filterKelompok,
+                jenjang: filters.filterJenjangKelas,
+              } as ActiveFilters}
             />
           </div>
 

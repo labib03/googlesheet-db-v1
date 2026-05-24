@@ -4,6 +4,8 @@ import { useViewConfig } from "@/context/view-config-context";
 import { ExportButton } from "./export-button";
 import { SheetRow } from "@/lib/google-sheets";
 import { COLUMNS } from "@/lib/constants";
+import { useDashboard } from "@/context/dashboard-context";
+import { ActiveFilters } from "@/lib/excel-generator";
 
 interface DashboardExportButtonProps {
   data: SheetRow[];
@@ -12,6 +14,7 @@ interface DashboardExportButtonProps {
 
 export function DashboardExportButton({ data, headers }: DashboardExportButtonProps) {
   const { config, isCustomized } = useViewConfig();
+  const { filterDesa, filterKelompok, filterJenjangKelas } = useDashboard();
 
   const hasCustomTableCols = isCustomized("tableColumns");
 
@@ -27,6 +30,13 @@ export function DashboardExportButton({ data, headers }: DashboardExportButtonPr
       .map(col => col.replace("_ai_", ""))
     : [];
 
+  // Active filters for dynamic filename
+  const activeFilters: ActiveFilters = {
+    desa: filterDesa,
+    kelompok: filterKelompok,
+    jenjang: filterJenjangKelas,
+  };
+
   return (
     <ExportButton
       data={data}
@@ -34,7 +44,7 @@ export function DashboardExportButton({ data, headers }: DashboardExportButtonPr
       aiColumns={exportAiColumns}
       filename={`export-generus`}
       includeNo={false}
+      activeFilters={activeFilters}
     />
   );
 }
-
