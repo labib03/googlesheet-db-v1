@@ -2,10 +2,11 @@
 
 import { useDashboard } from "@/context/dashboard-context";
 import { GenerusForm } from "@/components/forms/generus-form";
-import { updateData } from "@/app/actions";
+import { updateData, checkAdditionalInfoByName } from "@/app/actions";
+import { LinkMatchingModal } from "@/components/dashboard/link-matching-modal";
 import { toast } from "sonner";
 import { useParams } from "next/navigation";
-import { useTransition, useMemo } from "react";
+import { useTransition, useMemo, useState, useEffect } from "react";
 import { parseISO, format } from "date-fns";
 import { motion } from "framer-motion";
 import { PageTransitionWrapper } from "@/components/page-transition-wrapper";
@@ -17,24 +18,60 @@ export default function EditGenerusPage() {
   const index = Number(params.index);
 
   const row = useMemo(() => {
-    const targetData = data.find(r => Number(r._index) === index)
-
-    return targetData ;
+    return data.find(r => Number(r._index) === index);
   }, [data, index]);
 
-  const handleSubmit = (formData: FormData, onClose: () => void) => {
-    startTransition(async () => {
-      const keys = Array.from(formData.keys());
-      const tanggalLahirKey = keys.find(k => k.toLowerCase() === "tanggal lahir") || "TANGGAL LAHIR";
-      const rawDate = formData.get(tanggalLahirKey) as string;
+  const [matchedInfo, setMatchedInfo] = useState<any>(null);
+  const [linkIndex, setLinkIndex] = useState<number | null>(null);
+  const [showLinkModal, setShowLinkModal] = useState(false);
+  const [linkedInitialData, setLinkedInitialData] = useState<any>(null);
 
-      if (rawDate) {
-        try {
-          const parsed = parseISO(rawDate);
-          formData.set(tanggalLahirKey, format(parsed, "dd/MM/yyyy"));
-        } catch {}
+  useEffect(() => {
+    if (row) {
+      setLinkedInitialData(row);
+      // If it has no linked AdditionalInfo row yet, check by name
+      if (row._hasAdditionalInfo !== "true") {
+        checkAdditionalInfoByName(String(row["NAMA LENGKAP"]))
+          .then((res) => {
+            if (res.success && res.found && res.data) {
+              setMatchedInfo(res.data);
+              setLinkIndex(res.rowIndex ?? null);
+              setShowLinkModal(true);
+            }
+          })
+          .catch(console.error);
       }
+    }
+  }, [row]);
 
+  const handleConfirmLink = () => {
+    if (!matchedInfo || !row) return;
+
+    // Inject matched fields as _ai_[Field Name] into initial data
+    const updatedInitialData = { ...row };
+    for (const [key, value] of Object.entries(matchedInfo)) {
+      if (key !== "Timestamp" && key !== "UserId" && key !== "_index") {
+        updatedInitialData[`_ai_${key}`] = value as any;
+      }
+    }
+    updatedInitialData["_hasAdditionalInfo"] = "true";
+
+    setLinkedInitialData(updatedInitialData);
+    setShowLinkModal(false);
+    toast.success("Data tambahan berhasil ditautkan ke form!");
+  };
+
+  const handleDeclineLink = () => {
+    setShowLinkModal(false);
+    setLinkIndex(null);
+  };
+
+  const handleSubmit = (formData: FormData, onClose: () => void) => {
+    if (linkIndex !== null) {
+      formData.append("linkAdditionalInfoRowIndex", linkIndex.toString());
+    }
+
+    startTransition(async () => {
       const result = await updateData(index + 2, null, formData);
       if (result.success) {
         toast.success(result.message);
@@ -46,7 +83,7 @@ export default function EditGenerusPage() {
     });
   };
 
-  if (isLoading || !row || !headers || headers.length === 0) {
+  if (isLoading || !row || !headers || headers.length === 0 || !linkedInitialData) {
     return (
       <div className="flex items-center justify-center h-screen bg-white dark:bg-slate-950">
         <motion.div 
@@ -60,17 +97,29 @@ export default function EditGenerusPage() {
   }
 
   return (
-    <PageTransitionWrapper>
-      {(onClose) => (
-        <GenerusForm 
-          title="Edit Data"
-          headers={headers}
-          initialData={row}
-          isPending={isPending}
-          onSubmit={(fd) => handleSubmit(fd, onClose)}
-          onCancel={onClose}
-        />
-      )}
-    </PageTransitionWrapper>
+    <>
+      <PageTransitionWrapper>
+        {(onClose) => (
+          <GenerusForm 
+            title="Edit Data"
+            mode="edit"
+            initialData={linkedInitialData}
+            isPending={isPending}
+            onSubmit={(fd) => handleSubmit(fd, onClose)}
+            onCancel={onClose}
+            linkAdditionalInfoRowIndex={linkIndex}
+          />
+        )}
+      </PageTransitionWrapper>
+
+      <LinkMatchingModal
+        open={showLinkModal}
+        onOpenChange={setShowLinkModal}
+        nama={String(row["NAMA LENGKAP"])}
+        matchedData={matchedInfo}
+        onConfirmLink={handleConfirmLink}
+        onDeclineLink={handleDeclineLink}
+      />
+    </>
   );
 }

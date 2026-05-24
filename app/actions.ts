@@ -32,19 +32,115 @@ export type ActionState = {
   message: string;
 } | null;
 
+function capitalizeWords(str: string): string {
+  return str.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+const UI_TO_ADDITIONAL_INFO_MAP: Record<string, string> = {
+  namaPanggilan: "Nama Panggilan",
+  asalSekolah: "Asal Sekolah",
+  kelas: "Kelas",
+  jurusan: "Jurusan",
+  kesibukanSaatIni: "Kesibukan Saat ini",
+  mencariPekerjaan: "Jika belum bekerja, apakah anda sedang mencari pekerjaan?",
+  keahlianImpianPekerjaan: "Jika sedang mencari kerja, pekerjaan apa yang ingin anda inginkan? atau kamu bisa jelaskan keahlian kamu?",
+  asalUniversitas: "Asal Universitas",
+  tahunMasukUniversitas: "Tahun Masuk Universitas",
+  pendidikan: "Pendidikan",
+  fakultasJurusanKuliah: "Fakultas/Jurusan",
+  kuliahSambilBekerja: "Apakah kamu kuliah sambil bekerja/usaha/MT",
+  tempatBekerja: "Tempat Bekerja/Usaha/MT",
+  posisiBekerja: "Sebagai apa anda Bekerja/Usaha/MT",
+  kesiapanMenikah: "Dari 1 - 10, seberapa siapkah kamu untuk menikah",
+};
+
+export async function checkAdditionalInfoByName(name: string) {
+  try {
+    const rawData = await getSheetData(ADDITIONAL_INFO_SHEET_NAME);
+    const trimmedName = name.trim().toLowerCase();
+    
+    // Find unlinked row where Nama Lengkap matches exactly
+    const matchedIndex = rawData.findIndex((row) => {
+      const rowName = String(row["Nama Lengkap"] || "").trim().toLowerCase();
+      const rowUserId = String(row["UserId"] || "").trim();
+      return rowName === trimmedName && !rowUserId;
+    });
+
+    if (matchedIndex >= 0) {
+      const matchedRow = rawData[matchedIndex];
+      return { 
+        success: true, 
+        found: true, 
+        data: matchedRow, 
+        rowIndex: matchedIndex // index in data array (0-based)
+      };
+    }
+
+    return { success: true, found: false };
+  } catch (error) {
+    console.error("Failed to check additional info by name:", error);
+    return { success: false, found: false, message: "Gagal memeriksa pencocokan nama" };
+  }
+}
+
 export async function addData(prevState: ActionState, formData: FormData) {
   try {
     const rawData: SheetRow = {};
+    const additionalInfoData: SheetRow = {};
 
-    // Convert FormData to SheetRow object
-    // Exclude special fields if any
+    // Generate strict new guid relationship
+    const idGenerus = crypto.randomUUID();
+
+    // Map fields
     for (const [key, value] of formData.entries()) {
-      if (!key.startsWith("$")) {
+      if (key.startsWith("$") || key === "linkAdditionalInfoRowIndex") continue;
+
+      const mappedKey = UI_TO_ADDITIONAL_INFO_MAP[key];
+      if (mappedKey) {
+        additionalInfoData[mappedKey] = value.toString();
+      } else {
         rawData[key] = value.toString();
       }
     }
 
-    // Auto-add Timestamp with current date and time (WIB - Jakarta)
+    // Capitalize NAMA LENGKAP
+    if (rawData["NAMA LENGKAP"]) {
+      rawData["NAMA LENGKAP"] = capitalizeWords(rawData["NAMA LENGKAP"].toString());
+    }
+
+    // Check for duplicate data (Name, Desa, Kelompok)
+    const newName = String(rawData["NAMA LENGKAP"] || "").trim().toLowerCase();
+    const newDesa = String(rawData["DESA"] || "").trim().toLowerCase();
+    const newKelompok = String(rawData["KELOMPOK"] || "").trim().toLowerCase();
+
+    if (newName && newDesa && newKelompok) {
+      const existingData = await getSheetData();
+      const isDuplicate = existingData.some((row) => {
+        const rowName = String(row["NAMA LENGKAP"] || "").trim().toLowerCase();
+        const rowDesa = String(row["DESA"] || "").trim().toLowerCase();
+        const rowKelompok = String(row["KELOMPOK"] || "").trim().toLowerCase();
+        return rowName === newName && rowDesa === newDesa && rowKelompok === newKelompok;
+      });
+
+      if (isDuplicate) {
+        return {
+          success: false,
+          message: `Data Generus dengan nama "${rawData["NAMA LENGKAP"]}" di Desa "${rawData["DESA"]}" Kelompok "${rawData["KELOMPOK"]}" sudah terdaftar.`,
+        };
+      }
+    }
+
+    // Format DOB dd/MM/yyyy
+    let dobVal = String(rawData["TANGGAL LAHIR"] || "").trim();
+    if (dobVal && dobVal.includes("-")) {
+      const parts = dobVal.split("-");
+      if (parts.length === 3) {
+        dobVal = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        rawData["TANGGAL LAHIR"] = dobVal;
+      }
+    }
+
+    // Generate WIB Timestamp
     const timestamp = new Intl.DateTimeFormat("en-GB", {
       timeZone: "Asia/Jakarta",
       day: "2-digit",
@@ -59,8 +155,37 @@ export async function addData(prevState: ActionState, formData: FormData) {
       .replace(",", "");
 
     rawData["Timestamp"] = timestamp;
+    rawData["ID GENERUS"] = idGenerus;
 
+    // Save main data
     await appendSheetData(rawData);
+
+    // Save/link AdditionalInfo
+    additionalInfoData["UserId"] = idGenerus;
+    additionalInfoData["Nama Lengkap"] = rawData["NAMA LENGKAP"] || "";
+    additionalInfoData["Jenis Kelamin"] = rawData["JENIS KELAMIN"] || "";
+    additionalInfoData["Kelompok"] = rawData["KELOMPOK"] || "";
+    additionalInfoData["Tanggal Lahir"] = dobVal;
+    additionalInfoData["Nomor Whatsapp"] = rawData["NOMOR HP"] || "";
+    additionalInfoData["Timestamp"] = timestamp;
+
+    if (dobVal) {
+      additionalInfoData["Usia"] = calculateAge(dobVal);
+    } else {
+      additionalInfoData["Usia"] = "";
+    }
+
+    // Check if the user opted to link an existing unlinked AdditionalInfo record by name
+    const linkIndexStr = formData.get("linkAdditionalInfoRowIndex") as string;
+    if (linkIndexStr) {
+      const linkIndex = Number(linkIndexStr);
+      // Overwrite the existing row (linkIndex + 2) in AdditionalInfo
+      await updateSheetData(linkIndex + 2, additionalInfoData, ADDITIONAL_INFO_SHEET_NAME);
+    } else {
+      // Append a brand new row in AdditionalInfo
+      await appendSheetData(additionalInfoData, ADDITIONAL_INFO_SHEET_NAME);
+    }
+
     revalidateTag("google-sheets", "default");
     revalidatePath("/");
     revalidatePath("/admin-restricted");
@@ -83,14 +208,68 @@ export async function updateData(
 ) {
   try {
     const rawData: SheetRow = {};
+    const additionalInfoData: SheetRow = {};
 
+    // Get existing data to fetch/maintain ID GENERUS
+    const existingRow = await getRowData(rowIndex);
+    let idGenerus = String(existingRow["ID GENERUS"] || "").trim();
+    if (!idGenerus) {
+      idGenerus = crypto.randomUUID();
+    }
+
+    // Map fields
     for (const [key, value] of formData.entries()) {
-      if (!key.startsWith("$")) {
+      if (key.startsWith("$") || key === "linkAdditionalInfoRowIndex") continue;
+
+      const mappedKey = UI_TO_ADDITIONAL_INFO_MAP[key];
+      if (mappedKey) {
+        additionalInfoData[mappedKey] = value.toString();
+      } else {
         rawData[key] = value.toString();
       }
     }
 
-    // Auto-update Timestamp with current date and time (WIB - Jakarta)
+    // Capitalize NAMA LENGKAP
+    if (rawData["NAMA LENGKAP"]) {
+      rawData["NAMA LENGKAP"] = capitalizeWords(rawData["NAMA LENGKAP"].toString());
+    }
+
+    // Check for duplicate data (Name, Desa, Kelompok)
+    const newName = String(rawData["NAMA LENGKAP"] || "").trim().toLowerCase();
+    const newDesa = String(rawData["DESA"] || "").trim().toLowerCase();
+    const newKelompok = String(rawData["KELOMPOK"] || "").trim().toLowerCase();
+
+    if (newName && newDesa && newKelompok) {
+      const existingData = await getSheetData();
+      const isDuplicate = existingData.some((row, idx) => {
+        const currentRowIndex = idx + 2; // 1-based sheet row index
+        if (currentRowIndex === rowIndex) return false;
+
+        const rowName = String(row["NAMA LENGKAP"] || "").trim().toLowerCase();
+        const rowDesa = String(row["DESA"] || "").trim().toLowerCase();
+        const rowKelompok = String(row["KELOMPOK"] || "").trim().toLowerCase();
+        return rowName === newName && rowDesa === newDesa && rowKelompok === newKelompok;
+      });
+
+      if (isDuplicate) {
+        return {
+          success: false,
+          message: `Data Generus dengan nama "${rawData["NAMA LENGKAP"]}" di Desa "${rawData["DESA"]}" Kelompok "${rawData["KELOMPOK"]}" sudah terdaftar.`,
+        };
+      }
+    }
+
+    // Format DOB dd/MM/yyyy
+    let dobVal = String(rawData["TANGGAL LAHIR"] || "").trim();
+    if (dobVal && dobVal.includes("-")) {
+      const parts = dobVal.split("-");
+      if (parts.length === 3) {
+        dobVal = `${parts[2]}/${parts[1]}/${parts[0]}`;
+        rawData["TANGGAL LAHIR"] = dobVal;
+      }
+    }
+
+    // Generate WIB Timestamp
     const timestamp = new Intl.DateTimeFormat("en-GB", {
       timeZone: "Asia/Jakarta",
       day: "2-digit",
@@ -105,8 +284,46 @@ export async function updateData(
       .replace(",", "");
 
     rawData["Timestamp"] = timestamp;
+    rawData["ID GENERUS"] = idGenerus;
 
+    // Update main row
     await updateSheetData(rowIndex, rawData);
+
+    // Sync AdditionalInfo row
+    additionalInfoData["UserId"] = idGenerus;
+    additionalInfoData["Nama Lengkap"] = rawData["NAMA LENGKAP"] || "";
+    additionalInfoData["Jenis Kelamin"] = rawData["JENIS KELAMIN"] || "";
+    additionalInfoData["Kelompok"] = rawData["KELOMPOK"] || "";
+    additionalInfoData["Tanggal Lahir"] = dobVal;
+    additionalInfoData["Nomor Whatsapp"] = rawData["NOMOR HP"] || "";
+    additionalInfoData["Timestamp"] = timestamp;
+
+    if (dobVal) {
+      additionalInfoData["Usia"] = calculateAge(dobVal);
+    } else {
+      additionalInfoData["Usia"] = "";
+    }
+
+    // Check if there is an existing linked AdditionalInfo row
+    const additionalInfoRaw = await getSheetData(ADDITIONAL_INFO_SHEET_NAME);
+    const aiIndex = additionalInfoRaw.findIndex(
+      (row) => String(row["UserId"] || "").trim().toLowerCase() === idGenerus.toLowerCase()
+    );
+
+    const linkIndexStr = formData.get("linkAdditionalInfoRowIndex") as string;
+
+    if (aiIndex >= 0) {
+      // Overwrite existing linked row
+      await updateSheetData(aiIndex + 2, additionalInfoData, ADDITIONAL_INFO_SHEET_NAME);
+    } else if (linkIndexStr) {
+      // Overwrite name-matched unlinked row
+      const linkIndex = Number(linkIndexStr);
+      await updateSheetData(linkIndex + 2, additionalInfoData, ADDITIONAL_INFO_SHEET_NAME);
+    } else {
+      // Append a brand new AdditionalInfo record
+      await appendSheetData(additionalInfoData, ADDITIONAL_INFO_SHEET_NAME);
+    }
+
     revalidateTag("google-sheets", "default");
     revalidatePath("/");
     revalidatePath("/admin-restricted");

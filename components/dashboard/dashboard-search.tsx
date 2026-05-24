@@ -1,6 +1,6 @@
 "use client";
 
-import { memo } from "react";
+import { memo, useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import {
   Tooltip,
@@ -25,6 +25,27 @@ export const DashboardSearch = memo(function DashboardSearch({
   showDuplicates,
   actions,
 }: DashboardSearchProps) {
+  const [localVal, setLocalVal] = useState(filterNama);
+
+  // Keep local value in sync with external prop changes (e.g. external reset)
+  useEffect(() => {
+    setLocalVal(filterNama);
+  }, [filterNama]);
+
+  // Debounced propagation to parent state to ensure ultra-smooth fast typing
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (localVal !== filterNama) {
+        actions.handleStartTransition(() => {
+          setFilterNama(localVal);
+          actions.setCurrentPage(1);
+        });
+      }
+    }, 300); // 150ms debounce window
+
+    return () => clearTimeout(timer);
+  }, [localVal, filterNama, setFilterNama, actions]);
+
   return (
     <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden">
       <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-50 dark:bg-indigo-900/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none" />
@@ -47,21 +68,19 @@ export const DashboardSearch = memo(function DashboardSearch({
                   disabled={showDuplicates}
                   placeholder="Masukkan nama generus..."
                   className={`w-full h-16 pl-14 pr-14 border-2 rounded-xl text-lg focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all outline-none placeholder:text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed ${
-                    filterNama
+                    localVal
                       ? "bg-indigo-50/20 dark:bg-indigo-950/20 border-indigo-300 dark:border-indigo-700 text-indigo-900 dark:text-indigo-100 font-bold shadow-md"
                       : "bg-slate-50/50 dark:bg-slate-900/50 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 hover:border-slate-300 dark:hover:border-slate-700"
                   }`}
-                  value={filterNama}
+                  value={localVal}
                   onChange={(e) => {
-                    actions.handleStartTransition(() => {
-                      setFilterNama(e.target.value);
-                      actions.setCurrentPage(1);
-                    });
+                    setLocalVal(e.target.value);
                   }}
                 />
-                {filterNama && !showDuplicates && (
+                {localVal && !showDuplicates && (
                   <button
                     onClick={() => {
+                      setLocalVal("");
                       actions.handleStartTransition(() => {
                         setFilterNama("");
                         actions.setCurrentPage(1);

@@ -55,7 +55,7 @@ export default function AddGenerusPage() {
       {(onClose) => (
         <GenerusForm 
           title="Tambah Generus"
-          headers={headers}
+          mode="add"
           isPending={isPending}
           onSubmit={(fd) => handleSubmit(fd, onClose)}
           onCancel={onClose}

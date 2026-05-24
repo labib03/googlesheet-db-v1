@@ -122,14 +122,14 @@ export class AnalyticsService {
   ): SheetRow[] {
     const additionalInfoMap = new Map<string, SheetRow>();
     for (const aiRow of additionalInfoRaw) {
-      const userId = String(aiRow["UserId"] || "").trim();
+      const userId = String(aiRow["UserId"] || "").trim().toLowerCase();
       if (userId) {
         additionalInfoMap.set(userId, aiRow);
       }
     }
 
     return rows.map((row) => {
-      const idGenerus = String(row[COLUMNS.ID_GENERUS] || "").trim();
+      const idGenerus = String(row[COLUMNS.ID_GENERUS] || "").trim().toLowerCase();
       if (idGenerus && additionalInfoMap.has(idGenerus)) {
         const aiRow = additionalInfoMap.get(idGenerus)!;
         const updatedRow = { ...row };

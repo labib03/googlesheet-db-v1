@@ -15,11 +15,11 @@ export function processRows(
   rawData: SheetRow[],
   additionalInfoRaw?: SheetRow[],
 ): ProcessedResult {
-  // Build AdditionalInfo lookup by UserId
+  // Build AdditionalInfo lookup by UserId (case-insensitive)
   const additionalInfoMap = new Map<string, SheetRow>();
   if (additionalInfoRaw) {
     for (const aiRow of additionalInfoRaw) {
-      const userId = String(aiRow["UserId"] || "").trim();
+      const userId = String(aiRow["UserId"] || "").trim().toLowerCase();
       if (userId) additionalInfoMap.set(userId, aiRow);
     }
   }
@@ -43,8 +43,8 @@ export function processRows(
       );
     }
 
-    // Merge AdditionalInfo if linked
-    const idGenerus = String(row["ID GENERUS"] || "").trim();
+    // Merge AdditionalInfo if linked (case-insensitive)
+    const idGenerus = String(row["ID GENERUS"] || "").trim().toLowerCase();
     if (idGenerus && additionalInfoMap.has(idGenerus)) {
       const aiRow = additionalInfoMap.get(idGenerus)!;
       for (const [key, value] of Object.entries(aiRow)) {
