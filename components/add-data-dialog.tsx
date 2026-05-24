@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { PlusCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -85,6 +87,8 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
         }}
       >
         <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl flex flex-col font-outfit">
+          <DialogTitle className="sr-only">Tambah Data Generus</DialogTitle>
+          <DialogDescription className="sr-only">Form untuk menambah data generus baru</DialogDescription>
           <LoadingOverlay isPending={isPending} />
           
           <div className="min-h-0">

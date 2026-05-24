@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Pencil, Loader2 } from "lucide-react";
 import { SheetRow } from "@/lib/google-sheets";
@@ -90,6 +92,8 @@ export function EditDataDialog({ row, rowIndex, children }: EditDataDialogProps)
         }}
       >
         <DialogContent className="sm:max-w-[550px] p-0 overflow-hidden border-none rounded-3xl shadow-2xl flex flex-col font-outfit">
+          <DialogTitle className="sr-only">Edit Data Generus</DialogTitle>
+          <DialogDescription className="sr-only">Form untuk mengubah data generus</DialogDescription>
           <LoadingOverlay isPending={isPending} />
           <div className="flex-1 min-h-0">
             <GenerusForm 
