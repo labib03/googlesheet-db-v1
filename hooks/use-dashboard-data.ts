@@ -5,7 +5,7 @@ import { SheetRow } from "@/lib/google-sheets";
 import { COLUMNS, desaData } from "@/lib/constants";
 import { useDebounceValue } from "usehooks-ts";
 import { parse, compareDesc } from "date-fns";
-import { getCellValue, calculateAge } from "@/lib/helper";
+import { getCellValue, calculateAge, isFuzzyNameMatch } from "@/lib/helper";
 
 import { useDashboard } from "@/context/dashboard-context";
 
@@ -92,19 +92,40 @@ export function useDashboardData({
     const formatString = "dd/MM/yyyy HH:mm:ss";
 
     if (showDuplicates) {
-      const nameCounts = new Map<string, number>();
-      initialData.forEach((row) => {
-        const name = getCellValue(row, COLUMNS.NAMA).toLowerCase().trim();
-        if (name) {
-          nameCounts.set(name, (nameCounts.get(name) || 0) + 1);
+      // Group by desa and kelompok
+      const groups = new Map<string, SheetRow[]>();
+      initialData.forEach(row => {
+        const desa = getCellValue(row, COLUMNS.DESA).toLowerCase().trim();
+        const kelompok = getCellValue(row, COLUMNS.KELOMPOK).toLowerCase().trim();
+        const key = `${desa}_${kelompok}`;
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key)!.push(row);
+      });
+
+      const duplicateRows = new Set<SheetRow>();
+
+      groups.forEach((rows) => {
+        for (let i = 0; i < rows.length; i++) {
+          const nameA = getCellValue(rows[i], COLUMNS.NAMA);
+          if (!nameA) continue;
+
+          let hasDuplicate = false;
+          for (let j = 0; j < rows.length; j++) {
+            if (i === j) continue;
+            const nameB = getCellValue(rows[j], COLUMNS.NAMA);
+            if (nameB && isFuzzyNameMatch(nameA, nameB)) {
+              hasDuplicate = true;
+              break;
+            }
+          }
+          
+          if (hasDuplicate) {
+            duplicateRows.add(rows[i]);
+          }
         }
       });
 
-      return initialData
-        .filter((row) => {
-          const name = getCellValue(row, COLUMNS.NAMA).toLowerCase().trim();
-          return name && (nameCounts.get(name) || 0) > 1;
-        })
+      return Array.from(duplicateRows)
         .sort((a, b) => {
           const nameA = getCellValue(a, COLUMNS.NAMA).toLowerCase().trim();
           const nameB = getCellValue(b, COLUMNS.NAMA).toLowerCase().trim();

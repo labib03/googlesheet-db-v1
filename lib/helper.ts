@@ -363,3 +363,40 @@ export function getTopTerms(
       {} as Record<string, number>,
     );
 }
+
+/**
+ * Normalizes a name for fuzzy matching.
+ * Lowercases and removes all non-alphabet characters.
+ */
+export function normalizeNameFuzzy(name: string): string[] {
+  if (!name) return [];
+  const normalized = name.toLowerCase().replace(/[^a-z\s]/g, " ");
+  const words = normalized.split(/\s+/).filter(w => w.length > 0);
+  return Array.from(new Set(words));
+}
+
+/**
+ * Checks if two names are a fuzzy match (>= 50% match).
+ */
+export function isFuzzyNameMatch(nameA: string, nameB: string): boolean {
+  const wordsA = normalizeNameFuzzy(nameA);
+  const wordsB = normalizeNameFuzzy(nameB);
+
+  if (wordsA.length === 0 || wordsB.length === 0) return false;
+
+  // Jika namanya sama persis (misal: "Ahmad" vs "Ahmad"), otomatis dianggap sama
+  if (wordsA.join(" ") === wordsB.join(" ")) return true;
+
+  const shorter = wordsA.length <= wordsB.length ? wordsA : wordsB;
+  const longer = wordsA.length > wordsB.length ? wordsA : wordsB;
+
+  let matchCount = 0;
+  for (const w of shorter) {
+    if (longer.includes(w)) matchCount++;
+  }
+
+  // Gabungan Opsi A (Subset Penuh) dan Opsi C (Minimal 2 Kata)
+  // 1. matchCount === shorter.length -> Seluruh kata dari nama yg lebih pendek harus ada di yg panjang
+  // 2. matchCount >= 2 -> Minimal ada 2 kata yang cocok
+  return matchCount === shorter.length && matchCount >= 2;
+}

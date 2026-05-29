@@ -12,7 +12,7 @@ import { DashboardPagination } from "./dashboard/dashboard-pagination";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { Button } from "@/components/ui/button";
 import { TableSkeleton, CardSkeleton } from "@/components/skeletons";
-import { ShieldCheck, AlertCircle, History, Settings, Check, Trash, AlertTriangle, Sparkles, Link2 } from "lucide-react";
+import { ShieldCheck, AlertCircle, History, Settings, Check, Trash, AlertTriangle, Sparkles, Link2, Upload } from "lucide-react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ExportButton } from "./dashboard/export-button";
@@ -152,50 +152,61 @@ export function AdminDashboardClient({
       </motion.div>
 
       {/* Section 2: Action Toolbar Grouped by Scope */}
-      <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 bg-white/40 dark:bg-slate-900/40 p-4 rounded-3xl border border-slate-200/60 dark:border-slate-800/60 backdrop-blur-md mx-1">
+      <motion.div variants={itemVariants} className="flex flex-col lg:flex-row items-center justify-between gap-4 bg-white dark:bg-slate-900/60 p-2 rounded-full border border-slate-200/60 dark:border-slate-800/60 shadow-sm mx-1">
 
         {/* Left/Main Group: Analytics & System Tools */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex items-center gap-2 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center gap-2 overflow-x-auto no-scrollbar w-full lg:w-auto">
+          <div className="flex items-center gap-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-full border border-slate-100 dark:border-slate-700/50">
             <Button
               asChild
               variant="ghost"
-              className="rounded-xl h-10 w-10 p-0 hover:bg-white dark:hover:bg-slate-800 transition-all shadow-sm shrink-0"
+              className="rounded-full h-9 w-9 p-0 bg-white dark:bg-slate-800 shadow-sm border border-slate-200/50 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all shrink-0"
               title="Settings"
             >
               <Link href="/admin-restricted/settings">
                 <Settings className="h-4 w-4 text-slate-500 hover:text-indigo-600 transition-colors" />
               </Link>
             </Button>
-            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
+            <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
             <Button
               asChild
               variant="ghost"
-              className="gap-2 rounded-xl h-10 px-4 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-all font-bold text-xs shrink-0"
+              className="gap-2 rounded-full h-9 px-4 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-all font-bold text-xs shrink-0"
             >
               <Link href="/admin-restricted/talent-analytics">
                 <Sparkles className="h-4 w-4" />
                 <span>TALENT CONFIG</span>
               </Link>
             </Button>
-            <div className="w-px h-6 bg-slate-200 dark:bg-slate-700" />
+            <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
             <Button
               asChild
               variant="ghost"
-              className="gap-2 rounded-xl h-10 px-4 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 transition-all font-bold text-xs shrink-0"
+              className="gap-2 rounded-full h-9 px-4 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-indigo-600 transition-all font-bold text-xs shrink-0"
             >
               <Link href="/admin-restricted/link-generus">
                 <Link2 className="h-4 w-4" />
                 <span>LINK GENERUS</span>
               </Link>
             </Button>
+            <div className="w-px h-5 bg-slate-200 dark:bg-slate-700 mx-1" />
+            <Button
+              asChild
+              variant="ghost"
+              className="gap-2 rounded-full h-9 px-4 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-600 transition-all font-bold text-xs shrink-0"
+            >
+              <Link href="/admin-restricted/mass-upload">
+                <Upload className="h-4 w-4" />
+                <span>MASS UPLOAD</span>
+              </Link>
+            </Button>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 pl-2">
             <Link href="/admin-restricted/trash" className="shrink-0">
               <Button
                 variant="outline"
-                className="gap-2 rounded-2xl h-10 px-4 border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 hover:border-rose-100 transition-all font-bold text-xs shadow-sm"
+                className="gap-2 rounded-full h-10 px-4 border-slate-200 dark:border-slate-800 hover:bg-rose-50 dark:hover:bg-rose-950/20 hover:text-rose-600 hover:border-rose-100 transition-all font-bold text-xs shadow-sm bg-white dark:bg-slate-900"
               >
                 <History className="h-4 w-4" />
                 <span>TRASH</span>
@@ -210,7 +221,7 @@ export function AdminDashboardClient({
             <Link href="/admin-restricted/data-mismatch" className="shrink-0">
               <Button
                 variant="outline"
-                className="gap-2 rounded-2xl h-10 px-4 border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:text-amber-600 hover:border-amber-100 transition-all font-bold text-xs shadow-sm"
+                className="gap-2 rounded-full h-10 px-4 border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 hover:text-amber-600 hover:border-amber-100 transition-all font-bold text-xs shadow-sm bg-white dark:bg-slate-900"
               >
                 <AlertTriangle className="h-4 w-4" />
                 <span>MISMATCH</span>
@@ -225,7 +236,7 @@ export function AdminDashboardClient({
         </div>
 
         {/* Right Group: Data Operations */}
-        <div className="flex items-center gap-3 w-full lg:w-auto justify-end">
+        <div className="flex items-center gap-3 w-full lg:w-auto justify-end pr-1">
           <div className="shrink-0">
             <ExportButton
               data={data.filteredData}

@@ -48,11 +48,14 @@ export function ExportButton({
       const desa = getCellValue(row, COLUMNS.DESA);
       const kelompok = getCellValue(row, COLUMNS.KELOMPOK);
       const jenjang = getCellValue(row, COLUMNS.JENJANG);
+
+      
       if (desa) desaSet.add(desa);
       if (kelompok) kelompokSet.add(kelompok);
       if (jenjang) jenjangSet.add(jenjang);
     });
-
+    
+    console.log("kelompokSet", kelompokSet)
     return {
       desa: desaSet.size,
       kelompok: kelompokSet.size,
@@ -134,7 +137,7 @@ export function ExportButton({
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            className="gap-2 rounded-xl h-10 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shadow-sm"
+            className="gap-2 rounded-full h-10 border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors shadow-sm bg-white dark:bg-slate-900"
           >
             <Download className="w-4 h-4 text-emerald-500" />
             Download Data

@@ -15,7 +15,7 @@ export function AddDataDialog({ headers }: AddDataDialogProps) {
   return (
     <Button 
       asChild
-      className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 rounded-xl px-5 h-10 transition-all active:scale-95 shadow-lg shadow-indigo-100 dark:shadow-none font-syne cursor-pointer"
+      className="bg-indigo-600 hover:bg-indigo-700 text-white gap-2 rounded-full px-5 h-10 transition-all active:scale-95 shadow-lg shadow-indigo-100 dark:shadow-none font-syne cursor-pointer"
     >
       <Link href="/generus/add">
         <PlusCircle className="h-4 w-4" />
