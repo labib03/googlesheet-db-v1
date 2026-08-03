@@ -20,6 +20,7 @@ export function processKeteranganAction(
 
   switch (normalized) {
     case "hapus data":
+    case "tidak aktif":
       return "HAPUS_DATA";
     case "data baru":
       return "DATA_BARU";

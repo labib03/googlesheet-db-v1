@@ -52,6 +52,34 @@ export async function generateMassUploadTemplate(): Promise<ArrayBuffer> {
   return buffer as ArrayBuffer;
 }
 
+export function normalizeHeaderName(rawHeader: string): string {
+  let cleaned = rawHeader.trim();
+  const lower = cleaned.toLowerCase();
+
+  if (lower.startsWith("nama lengkap") || lower === "nama") return "NAMA LENGKAP";
+  if (lower.startsWith("jenis kelamin")) return "JENIS KELAMIN";
+  if (lower.startsWith("tempat lahir")) return "TEMPAT LAHIR";
+  if (lower.startsWith("tanggal lahir")) return "TANGGAL LAHIR";
+  if (
+    lower.startsWith("nomor hp") ||
+    lower === "no hp" ||
+    lower === "no. hp" ||
+    lower === "nohp"
+  )
+    return "NOMOR HP";
+  if (lower === "desa") return "DESA";
+  if (lower === "kelompok") return "KELOMPOK";
+  if (lower.startsWith("nama ayah") || lower === "ayah") return "NAMA AYAH";
+  if (lower.startsWith("nama ibu") || lower === "ibu") return "NAMA IBU";
+  if (lower === "hobi") return "HOBI";
+  if (lower.includes("skill") || lower.includes("cita"))
+    return "SKILL / CITA-CITA";
+  if (lower === "keterangan") return "KETERANGAN";
+  if (lower.startsWith("jenjang")) return "Jenjang Kelas";
+
+  return cleaned;
+}
+
 export async function parseMassUploadFile(
   buffer: ArrayBuffer
 ): Promise<Record<string, string>[]> {
@@ -70,14 +98,8 @@ export async function parseMassUploadFile(
     if (rowNumber === 1) {
       // Header row
       row.eachCell((cell, colNumber) => {
-        let headerText = cell.value?.toString().trim() || "";
-        // Normalize the format headers back to the expected internal keys
-        if (headerText === "TANGGAL LAHIR (DD/MM/YYYY)") {
-          headerText = "TANGGAL LAHIR";
-        } else if (headerText === "JENIS KELAMIN (L/P)") {
-          headerText = "JENIS KELAMIN";
-        }
-        headers[colNumber] = headerText;
+        const rawHeaderText = cell.value?.toString() || "";
+        headers[colNumber] = normalizeHeaderName(rawHeaderText);
       });
     } else {
       // Data row

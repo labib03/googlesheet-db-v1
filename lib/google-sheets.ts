@@ -373,6 +373,64 @@ export async function updateSheetData(
 }
 
 /**
+ * Updates multiple rows of data in the sheet efficiently using a single batchUpdate request
+ * @param updates - Array of objects containing 1-based rowIndex and rowData
+ * @param sheetName - The sheet name
+ */
+export async function updateSheetDataBulk(
+  updates: Array<{ rowIndex: number; rowData: SheetRow }>,
+  sheetName: string = DEFAULT_SHEET_NAME,
+): Promise<void> {
+  if (updates.length === 0) return;
+
+  try {
+    const sheets = google.sheets({ version: "v4", auth: await getAuth() });
+    const sheetId = process.env.GOOGLE_SHEET_ID!;
+    const escapedName = escapeSheetName(sheetName);
+
+    // 1. Get current headers to ensure correct column order across all updates
+    const headerResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range: `${escapedName}!1:1`,
+    });
+
+    const headers = headerResponse.data.values?.[0] as string[];
+    if (!headers || headers.length === 0) {
+      throw new Error("Sheet is empty or missing headers");
+    }
+
+    // 2. Build ValueRange items for batchUpdate
+    const data = updates.map(({ rowIndex, rowData }) => {
+      const values = headers.map((header) => {
+        const targetKey = Object.keys(rowData).find(
+          (key) => key.toLowerCase() === header.toLowerCase(),
+        );
+        return targetKey ? rowData[targetKey] : "";
+      });
+
+      return {
+        range: `${escapedName}!A${rowIndex}`,
+        values: [values],
+      };
+    });
+
+    // 3. Perform single batch update API call
+    await withRetry(async () => {
+      await sheets.spreadsheets.values.batchUpdate({
+        spreadsheetId: sheetId,
+        requestBody: {
+          valueInputOption: "RAW",
+          data,
+        },
+      });
+    });
+  } catch (error) {
+    console.error("Error updating bulk data:", error);
+    throw error;
+  }
+}
+
+/**
  * Updates a single cell in the sheet by column name
  * @param rowIndex - The 1-based row index in the sheet (including header)
  * @param columnName - The header name of the column to update

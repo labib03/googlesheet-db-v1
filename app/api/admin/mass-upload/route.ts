@@ -2,12 +2,13 @@ import { NextResponse } from "next/server";
 import {
   getSheetData,
   appendSheetDataBulk,
-  updateSheetData,
+  updateSheetDataBulk,
   deleteSheetRowsBulk,
   SheetRow,
 } from "@/lib/google-sheets";
 import { COLUMNS } from "@/lib/constants";
 import { processKeteranganAction } from "@/lib/keterangan-actions";
+import { getCellValue } from "@/lib/helper";
 import { revalidateTag } from "next/cache";
 
 export async function POST(request: Request) {
@@ -22,24 +23,39 @@ export async function POST(request: Request) {
     const currentData = await getSheetData();
 
     const newRows: SheetRow[] = [];
-    const updatePromises: Promise<void>[] = [];
+    const updateRows: Array<{ rowIndex: number; rowData: SheetRow }> = [];
     const indicesToDelete: number[] = [];
+    const rowsToTrash: SheetRow[] = [];
+
+    const getJakartaTimestamp = () =>
+      new Intl.DateTimeFormat("en-GB", {
+        timeZone: "Asia/Jakarta",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      })
+        .format(new Date())
+        .replace(",", "");
 
     // Map existing data by composite key (NAMA LENGKAP + KELOMPOK) for quick lookup
     // Include the original row index (1-based, assuming row 1 is header, data starts at 2)
     const existingMap = new Map<string, { rowIndex: number; rowData: SheetRow }>();
     currentData.forEach((row, index) => {
-      const nama = String(row[COLUMNS.NAMA] || "").trim().toLowerCase();
-      const kelompok = String(row[COLUMNS.KELOMPOK] || "").trim().toLowerCase();
+      const nama = getCellValue(row, COLUMNS.NAMA).toLowerCase();
+      const kelompok = getCellValue(row, COLUMNS.KELOMPOK).toLowerCase();
       if (nama && kelompok) {
         existingMap.set(`${nama}_${kelompok}`, { rowIndex: index + 2, rowData: row });
       }
     });
 
     for (const row of rows) {
-      const nama = String(row["NAMA LENGKAP"] || "").trim().toLowerCase();
-      const kelompok = String(row["KELOMPOK"] || "").trim().toLowerCase();
-      const keterangan = row["KETERANGAN"];
+      const nama = getCellValue(row, "NAMA LENGKAP").toLowerCase();
+      const kelompok = getCellValue(row, "KELOMPOK").toLowerCase();
+      const keterangan = getCellValue(row, "KETERANGAN");
 
       const action = processKeteranganAction(keterangan, row);
       const compositeKey = `${nama}_${kelompok}`;
@@ -47,6 +63,14 @@ export async function POST(request: Request) {
 
       if (action === "HAPUS_DATA") {
         if (existing) {
+          const trashRow: SheetRow = { ...existing.rowData };
+          trashRow[COLUMNS.TIMESTAMP] = getJakartaTimestamp();
+          trashRow["IsMarried"] = 0;
+          trashRow["IsPindahSambung"] = 1;
+          if (keterangan) {
+            trashRow[COLUMNS.KETERANGAN] = keterangan;
+          }
+          rowsToTrash.push(trashRow);
           indicesToDelete.push(existing.rowIndex);
         }
         continue;
@@ -56,53 +80,40 @@ export async function POST(request: Request) {
       const mappedRow: SheetRow = {};
       Object.keys(COLUMNS).forEach((key) => {
         const header = COLUMNS[key as keyof typeof COLUMNS];
-        if (row[header] !== undefined) {
-          mappedRow[header] = row[header];
+        const cellVal = getCellValue(row, header);
+        if (cellVal !== "") {
+          mappedRow[header] = cellVal;
         }
       });
-      // Also map KETERANGAN explicitly if it's in COLUMNS
-      if (row["KETERANGAN"] !== undefined) {
-          mappedRow["KETERANGAN"] = row["KETERANGAN"];
-      }
 
       if (existing) {
         // Prepare to update
         // We merge with existing data so we don't lose unmapped columns (if any)
         const updatedRowData = { ...existing.rowData, ...mappedRow };
-        updatePromises.push(updateSheetData(existing.rowIndex, updatedRowData));
+        updateRows.push({ rowIndex: existing.rowIndex, rowData: updatedRowData });
       } else {
         // Prepare to insert
-        const timestamp = new Intl.DateTimeFormat("en-GB", {
-          timeZone: "Asia/Jakarta",
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          second: "2-digit",
-          hour12: false,
-        })
-          .format(new Date())
-          .replace(",", "");
-        mappedRow[COLUMNS.TIMESTAMP] = timestamp;
+        mappedRow[COLUMNS.TIMESTAMP] = getJakartaTimestamp();
         newRows.push(mappedRow);
       }
     }
 
-    // Execute deletions
+    // 1. Move inactive records to Trash sheet
+    if (rowsToTrash.length > 0) {
+      await appendSheetDataBulk(rowsToTrash, "Trash");
+    }
+
+    // 2. Execute deletions from main sheet
     if (indicesToDelete.length > 0) {
       await deleteSheetRowsBulk(indicesToDelete);
     }
 
-    // Execute updates
-    if (updatePromises.length > 0) {
-      // Execute serially or in small batches to avoid rate limits
-      for (const updatePromise of updatePromises) {
-        await updatePromise;
-      }
+    // 3. Execute updates
+    if (updateRows.length > 0) {
+      await updateSheetDataBulk(updateRows);
     }
 
-    // Execute inserts
+    // 4. Execute inserts
     if (newRows.length > 0) {
       await appendSheetDataBulk(newRows);
     }
@@ -115,8 +126,9 @@ export async function POST(request: Request) {
       message: "Data processed successfully",
       stats: {
         inserted: newRows.length,
-        updated: updatePromises.length,
+        updated: updateRows.length,
         deleted: indicesToDelete.length,
+        trashed: rowsToTrash.length,
       },
     });
   } catch (error) {
