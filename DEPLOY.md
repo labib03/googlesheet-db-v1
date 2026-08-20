@@ -18,6 +18,9 @@ Di halaman konfigurasi project (Configure Project), buka bagian **Environment Va
 | `GOOGLE_SERVICE_ACCOUNT_EMAIL` | Email service account Anda (dari JSON key file) |
 | `GOOGLE_SHEET_ID` | ID Google Sheet Anda (dari URL sheet) |
 | `GOOGLE_PRIVATE_KEY` | Private Key Anda (Lihat instruksi khusus di bawah) |
+| `GOOGLE_SHEET_NAME` | *(Opsional)* Nama tab sheet data utama (default: `Sheet1`) |
+| `AUTH_SECRET` | *(Opsional)* Secret key untuk JWT Session login admin |
+| `EXTERNAL_API_TOKEN` | *(Opsional)* Token autentikasi untuk REST API eksternal |
 
 ### ⚠️ Khusus GOOGLE_PRIVATE_KEY
 Value private key dari JSON file biasanya terlihat seperti ini:
