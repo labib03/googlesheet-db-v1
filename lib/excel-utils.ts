@@ -53,7 +53,7 @@ export async function generateMassUploadTemplate(): Promise<ArrayBuffer> {
 }
 
 export function normalizeHeaderName(rawHeader: string): string {
-  let cleaned = rawHeader.trim();
+  const cleaned = rawHeader.trim();
   const lower = cleaned.toLowerCase();
 
   if (lower.startsWith("nama lengkap") || lower === "nama") return "NAMA LENGKAP";

@@ -7,7 +7,11 @@ import {
   SheetRow,
 } from "@/lib/google-sheets";
 import { COLUMNS } from "@/lib/constants";
-import { processKeteranganAction } from "@/lib/keterangan-actions";
+import { 
+  processKeteranganAction, 
+  isKeteranganInactive, 
+  inferTrashMetadata 
+} from "@/lib/keterangan-actions";
 import { getCellValue } from "@/lib/helper";
 import { revalidateTag } from "next/cache";
 
@@ -61,12 +65,28 @@ export async function POST(request: Request) {
       const compositeKey = `${nama}_${kelompok}`;
       const existing = existingMap.get(compositeKey);
 
-      if (action === "HAPUS_DATA") {
+      const isInactiveAction = 
+        action === "HAPUS_DATA" || 
+        action === "SUDAH_MENIKAH" || 
+        isKeteranganInactive(keterangan);
+
+      if (isInactiveAction) {
         if (existing) {
           const trashRow: SheetRow = { ...existing.rowData };
           trashRow[COLUMNS.TIMESTAMP] = getJakartaTimestamp();
-          trashRow["IsMarried"] = 0;
-          trashRow["IsPindahSambung"] = 1;
+
+          const inferred = inferTrashMetadata(keterangan);
+          const isMarried = 
+            row["IsMarried"] !== undefined 
+              ? (Number(row["IsMarried"]) === 1 ? 1 : 0) 
+              : (inferred.isMarried ? 1 : 0);
+          const isPindahSambung = 
+            row["IsPindahSambung"] !== undefined 
+              ? (Number(row["IsPindahSambung"]) === 1 ? 1 : 0) 
+              : (inferred.isPindahSambung ? 1 : 0);
+
+          trashRow["IsMarried"] = isMarried;
+          trashRow["IsPindahSambung"] = isPindahSambung;
           if (keterangan) {
             trashRow[COLUMNS.KETERANGAN] = keterangan;
           }

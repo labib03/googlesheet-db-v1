@@ -1,11 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, AlertTriangle, AlertCircle, Trash2, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import { 
+  CheckCircle2, 
+  AlertTriangle, 
+  AlertCircle, 
+  Trash2, 
+  ChevronLeft, 
+  ChevronRight, 
+  Search, 
+  X,
+  Users,
+  FileSpreadsheet
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +25,11 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { processKeteranganAction } from "@/lib/keterangan-actions";
+import { 
+  processKeteranganAction, 
+  isKeteranganInactive, 
+  inferTrashMetadata 
+} from "@/lib/keterangan-actions";
 import { desaData } from "@/lib/constants";
 import { isFuzzyNameMatch } from "@/lib/helper";
 
@@ -46,10 +61,36 @@ function isValidDate(dateString: string) {
 
 export function MassUploadPreview({ data, existingData, onSave, isSaving, onCancel }: MassUploadPreviewProps) {
   const [activeTab, setActiveTab] = useState<"all" | "insert" | "update" | "aktif" | "tidak_aktif" | "invalid">("all");
+  const [selectedKelompok, setSelectedKelompok] = useState<string>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [overrideSet, setOverrideSet] = useState<Set<number>>(new Set());
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Inactive / Trash metadata state (IsMarried and IsPindahSambung)
+  const [trashMetadataState, setTrashMetadataState] = useState<
+    Record<number, { isMarried: boolean; isPindahSambung: boolean }>
+  >(() => {
+    const initialMap: Record<number, { isMarried: boolean; isPindahSambung: boolean }> = {};
+    data.forEach((row, index) => {
+      const ket = row["KETERANGAN"] || row["Keterangan"];
+      initialMap[index] = inferTrashMetadata(ket);
+    });
+    return initialMap;
+  });
+
+  const handleToggleTrashMeta = (index: number, field: "isMarried" | "isPindahSambung") => {
+    setTrashMetadataState((prev) => {
+      const current = prev[index] || { isMarried: false, isPindahSambung: false };
+      return {
+        ...prev,
+        [index]: {
+          ...current,
+          [field]: !current[field],
+        },
+      };
+    });
+  };
 
   const [selectedSet, setSelectedSet] = useState<Set<number>>(() => {
     const initialSelected = new Set<number>();
@@ -109,6 +150,8 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
     _isAktif: boolean;
     _matchedExistingRow?: Record<string, any>;
     _overrideToNew?: boolean;
+    _fileName?: string;
+    _trashMeta: { isMarried: boolean; isPindahSambung: boolean };
   };
 
   const existingByKelompok = new Map<string, Record<string, any>[]>();
@@ -120,68 +163,57 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
     }
   });
 
-  const allColumns = data.length > 0 ? Object.keys(data[0]) : [];
+  // Exclude internal underscore-prefixed fields from generic column rendering
+  const allColumns = data.length > 0 ? Object.keys(data[0]).filter(k => !k.startsWith("_")) : [];
 
   // Helper to determine if Keterangan value indicates active vs inactive
   const isRowAktif = (keteranganVal: any, action: string): boolean => {
     if (action === "HAPUS_DATA" || action === "SUDAH_MENIKAH") return false;
-    if (!keteranganVal) return true;
-    const str = String(keteranganVal).trim().toLowerCase();
-    if (
-      str.includes("tidak") ||
-      str.includes("non") ||
-      str.includes("pindah") ||
-      str.includes("menikah") ||
-      str.includes("hapus") ||
-      str.includes("keluar") ||
-      str.includes("alumni") ||
-      str.includes("off")
-    ) {
-      return false;
-    }
-    return true;
+    return !isKeteranganInactive(keteranganVal);
   };
 
   // Process data to identify invalid rows and actions
-  const processedData: ProcessedRow[] = data.map((row, index) => {
-    const missingFields = requiredFields.filter((field) => {
-      const val = row[field];
-      return val === undefined || val === null || String(val).trim() === "";
-    });
+  const processedData: ProcessedRow[] = useMemo(() => {
+    return data.map((row, index) => {
+      const missingFields = requiredFields.filter((field) => {
+        const val = row[field];
+        return val === undefined || val === null || String(val).trim() === "";
+      });
 
-    let isInvalid = missingFields.length > 0;
-    const errors: string[] = [...missingFields.map(f => `Kosong: ${f}`)];
+      let isInvalid = missingFields.length > 0;
+      const errors: string[] = [...missingFields.map(f => `Kosong: ${f}`)];
 
-    const keteranganVal = row["KETERANGAN"] || row["Keterangan"];
-    const action = processKeteranganAction(keteranganVal, row);
-    const isAktif = isRowAktif(keteranganVal, action);
+      const keteranganVal = row["KETERANGAN"] || row["Keterangan"];
+      const action = processKeteranganAction(keteranganVal, row);
+      const isAktif = isRowAktif(keteranganVal, action);
+      const isInactiveAction = action === "HAPUS_DATA" || action === "SUDAH_MENIKAH" || !isAktif;
 
-    // validate date ONLY if non-empty
-    const dob = row["TANGGAL LAHIR"] || row["Tanggal Lahir"];
-    if (dob && String(dob).trim() !== "" && !isValidDate(dob)) {
-      isInvalid = true;
-      errors.push(`Format Tanggal Lahir salah (harus DD/MM/YYYY)`);
-    }
-
-    // validate desa kelompok
-    const desa = String(row["DESA"] || row["Desa"] || "").trim();
-    const kelompok = String(row["KELOMPOK"] || row["Kelompok"] || "").trim();
-    if (desa && kelompok) {
-      const foundDesaKey = Object.keys(desaData).find(d => d.toLowerCase() === desa.toLowerCase());
-      if (!foundDesaKey) {
+      // validate date ONLY if non-empty
+      const dob = row["TANGGAL LAHIR"] || row["Tanggal Lahir"];
+      if (dob && String(dob).trim() !== "" && !isValidDate(dob)) {
         isInvalid = true;
-        errors.push(`Desa "${desa}" tidak valid`);
-      } else {
-        const validKelompoks = desaData[foundDesaKey];
-        if (!validKelompoks.find(k => k.toLowerCase() === kelompok.toLowerCase())) {
+        errors.push(`Format Tanggal Lahir salah (harus DD/MM/YYYY)`);
+      }
+
+      // validate desa kelompok
+      const desa = String(row["DESA"] || row["Desa"] || "").trim();
+      const kelompok = String(row["KELOMPOK"] || row["Kelompok"] || "").trim();
+      if (desa && kelompok) {
+        const foundDesaKey = Object.keys(desaData).find(d => d.toLowerCase() === desa.toLowerCase());
+        if (!foundDesaKey) {
           isInvalid = true;
-          errors.push(`Kelompok "${kelompok}" bukan bagian dari Desa "${desa}"`);
+          errors.push(`Desa "${desa}" tidak valid`);
+        } else {
+          const validKelompoks = desaData[foundDesaKey];
+          if (!validKelompoks.find(k => k.toLowerCase() === kelompok.toLowerCase())) {
+            isInvalid = true;
+            errors.push(`Kelompok "${kelompok}" bukan bagian dari Desa "${desa}"`);
+          }
         }
       }
-    }
 
-    // A row is invalid if missing required fields, EXCEPT if the action is HAPUS_DATA 
-    if (action === "HAPUS_DATA") {
+      // A row is invalid if missing required fields, EXCEPT if the action is inactive/hapus
+      if (isInactiveAction) {
         const missingKey = ["NAMA LENGKAP", "KELOMPOK"].filter((field) => !row[field]?.trim());
         isInvalid = missingKey.length > 0;
         
@@ -191,64 +223,116 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
           errors.length = 0;
           errors.push(`Kosong: ${missingKey.join(", ")}`);
         }
-    }
+      }
 
-    let isUpdate = false;
-    let isNew = false;
-    let matchedRow: Record<string, any> | undefined = undefined;
-    
-    if (!isInvalid) {
-      const nama = String(row["NAMA LENGKAP"] || "").trim();
-      const kelompokInput = String(row["KELOMPOK"] || "").trim().toLowerCase();
+      let isUpdate = false;
+      let isNew = false;
+      let matchedRow: Record<string, any> | undefined = undefined;
       
-      const possibleMatches = existingByKelompok.get(kelompokInput) || [];
-      for (const exRow of possibleMatches) {
-        const exNama = String(exRow["NAMA LENGKAP"] || exRow["NAMA"] || "").trim();
-        if (isFuzzyNameMatch(nama, exNama)) {
-          isUpdate = true;
-          matchedRow = exRow;
-          break;
+      if (!isInvalid) {
+        const nama = String(row["NAMA LENGKAP"] || "").trim();
+        const kelompokInput = String(row["KELOMPOK"] || "").trim().toLowerCase();
+        
+        const possibleMatches = existingByKelompok.get(kelompokInput) || [];
+        for (const exRow of possibleMatches) {
+          const exNama = String(exRow["NAMA LENGKAP"] || exRow["NAMA"] || "").trim();
+          if (isFuzzyNameMatch(nama, exNama)) {
+            isUpdate = true;
+            matchedRow = exRow;
+            break;
+          }
+        }
+
+        if (!isUpdate && !isInactiveAction) {
+          isNew = true;
         }
       }
 
-      if (!isUpdate && action !== "HAPUS_DATA") {
-         isNew = true;
-      }
-    }
+      const isOverride = overrideSet.has(index);
+      const trashMeta = trashMetadataState[index] || inferTrashMetadata(keteranganVal);
 
-    const isOverride = overrideSet.has(index);
+      return {
+        ...row,
+        _originalIndex: index,
+        _errors: errors,
+        _isInvalid: isInvalid,
+        _action: action,
+        _isAktif: isAktif,
+        _isUpdate: !isInactiveAction && isUpdate && !isOverride,
+        _isNew: !isInactiveAction && (isNew || (isUpdate && isOverride)),
+        _matchedExistingRow: matchedRow,
+        _overrideToNew: isOverride,
+        _fileName: row._fileName,
+        _trashMeta: trashMeta,
+      };
+    });
+  }, [data, existingData, overrideSet, trashMetadataState]);
 
-    return {
-      ...row,
-      _originalIndex: index,
-      _errors: errors,
-      _isInvalid: isInvalid,
-      _action: action,
-      _isAktif: isAktif,
-      _isUpdate: action !== "HAPUS_DATA" && isUpdate && !isOverride,
-      _isNew: action !== "HAPUS_DATA" && (isNew || (isUpdate && isOverride)),
-      _matchedExistingRow: matchedRow,
-      _overrideToNew: isOverride,
-    };
-  });
-
-  const invalidRows = processedData.filter((r) => r._isInvalid);
-  const validRows = processedData.filter((r) => !r._isInvalid);
-  const aktifRows = processedData.filter((r) => !r._isInvalid && r._isAktif);
-  const tidakAktifRows = processedData.filter((r) => !r._isInvalid && !r._isAktif);
-  const insertRows = processedData.filter((r) => r._isNew);
-  const updateRows = processedData.filter((r) => r._isUpdate);
+  const invalidRows = useMemo(() => processedData.filter((r) => r._isInvalid), [processedData]);
+  const validRows = useMemo(() => processedData.filter((r) => !r._isInvalid), [processedData]);
+  const aktifRows = useMemo(() => processedData.filter((r) => !r._isInvalid && r._isAktif), [processedData]);
+  const tidakAktifRows = useMemo(() => processedData.filter((r) => !r._isInvalid && !r._isAktif), [processedData]);
+  const insertRows = useMemo(() => processedData.filter((r) => r._isNew), [processedData]);
+  const updateRows = useMemo(() => processedData.filter((r) => r._isUpdate), [processedData]);
   
-  const toDelete = processedData.filter(r => !r._isInvalid && r._action === "HAPUS_DATA").length;
   const toInsert = insertRows.length;
   const toUpdate = updateRows.length;
 
-  let displayData = processedData;
-  if (activeTab === "insert") displayData = insertRows;
-  else if (activeTab === "update") displayData = updateRows;
-  else if (activeTab === "aktif") displayData = aktifRows;
-  else if (activeTab === "tidak_aktif") displayData = tidakAktifRows;
-  else if (activeTab === "invalid") displayData = invalidRows;
+  // Compute rows matching current active status tab
+  const currentStatusRows = useMemo(() => {
+    if (activeTab === "insert") return insertRows;
+    if (activeTab === "update") return updateRows;
+    if (activeTab === "aktif") return aktifRows;
+    if (activeTab === "tidak_aktif") return tidakAktifRows;
+    if (activeTab === "invalid") return invalidRows;
+    return processedData;
+  }, [activeTab, insertRows, updateRows, aktifRows, tidakAktifRows, invalidRows, processedData]);
+
+  // Extract unique Kelompok list and calculate dynamic counts based on current status tab
+  const kelompokSummary = useMemo(() => {
+    // 1. Get all unique kelompoks from all data
+    const allKelompoks = new Set<string>();
+    processedData.forEach((row) => {
+      const k = String(row["KELOMPOK"] || row["Kelompok"] || "").trim();
+      allKelompoks.add(k || "Tanpa Kelompok");
+    });
+
+    // 2. Count occurrences within currentStatusRows
+    const activeMap = new Map<string, number>();
+    currentStatusRows.forEach((row) => {
+      const k = String(row["KELOMPOK"] || row["Kelompok"] || "").trim();
+      const key = k || "Tanpa Kelompok";
+      activeMap.set(key, (activeMap.get(key) || 0) + 1);
+    });
+
+    const list: { name: string; count: number }[] = [];
+    allKelompoks.forEach((name) => {
+      const count = activeMap.get(name) || 0;
+      list.push({ name, count });
+    });
+
+    // Sort alphabetically, with Tanpa Kelompok at the end
+    list.sort((a, b) => {
+      if (a.name === "Tanpa Kelompok") return 1;
+      if (b.name === "Tanpa Kelompok") return -1;
+      return a.name.localeCompare(b.name);
+    });
+
+    return list;
+  }, [processedData, currentStatusRows]);
+
+  let displayData = currentStatusRows;
+
+  // Filter by Kelompok
+  if (selectedKelompok !== "all") {
+    displayData = displayData.filter((row) => {
+      const k = String(row["KELOMPOK"] || row["Kelompok"] || "").trim();
+      if (selectedKelompok === "Tanpa Kelompok") {
+        return !k;
+      }
+      return k.toLowerCase() === selectedKelompok.toLowerCase();
+    });
+  }
 
   // Filter displayData by search query
   if (searchQuery.trim() !== "") {
@@ -258,7 +342,8 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
       const desa = String(row["DESA"] || row["Desa"] || "").toLowerCase();
       const kelompok = String(row["KELOMPOK"] || row["Kelompok"] || "").toLowerCase();
       const tempatLahir = String(row["TEMPAT LAHIR"] || row["Tempat Lahir"] || "").toLowerCase();
-      return nama.includes(q) || desa.includes(q) || kelompok.includes(q) || tempatLahir.includes(q);
+      const fileName = String(row._fileName || "").toLowerCase();
+      return nama.includes(q) || desa.includes(q) || kelompok.includes(q) || tempatLahir.includes(q) || fileName.includes(q);
     });
   }
 
@@ -289,13 +374,16 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
   const selectedValidRows = validRows.filter(r => selectedSet.has(r._originalIndex));
   const selectedInsertRows = selectedValidRows.filter(r => r._isNew);
   const selectedUpdateRows = selectedValidRows.filter(r => r._isUpdate);
-  const selectedTrashRows = selectedValidRows.filter(r => r._action === "HAPUS_DATA" && r._matchedExistingRow);
-  const selectedBypassedRows = selectedValidRows.filter(r => r._action === "HAPUS_DATA" && !r._matchedExistingRow);
+  const selectedTrashRows = selectedValidRows.filter(r => !r._isAktif && r._matchedExistingRow);
+  const selectedBypassedRows = selectedValidRows.filter(r => !r._isAktif && !r._matchedExistingRow);
 
   const selectedInsertCount = selectedInsertRows.length;
   const selectedUpdateCount = selectedUpdateRows.length;
   const selectedTrashCount = selectedTrashRows.length;
   const selectedBypassedCount = selectedBypassedRows.length;
+
+  const selectedTrashMarriedCount = selectedTrashRows.filter(r => r._trashMeta?.isMarried).length;
+  const selectedTrashPindahCount = selectedTrashRows.filter(r => r._trashMeta?.isPindahSambung).length;
 
   let modalCategoryRows: ProcessedRow[] = [];
   let modalCategoryTitle = "";
@@ -320,62 +408,72 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
   }
 
   const handleSave = () => {
-    // Pass only valid AND selected rows to the API
+    // Pass only valid AND selected rows to the API, stripping internal metadata keys
     onSave(selectedValidRows.map(r => {
-      const { _originalIndex, _errors, _isInvalid, _action, _isUpdate, _isNew, _isAktif, _matchedExistingRow, _overrideToNew, ...cleanRow } = r;
+      const cleanRow: Record<string, any> = {};
+      Object.keys(r).forEach(key => {
+        if (!key.startsWith("_")) {
+          cleanRow[key] = r[key];
+        }
+      });
+      if (!r._isAktif || r._action === "HAPUS_DATA" || r._action === "SUDAH_MENIKAH") {
+        cleanRow["IsMarried"] = r._trashMeta?.isMarried ? 1 : 0;
+        cleanRow["IsPindahSambung"] = r._trashMeta?.isPindahSambung ? 1 : 0;
+      }
       return cleanRow;
     }));
   };
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      {/* Top Status Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
         <Card 
-          className={`cursor-pointer transition-all hover:scale-[1.02] ${activeTab === "all" ? "ring-2 ring-indigo-500 shadow-md" : ""}`}
+          className={`cursor-pointer transition-all hover:scale-[1.01] ${activeTab === "all" ? "ring-2 ring-indigo-500 shadow-md bg-indigo-50/20 dark:bg-indigo-950/20" : "bg-white dark:bg-slate-900"}`}
           onClick={() => handleTabChange("all")}
         >
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <span className="text-3xl font-black text-indigo-600">{processedData.length}</span>
+            <span className="text-2xl sm:text-3xl font-black text-indigo-600 dark:text-indigo-400">{processedData.length}</span>
             <span className="text-xs text-slate-500 font-semibold uppercase mt-1">Total Baris</span>
           </CardContent>
         </Card>
 
         <Card 
-          className={`cursor-pointer transition-all hover:scale-[1.02] ${activeTab === "insert" ? "ring-2 ring-emerald-500 shadow-md" : ""}`}
+          className={`cursor-pointer transition-all hover:scale-[1.01] ${activeTab === "insert" ? "ring-2 ring-emerald-500 shadow-md bg-emerald-50/20 dark:bg-emerald-950/20" : "bg-white dark:bg-slate-900"}`}
           onClick={() => handleTabChange("insert")}
         >
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <span className="text-3xl font-black text-emerald-600">{toInsert}</span>
+            <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400">{toInsert}</span>
             <span className="text-xs text-slate-500 font-semibold uppercase mt-1">Data Baru (Insert)</span>
           </CardContent>
         </Card>
 
         <Card 
-          className={`cursor-pointer transition-all hover:scale-[1.02] ${activeTab === "update" ? "ring-2 ring-blue-500 shadow-md" : ""}`}
+          className={`cursor-pointer transition-all hover:scale-[1.01] ${activeTab === "update" ? "ring-2 ring-blue-500 shadow-md bg-blue-50/20 dark:bg-blue-950/20" : "bg-white dark:bg-slate-900"}`}
           onClick={() => handleTabChange("update")}
         >
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <span className="text-3xl font-black text-blue-600">{toUpdate}</span>
+            <span className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400">{toUpdate}</span>
             <span className="text-xs text-slate-500 font-semibold uppercase mt-1">Update Data</span>
           </CardContent>
         </Card>
 
         <Card 
-          className={`cursor-pointer transition-all hover:scale-[1.02] ${activeTab === "tidak_aktif" ? "ring-2 ring-amber-500 shadow-md" : ""}`}
+          className={`cursor-pointer transition-all hover:scale-[1.01] ${activeTab === "tidak_aktif" ? "ring-2 ring-amber-500 shadow-md bg-amber-50/20 dark:bg-amber-950/20" : "bg-white dark:bg-slate-900"}`}
           onClick={() => handleTabChange("tidak_aktif")}
         >
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <span className="text-3xl font-black text-amber-600">{tidakAktifRows.length}</span>
+            <span className="text-2xl sm:text-3xl font-black text-amber-600 dark:text-amber-400">{tidakAktifRows.length}</span>
             <span className="text-xs text-slate-500 font-semibold uppercase mt-1">Tidak Aktif</span>
           </CardContent>
         </Card>
 
         <Card 
-          className={`cursor-pointer transition-all hover:scale-[1.02] ${activeTab === "invalid" ? "ring-2 ring-rose-500 shadow-md bg-amber-50/50" : invalidRows.length > 0 ? "border-amber-500 bg-amber-50" : ""}`}
+          className={`cursor-pointer transition-all hover:scale-[1.01] ${activeTab === "invalid" ? "ring-2 ring-rose-500 shadow-md bg-rose-50/20 dark:bg-rose-950/20" : invalidRows.length > 0 ? "border-amber-400 bg-amber-50/30" : "bg-white dark:bg-slate-900"}`}
           onClick={() => handleTabChange("invalid")}
         >
           <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <span className={`text-3xl font-black ${invalidRows.length > 0 ? "text-amber-600" : "text-slate-600"}`}>
+            <span className={`text-2xl sm:text-3xl font-black ${invalidRows.length > 0 ? "text-rose-600 dark:text-rose-400" : "text-slate-600 dark:text-slate-400"}`}>
               {invalidRows.length}
             </span>
             <span className="text-xs text-slate-500 font-semibold uppercase mt-1">Tidak Valid</span>
@@ -383,41 +481,95 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="pb-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <CardTitle>Preview Data</CardTitle>
-              <CardDescription>
-                Filter aktif: <span className="font-bold text-slate-700 dark:text-slate-200 uppercase">{activeTab.replace("_", " ")}</span> ({displayData.length} data, <span className="text-emerald-600 font-semibold">{selectedValidRows.length} terpilih</span>)
+      {/* Main Preview Card with Unified Header Toolbar */}
+      <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900 overflow-hidden">
+        <CardHeader className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/50">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            {/* Left Title & Status Indicator */}
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <CardTitle className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                  Preview Data Upload
+                </CardTitle>
+                <Badge variant="outline" className="bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-semibold px-2 py-0.5 text-xs">
+                  Status: {activeTab === "all" ? "Semua Status" : activeTab === "insert" ? "Data Baru" : activeTab === "update" ? "Update Data" : activeTab === "tidak_aktif" ? "Tidak Aktif" : "Tidak Valid"}
+                </Badge>
+                {selectedKelompok !== "all" && (
+                  <Badge className="bg-indigo-100 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800 font-semibold px-2 py-0.5 text-xs flex items-center gap-1">
+                    Kelompok: {selectedKelompok}
+                    <button 
+                      onClick={() => { setSelectedKelompok("all"); setCurrentPage(1); }}
+                      className="ml-0.5 hover:text-indigo-900 dark:hover:text-white"
+                      title="Hapus filter kelompok"
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </Badge>
+                )}
+              </div>
+              <CardDescription className="text-xs text-slate-500">
+                Menampilkan <span className="font-semibold text-slate-700 dark:text-slate-300">{displayData.length}</span> baris data (<span className="text-emerald-600 dark:text-emerald-400 font-semibold">{selectedValidRows.length} data terpilih</span> untuk disimpan)
               </CardDescription>
             </div>
-            <div className="relative w-full sm:w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Cari nama, desa, kelompok..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full pl-9 pr-9 py-1.5 text-sm border border-slate-200 dark:border-slate-800 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => {
-                    setSearchQuery("");
+
+            {/* Right Controls: Kelompok Select + Search Bar */}
+            <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
+              {/* Kelompok Combobox / Select with dynamic counts */}
+              <div className="relative w-full sm:w-auto min-w-[200px]">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <Users className="w-4 h-4" />
+                </div>
+                <select
+                  value={selectedKelompok}
+                  onChange={(e) => {
+                    setSelectedKelompok(e.target.value);
                     setCurrentPage(1);
                   }}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="w-full sm:w-56 pl-9 pr-8 py-2 text-xs font-medium bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-slate-800 dark:text-slate-200 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all cursor-pointer appearance-none"
                 >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+                  <option value="all">
+                    Semua Kelompok ({currentStatusRows.length})
+                  </option>
+                  {kelompokSummary.map((k) => (
+                    <option key={k.name} value={k.name}>
+                      {k.name} ({k.count})
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                  <ChevronRight className="w-3.5 h-3.5 rotate-90" />
+                </div>
+              </div>
+
+              {/* Search Bar */}
+              <div className="relative w-full sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Cari nama, kelompok, file..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="w-full pl-9 pr-9 py-2 text-xs border border-slate-200 dark:border-slate-800 rounded-xl bg-white dark:bg-slate-900 text-slate-900 dark:text-white placeholder:text-slate-400 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => {
+                      setSearchQuery("");
+                      setCurrentPage(1);
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </CardHeader>
+
         <CardContent>
           <div className="rounded-md border overflow-x-auto max-h-[500px]">
             <Table>
@@ -434,7 +586,7 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
                     />
                   </TableHead>
                   <TableHead className="sticky left-[45px] bg-white dark:bg-slate-950 z-20 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[90px]">Status</TableHead>
-                  <TableHead className="sticky left-[135px] bg-white dark:bg-slate-950 z-20 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[150px] max-w-[200px] whitespace-normal break-words">Info Detail</TableHead>
+                  <TableHead className="sticky left-[135px] bg-white dark:bg-slate-950 z-20 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[190px] max-w-[240px] whitespace-normal break-words">Info & Sumber</TableHead>
                   {allColumns.map(col => (
                     <TableHead key={col} className="min-w-[150px] max-w-[250px] whitespace-normal break-words">
                       {col}
@@ -467,10 +619,10 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
                             <AlertTriangle className="w-3 h-3 mr-1" />
                             Invalid
                           </Badge>
-                        ) : row._action === "HAPUS_DATA" ? (
+                        ) : !row._isAktif || row._action === "HAPUS_DATA" || row._action === "SUDAH_MENIKAH" ? (
                           <Badge variant="outline" className="bg-rose-100 text-rose-700 border-rose-200">
                              <Trash2 className="w-3 h-3 mr-1" />
-                             Hapus
+                             Trash
                           </Badge>
                         ) : row._isNew ? (
                           <Badge variant="outline" className="bg-emerald-100 text-emerald-700 border-emerald-200">
@@ -484,36 +636,74 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="sticky left-[135px] bg-white dark:bg-slate-950 z-10 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[150px] max-w-[200px] align-top whitespace-normal break-words">
-                        {row._isInvalid ? (
-                          <span className="text-xs text-amber-600 flex flex-col gap-1">
-                            {row._errors.map((e, idx) => (
-                               <span key={idx} className="flex items-start gap-1">
-                                  <AlertCircle className="w-3 h-3 flex-shrink-0 mt-0.5" />
-                                  <span>{e}</span>
-                               </span>
-                            ))}
-                          </span>
-                        ) : (
-                          <div className="flex flex-col gap-2">
-                            <span className="text-xs text-slate-400">Ok</span>
-                            {row._matchedExistingRow && (
-                              <div className="p-2 bg-slate-50 border border-slate-100 rounded-md">
-                                <p className="text-[10px] text-slate-500 font-semibold mb-1">Mungkin Ganda Dengan:</p>
-                                <p className="text-xs font-medium text-slate-700">{row._matchedExistingRow["NAMA LENGKAP"] || row._matchedExistingRow["NAMA"]}</p>
-                                <p className="text-[10px] text-slate-500">{row._matchedExistingRow["KELOMPOK"]}</p>
-                                <Button 
-                                  variant="outline" 
-                                  size="sm" 
-                                  className="w-full mt-2 h-7 text-[10px]"
-                                  onClick={() => handleToggleOverride(row._originalIndex)}
-                                >
-                                  {row._overrideToNew ? "Kembalikan (Update)" : "Jadikan Baru (Insert)"}
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                      <TableCell className="sticky left-[135px] bg-white dark:bg-slate-950 z-10 border-r shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)] min-w-[190px] max-w-[240px] align-top whitespace-normal break-words">
+                        <div className="flex flex-col gap-2">
+                          {/* File source badge */}
+                          {row._fileName && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded truncate max-w-[210px]" title={row._fileName}>
+                              <FileSpreadsheet className="w-3 h-3 text-emerald-600 shrink-0" />
+                              <span className="truncate">{row._fileName}</span>
+                            </span>
+                          )}
+
+                          {row._isInvalid ? (
+                            <span className="text-xs text-amber-600 flex flex-col gap-1">
+                              {row._errors.map((e, idx) => (
+                                 <span key={idx} className="flex items-start gap-1">
+                                    <AlertCircle className="w-3 h-3 flex-shrink-0 mt-0.5" />
+                                    <span>{e}</span>
+                                 </span>
+                              ))}
+                            </span>
+                          ) : (
+                            <div className="flex flex-col gap-2">
+                              {/* Inactive / Trash metadata inline controls */}
+                              {(!row._isAktif || row._action === "HAPUS_DATA" || row._action === "SUDAH_MENIKAH") && (
+                                <div className="p-2 bg-slate-50/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 rounded-lg space-y-1.5">
+                                  <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                                    Status Trash:
+                                  </span>
+                                  <div className="flex flex-col gap-1">
+                                    <label className="flex items-center gap-2 cursor-pointer select-none text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:text-indigo-600">
+                                      <input
+                                        type="checkbox"
+                                        checked={row._trashMeta?.isMarried ?? false}
+                                        onChange={() => handleToggleTrashMeta(row._originalIndex, "isMarried")}
+                                        className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                      />
+                                      <span>Sudah Menikah</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer select-none text-[11px] font-medium text-slate-700 dark:text-slate-300 hover:text-indigo-600">
+                                      <input
+                                        type="checkbox"
+                                        checked={row._trashMeta?.isPindahSambung ?? false}
+                                        onChange={() => handleToggleTrashMeta(row._originalIndex, "isPindahSambung")}
+                                        className="w-3.5 h-3.5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                                      />
+                                      <span>Pindah Sambung</span>
+                                    </label>
+                                  </div>
+                                </div>
+                              )}
+
+                              {row._matchedExistingRow && (
+                                <div className="p-2 bg-slate-50 border border-slate-100 rounded-md">
+                                  <p className="text-[10px] text-slate-500 font-semibold mb-1">Mungkin Ganda Dengan:</p>
+                                  <p className="text-xs font-medium text-slate-700">{row._matchedExistingRow["NAMA LENGKAP"] || row._matchedExistingRow["NAMA"]}</p>
+                                  <p className="text-[10px] text-slate-500">{row._matchedExistingRow["KELOMPOK"]}</p>
+                                  <Button 
+                                    variant="outline" 
+                                    size="sm" 
+                                    className="w-full mt-2 h-7 text-[10px]"
+                                    onClick={() => handleToggleOverride(row._originalIndex)}
+                                  >
+                                    {row._overrideToNew ? "Kembalikan (Update)" : "Jadikan Baru (Insert)"}
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       {allColumns.map(col => (
                         <TableCell key={col} className="min-w-[150px] max-w-[250px] whitespace-normal break-words align-top">
@@ -581,11 +771,11 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
         </CardContent>
       </Card>
 
-      <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+      <div className="flex justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
         <Button variant="ghost" onClick={onCancel} disabled={isSaving}>
           Batal
         </Button>
-        <Button onClick={() => setShowConfirmDialog(true)} disabled={isSaving || selectedValidRows.length === 0} className="bg-indigo-600 hover:bg-indigo-700">
+        <Button onClick={() => setShowConfirmDialog(true)} disabled={isSaving || selectedValidRows.length === 0} className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20">
           {isSaving ? "Menyimpan..." : `Simpan ${selectedValidRows.length} Data Terpilih`}
         </Button>
       </div>
@@ -699,12 +889,29 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
                   ) : (
                     modalCategoryRows.map((r, idx) => (
                       <div key={idx} className="pt-1.5 flex items-center justify-between text-xs">
-                        <span className="font-medium text-slate-800 dark:text-slate-200 truncate max-w-[260px]">
-                          {String(r["NAMA LENGKAP"] || r["Nama Lengkap"] || "-")}
-                        </span>
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-1.5 py-0.5 rounded">
-                          {String(r["KELOMPOK"] || r["Kelompok"] || "-")}
-                        </span>
+                        <div className="flex items-center gap-2 truncate max-w-[260px]">
+                          <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                            {String(r["NAMA LENGKAP"] || r["Nama Lengkap"] || "-")}
+                          </span>
+                          {r._fileName && (
+                            <span className="text-[9px] text-slate-400 truncate">({r._fileName})</span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {r._trashMeta?.isMarried && (
+                            <span className="text-[9px] bg-rose-100 text-rose-700 px-1 py-0.5 rounded font-semibold">
+                              Menikah
+                            </span>
+                          )}
+                          {r._trashMeta?.isPindahSambung && (
+                            <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-semibold">
+                              Pindah
+                            </span>
+                          )}
+                          <span className="text-[10px] text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                            {String(r["KELOMPOK"] || r["Kelompok"] || "-")}
+                          </span>
+                        </div>
                       </div>
                     ))
                   )}
@@ -715,8 +922,13 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
             {selectedTrashCount > 0 && (
               <div className="p-3 bg-amber-50 border border-amber-300 rounded-lg text-amber-900 text-xs flex items-start gap-2">
                 <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold">Peringatan:</span> Terdapat <strong>{selectedTrashCount} data</strong> yang ditandai "Tidak Aktif" / "Hapus Data". Data asli dari spreadsheet akan dipindahkan ke sheet <strong>Trash</strong>.
+                <div className="space-y-1">
+                  <div>
+                    <span className="font-bold">Peringatan:</span> Terdapat <strong>{selectedTrashCount} data</strong> yang ditandai "Tidak Aktif" / "Hapus Data". Data asli dari spreadsheet akan dipindahkan ke sheet <strong>Trash</strong>.
+                  </div>
+                  <div className="text-[11px] text-amber-800">
+                    Status Metadata: <strong>{selectedTrashMarriedCount} Sudah Menikah</strong>, <strong>{selectedTrashPindahCount} Pindah Sambung</strong>.
+                  </div>
                 </div>
               </div>
             )}
@@ -746,3 +958,5 @@ export function MassUploadPreview({ data, existingData, onSave, isSaving, onCanc
     </div>
   );
 }
+
+
