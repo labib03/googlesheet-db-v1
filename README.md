@@ -10,6 +10,7 @@ Aplikasi dashboard yang menampilkan data dari Google Sheets secara real-time men
 - 🔄 Real-time data fetching
 - 🌙 Dark mode support
 - ⚡ Server-side rendering dengan Next.js 15
+- 🔌 [REST API Eksternal](docs/API_DOCUMENTATION.md) untuk integrasi data statistik generus
 
 ## 📋 Prerequisites
 
